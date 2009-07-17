@@ -34,6 +34,8 @@ AC_CONFIG_FILES([
         contextd/org.maemo.contextd.service
         tests/Makefile
         tests/contextd_tests/Makefile
+        tests/customer-tests/Makefile
+        tests/customer-tests/contextd/Makefile
         vapi/Makefile
 ])
 
