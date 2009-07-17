@@ -1,0 +1,40 @@
+Source: contextkit-maemo
+Section: misc
+Priority: optional
+Maintainer: Marius Vollmer <marius.vollmer@nokia.com>
+Build-Depends: debhelper (>= 5),
+               libcontextprovider-dev (>= 0.2.11),
+               libglib2.0-dev (>= 2.12.0),
+               libdbus-glib-1-dev,
+               libgee-dev (>= 0.1.3),
+               libhal-dev
+Standards-Version: 3.8.0
+
+Package: contextd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: contextkit
+Description: dameon that implements some context properties
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package provides the session-activated D-Bus daemon.
+
+Package: contextd-dbg
+Priority: extra
+Architecture: any
+Depends: contextd (= ${binary:Version})
+Description: dameon that implements some context properties
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the debug symbols for the daemon.
+
+Package: contextd-tests
+Section: devel
+Architecture: any
+Depends: python-contextkit, contextd
+Recommends: python2.5, python (>= 2.5)
+Description: contextd automated customer tests
+ .
+ This package contains an automated customer testsuite of the contextd daemon.
