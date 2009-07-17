@@ -32,3 +32,6 @@ Makefile.in
 /tests/contextd_tests/test_hal_plugin
 /tests/contextd_tests/test_hal_plugin.c
 /tests/contextd_tests/test_hal_plugin.vala.stamp
+/build-stamp
+*.debhelper.log
+/debian/tmp
