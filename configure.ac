@@ -1,5 +1,5 @@
 AC_PREREQ([2.61])
-AC_INIT([ContextKit-Maemo], [0.3~unreleased], [marius.vollmer@nokia.com], ContextKit-Maemo)
+AC_INIT([ContextKit-Maemo], [0.0~unreleased], [marius.vollmer@nokia.com], ContextKit-Maemo)
 
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign dist-bzip2 tar-ustar 1.9])
@@ -15,7 +15,7 @@ AX_DISABLE_FEATURE_ON_PROG([Vala compiler], [BUILD_VALA], [VALAC], [valac], [0.7
 AM_CONDITIONAL(CONTEXTKIT_BUILD_VALA, test "$missing_deps_BUILD_VALA" = "")
 
 # check for libraries
-PKG_CHECK_MODULES_SUBST([CONTEXTPROVIDER], [contextprovider-1.0])
+PKG_CHECK_MODULES_SUBST([CONTEXTPROVIDER], [contextprovider-1.0 >= 0.2.11])
 PKG_CHECK_MODULES_SUBST([GLIB], [glib-2.0 >= 2.12.0])
 PKG_CHECK_MODULES_SUBST([GOBJECT], [gobject-2.0 >= 2.12.0])
 PKG_CHECK_MODULES_SUBST([GDBUS], [dbus-glib-1])
