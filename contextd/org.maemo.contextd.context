@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<provider bus="session"
+          service="org.maemo.contextd">
+  <key name="Battery.ChargePercentage" type="INT"></key>
+  <key name="Battery.OnBattery" type="TRUTH"></key>
+  <key name="Battery.LowBattery" type="TRUTH"></key>
+  <key name="Battery.IsCharging" type="TRUTH"></key>
+  <key name="Battery.TimeUntilLow" type="INT"></key>
+  <key name="Battery.TimeUntilFull" type="INT"></key>
+  <key name="System.MemoryPressure" type="INT"></key>
+</provider>

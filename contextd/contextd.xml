@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<provider bus="session" service="org.freedesktop.ContextKit.contextd">
+  <node name="Context">
+    <node name="Battery">
+      <key name="ChargePercentage" type="INT"></key>
+      <key name="OnBattery" type="TRUTH"></key>
+      <key name="LowBattery" type="TRUTH"></key>
+      <key name="IsCharging" type="TRUTH"></key>
+      <key name="TimeUntilLow" type="INT"></key>
+      <key name="TimeUntilFull" type="INT"></key>
+    </node>
+    <node name="System">
+      <key name="MemoryPressure" type="INT"></key>
+    </node>
+  </node>
+</provider>
