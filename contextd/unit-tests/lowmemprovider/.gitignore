@@ -1,0 +1,9 @@
+lowmemprovider.cpp
+lowmemprovider.h
+logging.cpp
+logging.h
+loggingfeatures.h
+provider.cpp
+provider.h
+sconnect.h
+lowmemproviderunittest

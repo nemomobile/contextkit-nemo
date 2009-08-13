@@ -1,3 +1,3 @@
-SUBDIRS = contextd vapi tests
+SUBDIRS = contextd
 
 ACLOCAL_AMFLAGS = -I m4

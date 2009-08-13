@@ -7,7 +7,7 @@ configure:
 	./autogen.sh --no-configure
 
 Makefile:
-	./configure --prefix /usr --sysconfdir=/etc --disable-vala --disable-doc --disable-coverage
+	./configure --prefix /usr --sysconfdir=/etc --disable-doc --disable-coverage
 
 build: build-stamp
 build-stamp: Makefile
@@ -32,7 +32,7 @@ install: build
 
 	# install testsets under /usr/share
 	mkdir -p debian/tmp/usr/share
-	cp -f tests/customer-tests/contextd/*.py debian/tmp/usr/share/contextd-tests
+	cp -f contextd/customer-tests/*.py debian/tmp/usr/share/contextd-tests
 	chown -R root:root debian/tmp/usr/share/contextd-tests
 
 	# set the executable flag on to all files that have a shebang line
