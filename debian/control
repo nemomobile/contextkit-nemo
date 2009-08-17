@@ -6,6 +6,7 @@ Build-Depends: debhelper (>= 5),
                libcontextprovider-dev (>= 0.3),
                libqt4-dev,
                doxygen
+XS-Python-Version: all
 Standards-Version: 3.8.0
 
 Package: contextd
@@ -33,6 +34,7 @@ Section: devel
 Architecture: any
 Depends: python-contextkit, contextd
 Recommends: python2.5, python (>= 2.5)
+XB-Python-Version: ${python:Versions}
 Description: contextd automated customer tests
  .
  This package contains an automated customer testsuite of the contextd daemon.
