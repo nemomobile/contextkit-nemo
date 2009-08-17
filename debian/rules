@@ -40,20 +40,8 @@ install: build
 
 	dh_install --sourcedir=`pwd`/debian/tmp/
 
-binary-indep: build install
-	dh_testdir -i
-	dh_testroot -i
-	dh_installchangelogs -i
-	dh_installdocs -i
-	dh_installexamples -i
-	dh_installman -i
-	dh_link -i
-	dh_compress -i
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
-	dh_builddeb -i
+binary-indep:
+	# nothing to do
 
 binary-arch: build install
 	dh_testdir -a
