@@ -270,7 +270,7 @@ void ContextRealLogger::initialize()
     // Check and do verbosity
     const char *verbosity = getenv("CONTEXT_LOG_VERBOSITY");
     if (! verbosity)
-        return;
+        verbosity = "WARNING";
                 
     if (strcmp(verbosity, "TEST") == 0) {
         // Do nothing, all left true
