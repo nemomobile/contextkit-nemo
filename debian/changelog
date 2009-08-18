@@ -1,3 +1,9 @@
+contextkit-maemo (0.2) unstable; urgency=low
+
+  * Cleaned up build system some more and make it work again.
+
+ -- Marius Vollmer <marius.vollmer@nokia.com>  Tue, 18 Aug 2009 19:02:26 +0300
+
 contextkit-maemo (0.1) unstable; urgency=low
 
   * Cleaned up build system.
