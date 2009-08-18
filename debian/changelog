@@ -1,3 +1,9 @@
+contextkit-maemo (0.3) unstable; urgency=low
+
+  * Added Build-Dependcy on python-central.
+
+ -- Marius Vollmer <marius.vollmer@nokia.com>  Tue, 18 Aug 2009 20:36:00 +0300
+
 contextkit-maemo (0.2) unstable; urgency=low
 
   * Cleaned up build system some more and make it work again.
