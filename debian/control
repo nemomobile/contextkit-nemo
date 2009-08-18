@@ -6,6 +6,7 @@ Build-Depends: debhelper (>= 5),
                automake (>= 1:1.10),
                autoconf,
                libtool,
+               python-central,
                libcontextprovider-dev (>= 0.3),
                libqt4-dev,
                doxygen
