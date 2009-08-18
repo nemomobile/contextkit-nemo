@@ -3,6 +3,12 @@
 
 #export DH_VERBOSE=1
 
+# Sanitize build environment when running inside Scratchbox 1
+ifneq (,$(wildcard /targets))
+   export SBOX_REDIRECT_TO_DIRS=
+   export PATH=/scratchbox/compilers/bin:/bin:/usr/bin:/scratchbox/tools/bin
+endif
+
 configure:
 	./autogen.sh --no-configure
 
