@@ -3,6 +3,9 @@ Section: misc
 Priority: optional
 Maintainer: Marius Vollmer <marius.vollmer@nokia.com>
 Build-Depends: debhelper (>= 5),
+               automake (>= 1:1.10),
+               autoconf,
+               libtool,
                libcontextprovider-dev (>= 0.3),
                libqt4-dev,
                doxygen
