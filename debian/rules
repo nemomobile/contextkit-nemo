@@ -6,7 +6,7 @@
 configure:
 	./autogen.sh --no-configure
 
-Makefile:
+Makefile: configure
 	./configure --prefix /usr --sysconfdir=/etc --disable-coverage
 
 build: build-stamp
@@ -15,11 +15,11 @@ build-stamp: Makefile
 	$(MAKE) all
 	touch build-stamp
 
-clean: Makefile
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp 
-	$(MAKE) distclean
+	[ -f Makefile ] && $(MAKE) distclean || true
 	./autoclean.sh
 	dh_clean
 
