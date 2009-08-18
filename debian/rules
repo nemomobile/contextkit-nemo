@@ -7,7 +7,7 @@ configure:
 	./autogen.sh --no-configure
 
 Makefile:
-	./configure --prefix /usr --sysconfdir=/etc --disable-doc --disable-coverage
+	./configure --prefix /usr --sysconfdir=/etc --disable-coverage
 
 build: build-stamp
 build-stamp: Makefile
@@ -20,6 +20,7 @@ clean: Makefile
 	dh_testroot
 	rm -f build-stamp 
 	$(MAKE) distclean
+	./autoclean.sh
 	dh_clean
 
 install:
