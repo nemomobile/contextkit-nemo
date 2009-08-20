@@ -86,7 +86,7 @@ void HalProvider::onFirstSubscriberAppeared()
     HalManagerInterface manager(QDBusConnection::systemBus(), "org.freedesktop.Hal", this);
     QStringList batteries = manager.findDeviceByCapability("battery");
 
-    if (batteries.length() > 0) {
+    if (batteries.length() == 1) {
         contextDebug() << F_HAL << "Analyzing info from battery:" << batteries.at(0);
         batteryDevice = new HalDeviceInterface(QDBusConnection::systemBus(), "org.freedesktop.Hal", 
                                                batteries.at(0), this);
@@ -96,8 +96,10 @@ void HalProvider::onFirstSubscriberAppeared()
 
         updateProperties();
 
-    } else {
+    } else if (batteries.length() == 0) {
         contextWarning() << F_HAL << "No valid battery device found";
+    } else {
+        contextWarning() << F_HAL << "Having more than one battery is currently unsupported!";
     }
 }
 
