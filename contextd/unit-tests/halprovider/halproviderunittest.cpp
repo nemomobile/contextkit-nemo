@@ -38,7 +38,7 @@ QVariant *halLastFull = NULL;
 
 Group *lastGroup = NULL;
 HalDeviceInterface *lastDeviceInterface = NULL;
-bool hasBattery = true;
+int batteryCount = 1;
 
 QHash<QString, QVariant> values;
 
@@ -115,13 +115,21 @@ HalManagerInterface::HalManagerInterface(const QDBusConnection connection, const
 
 QStringList HalManagerInterface::findDeviceByCapability(const QString &capability)
 {
-    if (hasBattery) {
+    if (batteryCount == 1) {
         QString b("battery1");
         QStringList lst;
         lst.append(b);
         return lst;
-    } else
+    } else if (batteryCount == 0)
         return QStringList();
+    else if (batteryCount > 1) {
+        QString b1("battery1");
+        QString b2("battery1");
+        QStringList lst;
+        lst.append(b1);
+        lst.append(b2);
+        return lst;
+    }
 }
 
 /* Mocked Group */
@@ -160,6 +168,7 @@ private slots:
     void verifyTillLowProperties();
     void firstLastFirst();
     void noBattery();
+    void multipleBatteries();
     void noHalInfo();
 
 private:
@@ -171,7 +180,7 @@ void HalProviderUnitTest::init()
 {
     provider = new HalProvider();
     clearVariantsAndValues();
-    hasBattery = true;
+    batteryCount = 1;
 }
 
 // After each test
@@ -326,7 +335,22 @@ void HalProviderUnitTest::firstLastFirst()
 
 void HalProviderUnitTest::noBattery()
 {
-    hasBattery = false;
+    batteryCount = 0;
+
+    QCOMPARE(Property("Battery.OnBattery").value(), QVariant());
+    QCOMPARE(Property("Battery.LowBattery").value(), QVariant());
+    QCOMPARE(Property("Battery.ChargePercentage").value(), QVariant());
+
+    lastGroup->fakeFirst();
+
+    QCOMPARE(Property("Battery.OnBattery").value(), QVariant());
+    QCOMPARE(Property("Battery.LowBattery").value(), QVariant());
+    QCOMPARE(Property("Battery.ChargePercentage").value(), QVariant());
+}
+
+void HalProviderUnitTest::multipleBatteries()
+{
+    batteryCount = 2;
 
     QCOMPARE(Property("Battery.OnBattery").value(), QVariant());
     QCOMPARE(Property("Battery.LowBattery").value(), QVariant());
