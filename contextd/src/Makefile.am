@@ -10,10 +10,10 @@ contextd_SOURCES = contextd.cpp			\
 		   lowmemprovider.cpp		\
 		   lowmemprovider.h		\
 		   boolsysfspooler.h		\
-		   boolsysfspooler.cpp          \
-	           logging.h                    \
-	           logging.cpp                  \
-                   sconnect.h
+		   boolsysfspooler.cpp		\
+		   logging.h			\
+		   logging.cpp			\
+		   sconnect.h
 
 AM_CXXFLAGS = $(CTXTPROV_CFLAGS) $(QtCore_CFLAGS) $(QtDBus_CFLAGS)
 LIBS += $(CTXTPROV_LIBS) $(QtCore_LIBS)

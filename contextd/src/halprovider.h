@@ -25,8 +25,7 @@
 #include <QVariant>
 #include <QStringList>
 #include <QObject>
-#include <ContextProvider>
-
+#include "ContextProvider"
 #include "haldeviceinterface.h"
 
 namespace ContextD {

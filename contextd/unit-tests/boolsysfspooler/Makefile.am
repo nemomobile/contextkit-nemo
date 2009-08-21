@@ -10,7 +10,7 @@ COVERAGE_FILES = boolsysfspooler.cpp
 AM_CXXFLAGS = $(QtCore_CFLAGS) $(QtDBus_CFLAGS)
  
 AM_LDFLAGS = $(QtCore_LIBS) $(QtDBus_LIBS)
-FROM_SOURCE = loggingfeatures.h boolsysfspooler.cpp boolsysfspooler.h
+FROM_SOURCE = loggingfeatures.h boolsysfspooler.cpp boolsysfspooler.h sconnect.h logging.h logging.cpp
 FROM_SOURCE_DIR = $(srcdir)/../../src
 LDADD = 
 include $(top_srcdir)/am/tests.am

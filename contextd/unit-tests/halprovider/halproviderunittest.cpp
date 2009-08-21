@@ -122,7 +122,7 @@ QStringList HalManagerInterface::findDeviceByCapability(const QString &capabilit
         return lst;
     } else if (batteryCount == 0)
         return QStringList();
-    else if (batteryCount > 1) {
+    else {
         QString b1("battery1");
         QString b2("battery1");
         QStringList lst;
