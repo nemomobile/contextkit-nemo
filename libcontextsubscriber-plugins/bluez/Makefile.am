@@ -1,4 +1,5 @@
-lib_LTLIBRARIES = libcontextsubscriberbluez.la
+plugindir = $(libdir)/contextkit/subscriber-plugins/
+plugin_LTLIBRARIES = libcontextsubscriberbluez.la
 libcontextsubscriberbluez_la_SOURCES = bluezinterface.cpp	\
 	bluezinterface.h bluezplugin.cpp bluezplugin.h		\
 	loggingfeatures.h
@@ -19,3 +20,8 @@ libcontextsubscriberbluez_la_LIBADD=$(top_builddir)/common/libcommon.la
 nodist_libcontextsubscriberbluez_la_SOURCES = mocs.cpp
 QT_TOMOC = $(filter %.h, $(libcontextsubscriberbluez_la_SOURCES))
 include $(top_srcdir)/am/qt.am
+
+# Distribute the .context file
+providerdir = $(datadir)/contextkit/providers/
+
+dist_provider_DATA = bluez.context
