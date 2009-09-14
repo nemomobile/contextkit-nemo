@@ -20,6 +20,7 @@ PKG_CHECK_MODULES_SUBST([QtCore], [QtCore])
 PKG_CHECK_MODULES_SUBST([QtDBus], [QtDBus])
 PKG_CHECK_MODULES_SUBST([QtXml], [QtXml])
 PKG_CHECK_MODULES_SUBST([CTXTPROV], [contextprovider-1.0])
+PKG_CHECK_MODULES_SUBST([CTXTSUBS], [contextsubscriber-1.0])
 
 AC_PROG_QT_MOC
 AC_PROG_QT_UIC
@@ -38,6 +39,7 @@ AM_CONDITIONAL([CONTEXTKIT_COVERAGE], [test "$missing_deps_COVERAGE" = ""])
 
 AC_CONFIG_FILES([
 	Makefile
+        common/Makefile
 	contextd/Makefile
 	contextd/org.maemo.contextd.service
 	contextd/src/Makefile
@@ -47,6 +49,9 @@ AC_CONFIG_FILES([
 	contextd/unit-tests/boolsysfspooler/Makefile
 	contextd/unit-tests/lowmemprovider/Makefile
 	contextd/doc/Makefile
+	libcontextsubscriber-plugins/Makefile
+	libcontextsubscriber-plugins/bluez/Makefile
+	libcontextsubscriber-plugins/customer-tests/Makefile
 ])
 
 AC_OUTPUT
