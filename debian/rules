@@ -59,6 +59,7 @@ binary-arch: build install
 	dh_installmenu -a
 	dh_installman -a
 	dh_strip -p contextd --dbg-package="contextd-dbg"
+	dh_strip -p libcontextsubscriberbluez --dbg-package="libcontextsubscriberbluez-dbg"
 	dh_pycentral -pcontextd-tests
 	dh_link -a
 	dh_compress -a

@@ -8,6 +8,7 @@ Build-Depends: debhelper (>= 5),
                libtool,
                python-central,
                libcontextprovider-dev (>= 0.3),
+               libcontextsubscriber-dev (>= 0.3),
                libqt4-dev,
                doxygen
 XS-Python-Version: all
@@ -42,3 +43,22 @@ XB-Python-Version: ${python:Versions}
 Description: contextd automated customer tests
  .
  This package contains an automated customer testsuite of the contextd daemon.
+
+Package: libcontextsubscriberbluez
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A libcontextsubscriber plugin providing Bluetooth properties.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package provides the Bluez plugin for libcontextsubscriber.
+
+Package: libcontextsubscriberbluez-dbg
+Priority: extra
+Architecture: any
+Depends: contextd (= ${binary:Version})
+Description: dameon that implements some context properties
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the debug symbols for the Bluez plugin for libcontextsubscriber.

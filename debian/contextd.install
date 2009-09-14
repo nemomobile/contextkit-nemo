@@ -1,4 +1,4 @@
 usr/bin/contextd
 usr/share/dbus-1/services/*.service
-usr/share/contextkit/providers/*.context
+usr/share/contextkit/providers/org.maemo.contextd.context
 usr/share/context-providers/*.xml
