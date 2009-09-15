@@ -1,1 +1,4 @@
-EXTRA_DIST = bluez-plugin
+SUBDIRS = bluez-plugin
+
+EXTRA_DIST = common
+
