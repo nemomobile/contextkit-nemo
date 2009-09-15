@@ -1,2 +1,2 @@
-/usr/lib/contextkit/subscriber-plugins/libcontextsubscriberbluez.so.*
+/usr/lib/contextkit/subscriber-plugins/libbluez.so.0.0.0
 /usr/share/contextkit/providers/bluez.context

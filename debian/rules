@@ -29,7 +29,6 @@ clean:
 	./autoclean.sh
 	dh_clean
 
-install:
 install: build
 	dh_testdir
 	dh_testroot
@@ -46,6 +45,9 @@ install: build
 	grep -rl '^#!' debian/tmp/usr/share/contextd-tests | xargs chmod +x
 
 	dh_install --sourcedir=`pwd`/debian/tmp/
+
+	# introduce versioning to the bluez plugin name
+	mv `pwd`/debian/libcontextsubscriberbluez/usr/lib/contextkit/subscriber-plugins/libbluez.so.0.0.0 `pwd`/debian/libcontextsubscriberbluez/usr/lib/contextkit/subscriber-plugins/bluez-1.so
 
 binary-indep:
 	# nothing to do
