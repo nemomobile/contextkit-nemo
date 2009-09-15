@@ -1,0 +1,4 @@
+usr/share/libcontextsubscriberbluez-tests/common/rec-kill.sh
+usr/share/libcontextsubscriberbluez-tests/bluez-plugin/test-bluez-plugin.py
+usr/share/libcontextsubscriberbluez-tests/bluez-plugin/tests.xml
+../test-bluez.context /usr/share/libcontextsubscriberbluez-tests/bluez-plugin

@@ -62,3 +62,13 @@ Description: dameon that implements some context properties
  applications.
  .
  This package contains the debug symbols for the Bluez plugin for libcontextsubscriber.
+
+Package: libcontextsubscriberbluez-tests
+Section: devel
+Architecture: any
+Depends: contextkit-utils, libcontextsubscriberbluez
+Recommends: python2.5, python (>= 2.5)
+XB-Python-Version: ${python:Versions}
+Description: Automated customer tests for libcontextsubscriberbluez.
+ .
+ This package contains an automated customer test suite of the libcontextsubscriber Bluez plugin.
