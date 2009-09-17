@@ -22,8 +22,11 @@
 #ifndef BLUEZPLUGIN_H
 #define BLUEZPLUGIN_H
 
-#include "bluezinterface.h"
 #include <iproviderplugin.h> // For IProviderPlugin definition
+
+#include <QDBusError>
+#include <QDBusObjectPath>
+#include <QDBusInterface>
 
 using ContextSubscriber::IProviderPlugin;
 
