@@ -11,7 +11,7 @@ AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
 $(top_builddir)/common/libcommon.a:
 	$(MAKE) -C $(top_builddir)/common libcommon.a
 
-LIBS += $(QtCore_LIBS) $(QtDBus_LIBS) 
+LIBS += $(QtCore_LIBS) $(QtDBus_LIBS)
 libbluez_la_LIBADD=$(top_builddir)/common/libcommon.la
 
 .PHONY: $(top_builddir)/common/libcommon.la
