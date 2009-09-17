@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<testdefinition version="0.1">
+  <!-- Test suite, name mandatory - the same as test package name -->
+  <suite name="libcontextsubscriberbluez-tests">
+    <!-- At least one set per suite, name and description mandatory -->
+    <set name="libcontextsubscriberbluez suite" description="libcontextsubscriberbluez tests">
+	  <!-- Possibly some pre-steps to execute before running the test cases -->
+      <pre_steps>
+      </pre_steps>
+      <!-- At least one case per set, name mandatory, description mandatory, other optional -->
+      <case name="lcsbluez001" description="This test verifies that the libcontextsubscriber Bluez plugin provides Bluetooth.Visible and Enabled" requirement="" timeout="20">
+        <!-- At least one step per test, expected_result optional - tells which return code is considered passed -->
+        <step expected_result="0">. /tmp/session_bus_address.user; cd
+        /usr/share/libcontextsubscriberbluez-tests/bluez-plugin;python /usr/share/libcontextsubscriberbluez-tests/bluez-plugin/test-bluez-plugin.py</step>
+      </case>
+      <environments>
+        <scratchbox>false</scratchbox>
+        <hardware>true</hardware>
+      </environments>
+    </set>
+  </suite>
+</testdefinition>

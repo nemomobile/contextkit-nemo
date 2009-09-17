@@ -12,13 +12,8 @@ Makefile.in
 /config.status
 /config.sub
 /configure
-/contextd/contextd
-/contextd/contextd.vala.stamp
-/contextd/hal_plugin.c
-/contextd/lowmem_plugin.c
-/contextd/main.c
+/contextd/src/contextd
 /contextd/org.maemo.contextd.service
-/contextd/plugin.c
 /depcomp
 /install-sh
 /libtool
@@ -35,3 +30,10 @@ Makefile.in
 /build-stamp
 *.debhelper.log
 /debian/tmp
+.deps
+.libs
+common/libcommon.la
+libcontextsubscriber-plugins/bluez/libcontextsubscriberbluez.la
+moc_*_h.cpp
+mocs.cpp
+

@@ -29,7 +29,6 @@ clean:
 	./autoclean.sh
 	dh_clean
 
-install:
 install: build
 	dh_testdir
 	dh_testroot
@@ -39,13 +38,26 @@ install: build
 
 	# install testsets under /usr/share
 	mkdir -p debian/tmp/usr/share
+
+	# contextd-tests
 	cp -f contextd/customer-tests/*.py debian/tmp/usr/share/contextd-tests
 	chown -R root:root debian/tmp/usr/share/contextd-tests
+
+	# libcontextsubscriberbluez-tests
+	mkdir -p debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
+
+	cp -r libcontextsubscriber-plugins/customer-tests/common debian/tmp/usr/share/libcontextsubscriberbluez-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/*.py debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
+	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
+	chown -R root:root debian/tmp/usr/share/libcontextsubscriberbluez-tests
 
 	# set the executable flag on to all files that have a shebang line
 	grep -rl '^#!' debian/tmp/usr/share/contextd-tests | xargs chmod +x
 
 	dh_install --sourcedir=`pwd`/debian/tmp/
+
+	# introduce versioning to the bluez plugin name
+	mv `pwd`/debian/libcontextsubscriberbluez/usr/lib/contextkit/subscriber-plugins/libbluez.so.0.0.0 `pwd`/debian/libcontextsubscriberbluez/usr/lib/contextkit/subscriber-plugins/bluez-1.so
 
 binary-indep:
 	# nothing to do
@@ -59,6 +71,7 @@ binary-arch: build install
 	dh_installmenu -a
 	dh_installman -a
 	dh_strip -p contextd --dbg-package="contextd-dbg"
+	dh_strip -p libcontextsubscriberbluez --dbg-package="libcontextsubscriberbluez-dbg"
 	dh_pycentral -pcontextd-tests
 	dh_link -a
 	dh_compress -a
