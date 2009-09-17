@@ -1,8 +1,6 @@
 plugindir = $(libdir)/contextkit/subscriber-plugins/
 plugin_LTLIBRARIES = libbluez.la
-libbluez_la_SOURCES = bluezinterface.cpp	\
-	bluezinterface.h bluezplugin.cpp bluezplugin.h		\
-	loggingfeatures.h
+libbluez_la_SOURCES = bluezplugin.cpp bluezplugin.h loggingfeatures.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
 	      $(CTXTSUBS_CFLAGS)					\

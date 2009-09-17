@@ -54,10 +54,23 @@ public:
     virtual void unsubscribe(QSet<QString> keys);
 
 private slots:
-    void onPropertyChanged(QString key, QVariant variant);
+    void replyDBusError(QDBusError err);
+    void replyDefaultAdapter(QDBusObjectPath path);
+    void replyGetProperties(QMap<QString, QVariant> map);
+    void onPropertyChanged(QString key, QDBusVariant value);
+    void onNameOwnerChanged(QString name, QString oldOwner, QString newOwner);
 
 private:
-    BluezInterface bluezInterface;
+    void connectToBluez();
+    QDBusInterface* manager; ///< Bluez Manager interface
+    QDBusInterface* adapter; ///< Bluez Adapter interface
+    QString adapterPath; ///< Object path of the Bluez adapter
+    static const QString serviceName; ///< Bluez service name
+    static const QString managerPath; ///< Object path of Bluez Manager
+    static const QString managerInterface; ///< Interface name of Bluez manager
+    static const QString adapterInterface; ///< Interface name of Bluez adapter
+    static QDBusConnection busConnection; ///< QDBusConnection used for talking with Bluez
+
     QMap<QString, QString> properties; ///< Mapping of Bluez properties to Context FW properties
 
 };

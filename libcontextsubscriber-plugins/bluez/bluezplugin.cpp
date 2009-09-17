@@ -34,26 +34,113 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberBluez {
 
-/// Constructor. Construct the BluezInterface which handles the D-Bus
-/// connection, and tell it to try to connect to Bluez right away.
-BluezPlugin::BluezPlugin()
-{
-    // Connect signals from the Bluez interface. The events we listen to are:
-    // - interface getting connected to Bluez
-    // - interface failing to connect to Bluez
-    // - interface losing connection to Bluez
-    // - Bluez property changing
-    sconnect(&bluezInterface, SIGNAL(ready()),
-             this, SIGNAL(ready()));
-    sconnect(&bluezInterface, SIGNAL(failed(QString)),
-             this, SIGNAL(failed(QString)));
-    sconnect(&bluezInterface, SIGNAL(propertyChanged(QString, QVariant)),
-             this, SLOT(onPropertyChanged(QString, QVariant)));
-    bluezInterface.connectToBluez();
+const QString BluezPlugin::serviceName = "org.bluez";
+const QString BluezPlugin::managerPath = "/";
+const QString BluezPlugin::managerInterface = "org.bluez.Manager";
+const QString BluezPlugin::adapterInterface = "org.bluez.Adapter";
+QDBusConnection BluezPlugin::busConnection = QDBusConnection::systemBus();
 
+/// Constructor. Try to connect to Bluez right away.
+BluezPlugin::BluezPlugin() : manager(0), adapter(0)
+{
+    busConnection.connect("org.freedesktop.DBus", "/org/freedesktop/DBus",
+                          "org.freedesktop.DBus", "NameOwnerChanged",
+                          this, SLOT(onNameOwnerChanged(QString, QString, QString)));
     // Create a mapping from Bluez properties to Context Properties
     properties["Powered"] = "Bluetooth.Enabled";
     properties["Discoverable"] = "Bluetooth.Visible";
+
+    connectToBluez();
+}
+
+/// Called when the nameOwnerChanged signal is received over D-Bus.
+void BluezPlugin::onNameOwnerChanged(QString name, QString /*oldOwner*/, QString newOwner)
+{
+    if (name == serviceName) {
+        if (newOwner != "") {
+            // BlueZ appeared -> connect to it. If successful, ready()
+            // will be emitted when the connection is established.
+            connectToBluez();
+        }
+        else {
+            // BlueZ disappeared
+            emit failed("BlueZ left D-Bus");
+        }
+    }
+}
+
+/// Try to establish the connection to BlueZ.
+void BluezPlugin::connectToBluez()
+{
+    if (adapter) {
+        busConnection.disconnect(serviceName,
+                                 adapterPath,
+                                 adapterInterface,
+                                 "PropertyChanged",
+                                 this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+        delete adapter;
+        adapter = 0;
+    }
+    if (manager) {
+        delete manager;
+        manager = 0;
+    }
+
+    manager = new QDBusInterface(serviceName, managerPath, managerInterface, busConnection, this);
+    manager->callWithCallback("DefaultAdapter", QList<QVariant>(), this,
+                              SLOT(replyDefaultAdapter(QDBusObjectPath)),
+                              SLOT(replyDBusError(QDBusError)));
+}
+
+/// Called when a D-Bus error occurs when processing our
+/// callWithCallback.
+void BluezPlugin::replyDBusError(QDBusError err)
+{
+    contextWarning() << "DBus error occured:" << err.message();
+    emit failed("Cannot connect to BlueZ:" + err.message());
+}
+
+/// Called when the DefaultAdapter D-Bus call is done.
+void BluezPlugin::replyDefaultAdapter(QDBusObjectPath path)
+{
+    contextDebug();
+    adapterPath = path.path();
+    adapter = new QDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
+    busConnection.connect(serviceName,
+                          path.path(),
+                          adapterInterface,
+                          "PropertyChanged",
+                          this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+    adapter->callWithCallback("GetProperties", QList<QVariant>(), this,
+                              SLOT(replyGetProperties(QMap<QString, QVariant>)),
+                              SLOT(replyDBusError(QDBusError)));
+}
+
+/// Connected to the D-Bus signal PropertyChanged from BlueZ /
+/// adaptor. Check if the change is relevant, and if so, signal the
+/// value change of the corresponding context property.
+void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
+{
+    contextDebug() << key << value.variant().toString();
+    if (properties.contains(key)) {
+        contextDebug() << "Prop changed:" << properties[key];
+        emit valueChanged(properties[key], value.variant());
+    }
+}
+
+/// Called when the GetProperties D-Bus call is done.
+void BluezPlugin::replyGetProperties(QMap<QString, QVariant> map)
+{
+    contextDebug();
+    emit ready();
+    foreach(const QString& key, map.keys()) {
+        if (properties.contains(key)) {
+            contextDebug() << "Prop changed:" << properties[key];
+            emit valueChanged(properties[key], map[key]);
+            // Note: the upper layer is responsible for checking if the
+            // value was a different one.
+        }
+    }
 }
 
 /// Implementation of the IPropertyProvider::subscribe. We don't need
@@ -71,20 +158,6 @@ void BluezPlugin::subscribe(QSet<QString> keys)
 /// keeping track on subscriptions, so we don't need to do anything.
 void BluezPlugin::unsubscribe(QSet<QString> keys)
 {
-}
-
-/// Called when a Bluez property changes. Check if the change is
-/// relevant, and if so, signal the value change of the corresponding
-/// context property.
-void BluezPlugin::onPropertyChanged(QString key, QVariant value)
-{
-    contextDebug() << key << value.toString();
-    if (properties.contains(key)) {
-        contextDebug() << "Prop changed:" << properties[key] << value.toString();
-        emit valueChanged(properties[key], value);
-        // Note: the upper layer is responsible for checking if the
-        // value was a different one.
-    }
 }
 
 } // end namespace
