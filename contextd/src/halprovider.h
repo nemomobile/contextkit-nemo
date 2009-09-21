@@ -41,12 +41,13 @@ public:
 
 private:
     void updateProperties();
-    
+
     Property onBattery; ///< Battery.OnBattery
     Property lowBattery; ///< Battery.LowBattery
     Property chargePercentage; ///< Battery.ChargePercentage
     Property timeUntilLow; ///< Battery.TimeUntilLow
     Property timeUntilFull; ///< Battery.TimeUntilFull
+    Property isCharging; ///< Battery.IsCharging
     Group group; ///< Group with all the context properties
     HalDeviceInterface *batteryDevice; ///< The interface to the battery device
 

@@ -32,7 +32,7 @@ namespace ContextD {
 
 #define BATTERY_LOW_THRESHOLD       10
 #define BATTERY_CHARGE_PERCENTAGE   "battery.charge_level.percentage"
-#define BATTERY_CHARGE_CURRENT      "battery.charge_level.current" 
+#define BATTERY_CHARGE_CURRENT      "battery.charge_level.current"
 #define BATTERY_CHARGE_RATE         "battery.charge_level.rate"
 #define BATTERY_IS_DISCHARGING      "battery.rechargeable.is_discharging"
 #define BATTERY_IS_CHARGING         "battery.rechargeable.is_charging"
@@ -57,18 +57,19 @@ namespace ContextD {
     Communication with Hal happens over DBus.
 */
 
-HalProvider::HalProvider() 
-    : onBattery("Battery.OnBattery"), lowBattery("Battery.LowBattery"), 
-      chargePercentage("Battery.ChargePercentage"), timeUntilLow("Battery.TimeUntilLow"), 
-      timeUntilFull("Battery.TimeUntilFull")
+HalProvider::HalProvider()
+    : onBattery("Battery.OnBattery"), lowBattery("Battery.LowBattery"),
+      chargePercentage("Battery.ChargePercentage"), timeUntilLow("Battery.TimeUntilLow"),
+      timeUntilFull("Battery.TimeUntilFull"), isCharging("Battery.IsCharging")
 {
     contextDebug() << F_HAL << "Initializing hal provider";
-  
+
     group << onBattery;
     group << chargePercentage;
     group << lowBattery;
     group << timeUntilLow;
     group << timeUntilFull;
+    group << isCharging;
 
     sconnect(&group, SIGNAL(firstSubscriberAppeared()),
             this, SLOT(onFirstSubscriberAppeared()));
@@ -88,7 +89,7 @@ void HalProvider::onFirstSubscriberAppeared()
 
     if (batteries.length() == 1) {
         contextDebug() << F_HAL << "Analyzing info from battery:" << batteries.at(0);
-        batteryDevice = new HalDeviceInterface(QDBusConnection::systemBus(), "org.freedesktop.Hal", 
+        batteryDevice = new HalDeviceInterface(QDBusConnection::systemBus(), "org.freedesktop.Hal",
                                                batteries.at(0), this);
 
         sconnect(batteryDevice, SIGNAL(PropertyModified()),
@@ -103,8 +104,8 @@ void HalProvider::onFirstSubscriberAppeared()
     }
 }
 
-/// Called when the last subscriber stops watching any of our properties. 
-/// We terminate the connection to Hal, stop watching for battery changes 
+/// Called when the last subscriber stops watching any of our properties.
+/// We terminate the connection to Hal, stop watching for battery changes
 /// and free the resources.
 void HalProvider::onLastSubscriberDisappeared()
 {
@@ -120,8 +121,8 @@ void HalProvider::onDevicePropertyModified()
     updateProperties();
 }
 
-/// This fetches values of the relevant battery properties and recomputes the context 
-/// info based on that. It recomputes all data (all context properties). 
+/// This fetches values of the relevant battery properties and recomputes the context
+/// info based on that. It recomputes all data (all context properties).
 void HalProvider::updateProperties()
 {
     contextDebug() << F_HAL << "Updating properties";
@@ -132,23 +133,29 @@ void HalProvider::updateProperties()
     QVariant isChargingV = batteryDevice->readValue(BATTERY_IS_CHARGING);
     QVariant lastFullV = batteryDevice->readValue(BATTERY_LAST_FULL);
     QVariant rateV = batteryDevice->readValue(BATTERY_CHARGE_RATE);
-   
+
+    // Calculte IsCharging
+    if (isChargingV != QVariant())
+        isCharging.setValue(isChargingV.toBool());
+    else
+        isCharging.unsetValue();
+
     // Calculate and set ChargePercentage
-    if (chargePercentageV != QVariant()) 
+    if (chargePercentageV != QVariant())
         chargePercentage.setValue(chargePercentageV.toInt());
     else
         chargePercentage.unsetValue();
 
     // Calculate and set OnBattery
-    if (isDischargingV != QVariant()) 
+    if (isDischargingV != QVariant())
         onBattery.setValue(isDischargingV.toBool());
     else
         onBattery.unsetValue();
 
     // Calculate the LowBattery
-    if (isDischargingV == QVariant()) 
+    if (isDischargingV == QVariant())
         lowBattery.unsetValue();
-    else if (isDischargingV.toBool() == false) 
+    else if (isDischargingV.toBool() == false)
         lowBattery.setValue(false);
     else if (chargePercentageV == QVariant())
         lowBattery.unsetValue();
@@ -158,13 +165,13 @@ void HalProvider::updateProperties()
         lowBattery.setValue(false);
     }
 
-    // Calculate the time until low. 
-    if (chargeCurrentV != QVariant() && 
+    // Calculate the time until low.
+    if (chargeCurrentV != QVariant() &&
         isDischargingV != QVariant() && isDischargingV.toBool() == true &&
         lastFullV != QVariant() && lastFullV.toInt() != 0 &&
         rateV != QVariant() && rateV.toInt() != 0) {
 
-        double timeUntilLowV = (chargeCurrentV.toDouble() - BATTERY_LOW_THRESHOLD / 100.0 * lastFullV.toDouble()) / 
+        double timeUntilLowV = (chargeCurrentV.toDouble() - BATTERY_LOW_THRESHOLD / 100.0 * lastFullV.toDouble()) /
                                rateV.toDouble();
         if (timeUntilLowV < 0)
             timeUntilLowV = 0;
