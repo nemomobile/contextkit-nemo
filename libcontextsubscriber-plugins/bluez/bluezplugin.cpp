@@ -124,6 +124,7 @@ void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
     contextDebug() << key << value.variant().toString();
     if (properties.contains(key)) {
         contextDebug() << "Prop changed:" << properties[key];
+        propertyCache[properties[key]] = value.variant();
         emit valueChanged(properties[key], value.variant());
     }
 }
@@ -132,15 +133,16 @@ void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
 void BluezPlugin::replyGetProperties(QMap<QString, QVariant> map)
 {
     contextDebug();
-    emit ready();
     foreach(const QString& key, map.keys()) {
         if (properties.contains(key)) {
             contextDebug() << "Prop changed:" << properties[key];
+            propertyCache[properties[key]] = map[key];
             emit valueChanged(properties[key], map[key]);
             // Note: the upper layer is responsible for checking if the
             // value was a different one.
         }
     }
+    emit ready();
 }
 
 /// Implementation of the IPropertyProvider::subscribe. We don't need
@@ -149,10 +151,35 @@ void BluezPlugin::replyGetProperties(QMap<QString, QVariant> map)
 void BluezPlugin::subscribe(QSet<QString> keys)
 {
     contextDebug() << keys;
+
+    // This is a workaround because of a libcontextsubscriber bug:
+    // We don't emit valueChanged and subscribeFinished right away, but delay it.
+    // The fix: plugin emits subscribeFinished(key, value).
+
     foreach(const QString& key, keys) {
-        emit subscribeFinished(key);
+        // Ensure that we give some values for the subscribed properties
+        if (propertyCache.contains(key)) {
+            contextDebug() << "Key" << key << "found in cache";
+            QMetaObject::invokeMethod(this, "emitValueChangedAndFinished", Qt::QueuedConnection, Q_ARG(QString, key));
+        }
+        else {
+            // This shouldn't occur if the plugin functions correctly
+            contextCritical() << "Key not in cache" << key;
+            emit failed("Requested properties not supported by BlueZ");
+        }
     }
 }
+
+/// This is a hack, see BluezPlugin::subscribe().
+void BluezPlugin::emitValueChangedAndFinished(QString key)
+{
+    // We need to first call valueChanged, and only then
+    // subscribeFinished, since emitting subscribeFinished means that
+    // we have a value.
+    emit valueChanged(key, propertyCache[key]);
+    emit subscribeFinished(key);
+}
+
 
 /// Implementation of the IPropertyProvider::unsubscribe. We're not
 /// keeping track on subscriptions, so we don't need to do anything.

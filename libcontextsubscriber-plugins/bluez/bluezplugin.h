@@ -62,7 +62,7 @@ private slots:
     void replyGetProperties(QMap<QString, QVariant> map);
     void onPropertyChanged(QString key, QDBusVariant value);
     void onNameOwnerChanged(QString name, QString oldOwner, QString newOwner);
-
+    void emitValueChangedAndFinished(QString key);
 private:
     void connectToBluez();
     QDBusInterface* manager; ///< Bluez Manager interface
@@ -75,7 +75,7 @@ private:
     static QDBusConnection busConnection; ///< QDBusConnection used for talking with Bluez
 
     QMap<QString, QString> properties; ///< Mapping of Bluez properties to Context FW properties
-
+    QMap<QString, QVariant> propertyCache;
 };
 }
 
