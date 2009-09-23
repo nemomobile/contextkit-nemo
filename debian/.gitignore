@@ -1,0 +1,13 @@
+contextd/
+contextd-dbg/
+contextd-tests/
+libcontextsubscriberbluez/
+libcontextsubscriberbluez-dbg/
+libcontextsubscriberbluez-tests/
+files
+*.postinst.debhelper
+*.postrm.debhelper
+*.prerm.debhelper
+*.preinst.debhelper
+*.substvars
+*.debhelper.log
