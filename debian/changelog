@@ -1,8 +1,10 @@
-contextkit-maemo (0.4~unreleased) unstable; urgency=low
+contextkit-maemo (0.4) unstable; urgency=low
 
   * Added Bluez plugin for libcontextsubscriber.
 
- -- Marja Hassinen <ext-marja.2.hassinen@nokia.com>  Tue, 15 Sep 2009 15:34:00 +0300
+  * Implemented: SWP#CntFr-286
+
+ -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Thu, 01 Oct 2009 14:07:49 +0300
 
 contextkit-maemo (0.3) unstable; urgency=low
 
