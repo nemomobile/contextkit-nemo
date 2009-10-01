@@ -1,3 +1,10 @@
+contextkit-maemo (0.5) unstable; urgency=low
+
+  * Added cltool support for bluez plugin customer tests
+  * bluez plugin is now compatible with continuous integration
+
+ -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Thu, 01 Oct 2009 19:52:13 +0300
+
 contextkit-maemo (0.4) unstable; urgency=low
 
   * Added Bluez plugin for libcontextsubscriber.
