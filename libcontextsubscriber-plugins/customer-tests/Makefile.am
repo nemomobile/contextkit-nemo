@@ -1,4 +1,6 @@
 SUBDIRS = bluez-plugin
 
-EXTRA_DIST = common
+check-customer:
+	$(MAKE) -C bluez-plugin check-customer
 
+EXTRA_DIST = common

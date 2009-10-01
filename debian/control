@@ -68,6 +68,8 @@ Section: devel
 Architecture: any
 Depends: contextkit-utils, libcontextsubscriberbluez
 Recommends: python2.5, python (>= 2.5)
+XB-Maemo-CI-Packages: libcontextsubscriberbluez
+XB-Maemo-CI-Stage: staging, validation
 XB-Python-Version: ${python:Versions}
 Description: Automated customer tests for libcontextsubscriberbluez.
  .
