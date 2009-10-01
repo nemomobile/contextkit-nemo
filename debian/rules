@@ -46,9 +46,8 @@ install: build
 	# libcontextsubscriberbluez-tests
 	mkdir -p debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
 
-	cp -r libcontextsubscriber-plugins/customer-tests/common debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/*.py debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
-	cp libcontextsubscriber-plugins/customer-tests/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
+	cp libcontextsubscriber-plugins/customer-tests/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/test-bluez.context debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
 	chown -R root:root debian/tmp/usr/share/libcontextsubscriberbluez-tests
 
