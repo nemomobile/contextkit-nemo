@@ -20,3 +20,5 @@ include $(top_srcdir)/am/qt.am
 
 # when MOCing from .cpp file, you also has to help the dependency tracker
 lowmemproviderunittest.o: lowmemproviderunittest.moc
+
+EXTRA_DIST = ContextProvider
