@@ -34,6 +34,8 @@ extern "C" {
     IProviderPlugin* pluginFactory(const QString& constructionString);
 }
 
+class AsyncDBusInterface; // From libcontextsubscriber-dev
+
 namespace ContextSubscriberBluez
 {
 
@@ -45,7 +47,6 @@ namespace ContextSubscriberBluez
   Bluetooth.Visible.
 
  */
-
 
 class BluezPlugin : public IProviderPlugin
 {
@@ -65,8 +66,8 @@ private slots:
     void emitValueChangedAndFinished(QString key);
 private:
     void connectToBluez();
-    QDBusInterface* manager; ///< Bluez Manager interface
-    QDBusInterface* adapter; ///< Bluez Adapter interface
+    AsyncDBusInterface* manager; ///< Bluez Manager interface
+    AsyncDBusInterface* adapter; ///< Bluez Adapter interface
     QString adapterPath; ///< Object path of the Bluez adapter
     static const QString serviceName; ///< Bluez service name
     static const QString managerPath; ///< Object path of Bluez Manager
