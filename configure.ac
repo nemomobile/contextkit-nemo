@@ -53,6 +53,7 @@ AC_CONFIG_FILES([
 	libcontextsubscriber-plugins/bluez/Makefile
 	libcontextsubscriber-plugins/customer-tests/Makefile
 	libcontextsubscriber-plugins/customer-tests/bluez-plugin/Makefile
+	libcontextsubscriber-plugins/customer-tests/dbusnamewatcher/Makefile
 ])
 
 AC_OUTPUT
