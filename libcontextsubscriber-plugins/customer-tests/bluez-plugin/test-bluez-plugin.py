@@ -46,10 +46,10 @@ class BluezPlugin(unittest.TestCase):
         os.environ["CONTEXT_PROVIDERS"] = "."
         # Make Bluetooth invisible and un-enabled
         # Note: This test will alter the bluetooth settings of the system!
-        os.system("qdbus --literal --system org.bluez / org.bluez.Manager.DefaultAdapter")
-        os.system("stop bluetoothd &")
+        os.system("stop bluetoothd")
         os.system("start bluetoothd &")
         os.system("dbusnamewatcher --system org.bluez 10")
+        os.system("qdbus --literal --system org.bluez / org.bluez.Manager.DefaultAdapter")
 
         set_bluez_property("Discoverable", "false")
         set_bluez_property("Powered", "false")
