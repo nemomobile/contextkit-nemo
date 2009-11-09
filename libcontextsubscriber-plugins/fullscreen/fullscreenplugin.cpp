@@ -170,10 +170,19 @@ void FullScreenPlugin::run()
     while (subscribed) {
         // This blocks until we get an event
         XNextEvent(dpy, &event);
+        // It's possible that the property was unsubscribed while we
+        // were waiting
+        contextDebug() << "Got an event";
+
+        if (!subscribed) break;
 
         if (event.type == PropertyNotify && event.xproperty.window == DefaultRootWindow(dpy)
             && event.xproperty.atom == clientListStackingAtom) {
+            contextDebug() << "Interesting event";
             checkFullScreen();
+            // We're anyway going to check the full screen property;
+            // no need to check the other events we possibly have
+            cleanEventQueue();
         }
     }
     contextDebug() << "Returning from run";
@@ -181,7 +190,6 @@ void FullScreenPlugin::run()
 
 void FullScreenPlugin::subscribe(QSet<QString> keys)
 {
-    contextWarning();
     // Check for invalid keys
     foreach(const QString& key, keys) {
         if (key != fullScreenKey) {
@@ -194,11 +202,10 @@ void FullScreenPlugin::subscribe(QSet<QString> keys)
         checkFullScreen(); // This also signals valueChanged
 
         // Now the value is there; signal that the subscription is done.
-
         emit subscribeFinished(fullScreenKey);
 
         // Start listening to changes in the client list
-        XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask | SubstructureNotifyMask);
+        XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask);
         // Start the thread
         subscribed = true;
         start();
@@ -209,7 +216,7 @@ void FullScreenPlugin::unsubscribe(QSet<QString> keys)
 {
     if (keys.contains(fullScreenKey)) {
         // Stop listening to changes in the client list
-        XSelectInput(dpy, DefaultRootWindow(dpy), 0);
+        XSelectInput(dpy, DefaultRootWindow(dpy), NoEventMask);
 
         // Stop the thread (will affect after the next event is read)
         subscribed = false;
@@ -233,6 +240,7 @@ void FullScreenPlugin::emitValueChanged(QString key, bool value)
 void FullScreenPlugin::cleanEventQueue()
 {
     int numEvents = XEventsQueued(dpy, QueuedAlready);
+    contextDebug() << "Ignoring" << numEvents << "events";
     XEvent event;
     for (int i=0; i<numEvents; ++i) {
         XNextEvent(dpy, &event);
