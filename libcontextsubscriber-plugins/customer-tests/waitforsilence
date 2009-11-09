@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Wait until the load is below 2, but not more than 2 minutes.  Plus, dump
+# some information for post-mortem troubleshooting.
+
+exec >/tmp/xyzzy.log 2>&1;
+echo ==== PWD ====; pwd;
+echo ==== UPTIME ====; uptime;
+echo ==== PS ====; ps;
+echo ==== UPSTART ====; initctl list;
+echo ==== LSMOD ====; lsmod;
+echo ==== DPKG ====; dpkg -l;
+echo ==== TOP ====; top -n1 -b;
+echo ==== DF ====; df;
+echo ==== IFCONFIG ====; ifconfig;
+echo ==== ROUTE ====; route -n;
+
+for t in `seq 60`; do
+	read l _ _ _ _ < /proc/loadavg;
+	case "$l" in
+		[01].*) break;;
+		*) ;;
+	esac
+	sleep 2;
+done
+
+echo ==== FINISHED ====; uptime
