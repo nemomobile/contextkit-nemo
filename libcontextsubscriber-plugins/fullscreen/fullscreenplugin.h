@@ -61,8 +61,7 @@ public:
 
 private slots:
     void emitReady();
-    void emitFinished(const QString key);
-    void emitFailed(const QString key);
+    void emitValueChanged(QString key, bool value);
 
 private:
     void checkFullScreen();

@@ -39,7 +39,6 @@ namespace ContextSubscriberFullScreen {
 FullScreenPlugin::FullScreenPlugin()
     : fullScreenKey("Screen.FullScreen"), subscribed(false)
 {
-    contextWarning();
     // Initialize the objects needed when communicating via X.
     dpy = XOpenDisplay(0);
     if (dpy == 0) {
@@ -64,7 +63,6 @@ FullScreenPlugin::FullScreenPlugin()
 
 void FullScreenPlugin::checkFullScreen()
 {
-    contextWarning();
     if (dpy == 0) {
         contextWarning() << "Display == 0";
         return;
@@ -135,11 +133,11 @@ void FullScreenPlugin::checkFullScreen()
 
         if (result != Success) continue;
 
-        bool fullscreen = false;
+        bool fullScreen = false;
         Atom *states = (Atom *)data;
         for (unsigned int s = 0; s < count; ++s) {
             if (states[s] == fullScreenAtom) {
-                fullscreen = true;
+                fullScreen = true;
             }
         }
         XFree(data);
@@ -148,14 +146,9 @@ void FullScreenPlugin::checkFullScreen()
         // This window we're looking at is enough to determine whether
         // we're fullscreen or not.
         interestingWindowsFound = true;
-        if (fullscreen) {
-            contextWarning() << "fullscreen";
-            emit valueChanged(fullScreenKey, true);
-        }
-        else {
-            contextWarning() << "not fullscreen";
-            emit valueChanged(fullScreenKey, false);
-        }
+
+        QMetaObject::invokeMethod((IProviderPlugin*)this, "emitValueChanged", Qt::QueuedConnection,
+                                  Q_ARG(QString, fullScreenKey), Q_ARG(bool, fullScreen));
 
         // We have successfully checked at least one interesting
         // window; don't continue with the others.
@@ -164,8 +157,8 @@ void FullScreenPlugin::checkFullScreen()
 
     if (!interestingWindowsFound) {
         // There were no windows except the desktop + notifications
-        contextWarning() << "not fullscreen";
-        emit valueChanged(fullScreenKey, false);
+        QMetaObject::invokeMethod((IProviderPlugin*)this, "emitValueChanged", Qt::QueuedConnection,
+                                  Q_ARG(QString, fullScreenKey), Q_ARG(bool, false));
     }
 
     XFree(windowData);
@@ -175,7 +168,6 @@ void FullScreenPlugin::run()
 {
     XEvent event;
     while (subscribed) {
-        contextWarning();
         // This blocks until we get an event
         XNextEvent(dpy, &event);
 
@@ -228,21 +220,14 @@ void FullScreenPlugin::unsubscribe(QSet<QString> keys)
     }
 }
 
-// FIXME: remove these if not needed
-void FullScreenPlugin::emitFinished(const QString key)
-{
-    emit subscribeFinished(key);
-}
-
-void FullScreenPlugin::emitFailed(const QString key)
-{
-    emit subscribeFailed(key, "Invalid key");
-}
-
 void FullScreenPlugin::emitReady()
 {
     emit ready();
-    contextWarning() << "emitted ready";
+}
+
+void FullScreenPlugin::emitValueChanged(QString key, bool value)
+{
+    emit valueChanged(key, value);
 }
 
 void FullScreenPlugin::cleanEventQueue()
