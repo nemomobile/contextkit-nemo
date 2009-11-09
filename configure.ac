@@ -19,6 +19,7 @@ PKG_CHECK_MODULES_SUBST([QtTest], [QtTest])
 PKG_CHECK_MODULES_SUBST([QtCore], [QtCore])
 PKG_CHECK_MODULES_SUBST([QtDBus], [QtDBus])
 PKG_CHECK_MODULES_SUBST([QtXml], [QtXml])
+PKG_CHECK_MODULES_SUBST([x11], [x11])
 PKG_CHECK_MODULES_SUBST([CTXTPROV], [contextprovider-1.0])
 PKG_CHECK_MODULES_SUBST([CTXTSUBS], [contextsubscriber-1.0])
 
@@ -51,6 +52,7 @@ AC_CONFIG_FILES([
 	contextd/doc/Makefile
 	libcontextsubscriber-plugins/Makefile
 	libcontextsubscriber-plugins/bluez/Makefile
+	libcontextsubscriber-plugins/fullscreen/Makefile
 	libcontextsubscriber-plugins/customer-tests/Makefile
 	libcontextsubscriber-plugins/customer-tests/bluez-plugin/Makefile
 ])
