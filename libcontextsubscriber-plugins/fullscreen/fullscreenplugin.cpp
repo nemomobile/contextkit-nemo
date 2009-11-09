@@ -48,7 +48,7 @@ Runner::Runner(QObject* object, QString func)
 void Runner::run()
 {
     while (shouldRun) {
-        QMetaObject::invokeMethod(object, func.toLatin1(), Qt::QueuedConnection);
+        QMetaObject::invokeMethod(object, func.toLatin1(), Qt::DirectConnection);
     }
 }
 
