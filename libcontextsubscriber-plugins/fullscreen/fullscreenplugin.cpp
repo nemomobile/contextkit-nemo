@@ -22,6 +22,10 @@
 #include "logging.h"
 #include "fullscreenplugin.h"
 
+// How many fixed windows we always have on the top (possibly not
+// visible currently).
+#define FIXED_ON_TOP 0 // FIXME: update this to reflect the reality
+
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 {
@@ -32,12 +36,25 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberFullScreen {
 
-// How many fixed windows we always have on the top (possibly not
-// visible currently).
-#define FIXED_ON_TOP 0 // FIXME: update this to reflect the reality
+/// Constructor. Store the specified object and function to call when
+/// running.
+Runner::Runner(QObject* object, QString func)
+    : shouldRun(false), object(object), func(func)
+{
+}
+
+/// Overrides the function QThread::run(). Calls the specified
+/// function repeatedly as long as shouldRun is true.
+void Runner::run()
+{
+    while (shouldRun) {
+        QMetaObject::invokeMethod(object, func.toLatin1(), Qt::QueuedConnection);
+    }
+}
+
 
 FullScreenPlugin::FullScreenPlugin()
-    : fullScreenKey("Screen.FullScreen"), subscribed(false)
+    : runner(this, "runOnce"), fullScreenKey("Screen.FullScreen")
 {
     // Initialize the objects needed when communicating via X.
     dpy = XOpenDisplay(0);
@@ -56,9 +73,7 @@ FullScreenPlugin::FullScreenPlugin()
     // Emitting ready() is not allowed inside the constructor. Thus,
     // queue it.
 
-    // FIXME: Casting to IProviderPlugin* is ugly; FullScreenPlugin
-    // inherits QObject twice...
-    QMetaObject::invokeMethod((IProviderPlugin*)this, "emitReady", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
 }
 
 void FullScreenPlugin::checkFullScreen()
@@ -147,7 +162,7 @@ void FullScreenPlugin::checkFullScreen()
         // we're fullscreen or not.
         interestingWindowsFound = true;
 
-        QMetaObject::invokeMethod((IProviderPlugin*)this, "emitValueChanged", Qt::QueuedConnection,
+        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection,
                                   Q_ARG(QString, fullScreenKey), Q_ARG(bool, fullScreen));
 
         // We have successfully checked at least one interesting
@@ -157,35 +172,33 @@ void FullScreenPlugin::checkFullScreen()
 
     if (!interestingWindowsFound) {
         // There were no windows except the desktop + notifications
-        QMetaObject::invokeMethod((IProviderPlugin*)this, "emitValueChanged", Qt::QueuedConnection,
+        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection,
                                   Q_ARG(QString, fullScreenKey), Q_ARG(bool, false));
     }
 
     XFree(windowData);
 }
 
-void FullScreenPlugin::run()
+void FullScreenPlugin::runOnce()
 {
     XEvent event;
-    while (subscribed) {
-        // This blocks until we get an event
-        XNextEvent(dpy, &event);
-        // It's possible that the property was unsubscribed while we
-        // were waiting
-        contextDebug() << "Got an event";
 
-        if (!subscribed) break;
+    // This blocks until we get an event
+    XNextEvent(dpy, &event);
+    contextDebug() << "Got an event";
 
-        if (event.type == PropertyNotify && event.xproperty.window == DefaultRootWindow(dpy)
-            && event.xproperty.atom == clientListStackingAtom) {
-            contextDebug() << "Interesting event";
-            checkFullScreen();
-            // We're anyway going to check the full screen property;
-            // no need to check the other events we possibly have
-            cleanEventQueue();
-        }
+    // It's possible that the property was unsubscribed while we
+    // were waiting
+    if (!runner.shouldRun) return;
+
+    if (event.type == PropertyNotify && event.xproperty.window == DefaultRootWindow(dpy)
+        && event.xproperty.atom == clientListStackingAtom) {
+        contextDebug() << "Interesting event";
+        checkFullScreen();
+        // We're anyway going to check the full screen property;
+        // no need to check the other events we possibly have
+        cleanEventQueue();
     }
-    contextDebug() << "Returning from run";
 }
 
 void FullScreenPlugin::subscribe(QSet<QString> keys)
@@ -207,8 +220,8 @@ void FullScreenPlugin::subscribe(QSet<QString> keys)
         // Start listening to changes in the client list
         XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask);
         // Start the thread
-        subscribed = true;
-        start();
+        runner.shouldRun = true;
+        runner.start();
     }
 }
 
@@ -219,7 +232,7 @@ void FullScreenPlugin::unsubscribe(QSet<QString> keys)
         XSelectInput(dpy, DefaultRootWindow(dpy), NoEventMask);
 
         // Stop the thread (will affect after the next event is read)
-        subscribed = false;
+        runner.shouldRun = false;
 
         // Clean the event queue so that we don't have old events when
         // a new subscripton comes

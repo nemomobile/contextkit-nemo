@@ -41,6 +41,29 @@ namespace ContextSubscriberFullScreen
 {
 
 /*!
+  \class Runner
+
+  \brief A helper thread for FullScreenPlugin.
+
+  FullScreenPlugin cannot inherit both IProviderPlugin and QThread
+(QObject multiple inheritance seems to cause problems. Runner
+implements the QThread part.
+
+  */
+
+class Runner : public QThread
+{
+public:
+    Runner(QObject* object, QString func);
+    virtual void run();
+
+    bool shouldRun;
+private:
+    QObject* object;
+    QString func;
+};
+
+/*!
   \class FullScreenPlugin
 
   \brief A libcontextsubscriber plugin for reading the full-screen
@@ -49,7 +72,7 @@ namespace ContextSubscriberFullScreen
 
  */
 
-class FullScreenPlugin : public IProviderPlugin, public QThread
+class FullScreenPlugin : public IProviderPlugin
 {
     Q_OBJECT
 
@@ -57,9 +80,9 @@ public:
     explicit FullScreenPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
-    void run();
 
 private slots:
+    void runOnce();
     void emitReady();
     void emitValueChanged(QString key, bool value);
 
@@ -67,8 +90,8 @@ private:
     void checkFullScreen();
     void cleanEventQueue();
 
+    Runner runner;
     QString fullScreenKey;
-    bool subscribed;
 
     ::Display* dpy;
     ::Atom clientListStackingAtom;
