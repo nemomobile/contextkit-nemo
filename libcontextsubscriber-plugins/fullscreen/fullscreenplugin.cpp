@@ -36,25 +36,25 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberFullScreen {
 
-/// Constructor. Store the specified object and function to call when
-/// running.
-Runner::Runner(QObject* object, QString func)
-    : shouldRun(false), object(object), func(func)
+/// Constructor. Store the FullScreenPlugin. It implements the runOnce
+/// function the Runner is supposed to call when its running.
+Runner::Runner(FullScreenPlugin* plugin)
+    : shouldRun(false), plugin(plugin)
 {
 }
 
-/// Overrides the function QThread::run(). Calls the specified
-/// function repeatedly as long as shouldRun is true.
+/// Overrides the function QThread::run(). Calls the runOnce function
+/// of the plugin.
 void Runner::run()
 {
     while (shouldRun) {
-        QMetaObject::invokeMethod(object, func.toLatin1(), Qt::DirectConnection);
+        plugin->runOnce();
     }
 }
 
 
 FullScreenPlugin::FullScreenPlugin()
-    : runner(this, "runOnce"), fullScreenKey("Screen.FullScreen")
+    : runner(this), fullScreenKey("Screen.FullScreen")
 {
     // Initialize the objects needed when communicating via X.
     dpy = XOpenDisplay(0);

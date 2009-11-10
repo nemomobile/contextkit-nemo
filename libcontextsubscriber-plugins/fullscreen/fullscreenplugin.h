@@ -51,16 +51,17 @@ implements the QThread part.
 
   */
 
+class FullScreenPlugin;
+
 class Runner : public QThread
 {
 public:
-    Runner(QObject* object, QString func);
+    Runner(FullScreenPlugin* plugin);
     virtual void run();
 
     bool shouldRun;
 private:
-    QObject* object;
-    QString func;
+    FullScreenPlugin* plugin;
 };
 
 /*!
@@ -81,8 +82,10 @@ public:
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 
-private slots:
+public slots:
     void runOnce();
+
+private slots:
     void emitReady();
     void emitValueChanged(QString key, bool value);
 
