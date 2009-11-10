@@ -219,6 +219,8 @@ void FullScreenPlugin::subscribe(QSet<QString> keys)
 
         // Start listening to changes in the client list
         XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask);
+        XFlush(dpy);
+
         // Start the thread
         runner.shouldRun = true;
         runner.start();
@@ -230,6 +232,7 @@ void FullScreenPlugin::unsubscribe(QSet<QString> keys)
     if (keys.contains(fullScreenKey)) {
         // Stop listening to changes in the client list
         XSelectInput(dpy, DefaultRootWindow(dpy), NoEventMask);
+        XFlush(dpy);
 
         // Stop the thread (will affect after the next event is read)
         runner.shouldRun = false;
