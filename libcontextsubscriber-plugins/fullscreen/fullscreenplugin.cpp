@@ -52,7 +52,9 @@ void Runner::run()
     }
 }
 
-
+/// Constructor. Opens the X display and creates the atoms. When this
+/// is done, the "ready" signal is scheduled to be emitted (we cannot
+/// emit it in the constructor).
 FullScreenPlugin::FullScreenPlugin()
     : runner(this), fullScreenKey("Screen.FullScreen")
 {
@@ -76,6 +78,10 @@ FullScreenPlugin::FullScreenPlugin()
     QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
 }
 
+/// Check whether the top-most window is in a fullscreen state. We
+/// ignore a specified amount of windows which are always fixed on
+/// top, see #define's. Schedules a valueChanged signal to be emitted
+/// if the fullscreen status if found out.
 void FullScreenPlugin::checkFullScreen()
 {
     if (dpy == 0) {
@@ -162,6 +168,9 @@ void FullScreenPlugin::checkFullScreen()
         // we're fullscreen or not.
         interestingWindowsFound = true;
 
+        // The valueChanged is emitted in a delayed way, since this
+        // function is called from subscribe, and emitting
+        // valueChanged there makes libcontextsubscriber block.
         QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection,
                                   Q_ARG(QString, fullScreenKey), Q_ARG(bool, fullScreen));
 
@@ -179,6 +188,9 @@ void FullScreenPlugin::checkFullScreen()
     XFree(windowData);
 }
 
+/// Block until the X has an event, and process it if needed (by
+/// calling checkFullScreen). This function is called from
+/// Runner::run.
 void FullScreenPlugin::runOnce()
 {
     XEvent event;
@@ -194,13 +206,18 @@ void FullScreenPlugin::runOnce()
     if (event.type == PropertyNotify && event.xproperty.window == DefaultRootWindow(dpy)
         && event.xproperty.atom == clientListStackingAtom) {
         contextDebug() << "Interesting event";
-        checkFullScreen();
         // We're anyway going to check the full screen property;
         // no need to check the other events we possibly have
         cleanEventQueue();
+
+        checkFullScreen();
     }
 }
 
+/// Implementation of the IProviderPlugin::subscribe function. If the
+/// fullscreen property was subscribed to, initiate the needed X
+/// things (e.g., start listening to root window events) and emit
+/// subscribeFinished.
 void FullScreenPlugin::subscribe(QSet<QString> keys)
 {
     // Check for invalid keys
@@ -227,6 +244,9 @@ void FullScreenPlugin::subscribe(QSet<QString> keys)
     }
 }
 
+/// Implementation of the IProviderPlugin::unsubscribe. If the
+/// fullscreen property was unsubscribed from, stop listening to X
+/// events.
 void FullScreenPlugin::unsubscribe(QSet<QString> keys)
 {
     if (keys.contains(fullScreenKey)) {
@@ -243,16 +263,23 @@ void FullScreenPlugin::unsubscribe(QSet<QString> keys)
     }
 }
 
+/// For emitting the ready() signal in a delayed way.
 void FullScreenPlugin::emitReady()
 {
     emit ready();
 }
 
+/// For emitting the ready() signal in a delayed way.
 void FullScreenPlugin::emitValueChanged(QString key, bool value)
 {
     emit valueChanged(key, value);
 }
 
+/// Ignore X events which have already arrived. This is to prevent
+/// checking the fullscreen status multiple times when there are
+/// multiple events in the event queue. Also, when the fullscreen
+/// property is unsubscribed, the event queue is cleared, so that the
+/// events don't get processed if the property is re-subscribed.
 void FullScreenPlugin::cleanEventQueue()
 {
     int numEvents = XEventsQueued(dpy, QueuedAlready);

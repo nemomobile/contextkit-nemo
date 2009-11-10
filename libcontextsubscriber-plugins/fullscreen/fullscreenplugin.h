@@ -46,8 +46,9 @@ namespace ContextSubscriberFullScreen
   \brief A helper thread for FullScreenPlugin.
 
   FullScreenPlugin cannot inherit both IProviderPlugin and QThread
-(QObject multiple inheritance seems to cause problems. Runner
-implements the QThread part.
+  (QObject multiple inheritance seems to cause problems. Runner
+  implements the QThread part. Inside its run function it calls the
+  FullScreenPlugin::runOnce repeatedly.
 
   */
 
@@ -61,7 +62,7 @@ public:
 
     bool shouldRun;
 private:
-    FullScreenPlugin* plugin;
+    FullScreenPlugin* plugin; ///< The object whose runOnce the Runner should invoke
 };
 
 /*!
@@ -93,16 +94,16 @@ private:
     void checkFullScreen();
     void cleanEventQueue();
 
-    Runner runner;
-    QString fullScreenKey;
+    Runner runner; ///< Helper for the thread functionality
+    QString fullScreenKey; ///< Key of the fullscreen context property
 
-    ::Display* dpy;
-    ::Atom clientListStackingAtom;
-    ::Atom stateAtom;
-    ::Atom fullScreenAtom;
-    ::Atom windowTypeAtom;
-    ::Atom windowTypeDesktopAtom;
-    ::Atom windowTypeNotificationAtom;
+    ::Display* dpy; ///< Pointer to the X display the plugin opens and uses
+    ::Atom clientListStackingAtom; ///< X atom for querying the stacking client list
+    ::Atom windowTypeAtom; ///< X atom for querying the window type
+    ::Atom windowTypeDesktopAtom; ///< X atom for the desktop window type
+    ::Atom windowTypeNotificationAtom; ///< X atom for the notification window type
+    ::Atom stateAtom; ///< X atom for querying the window state
+    ::Atom fullScreenAtom; ///< X atom for the fullscreen window state
 };
 }
 
