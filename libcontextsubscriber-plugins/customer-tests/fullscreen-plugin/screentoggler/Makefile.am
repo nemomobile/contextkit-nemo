@@ -1,4 +1,5 @@
-bin_PROGRAMS = screentoggler
+testdir = $(libdir)/libcontextsubscriberfullscreen-tests
+test_PROGRAMS = screentoggler
 screentoggler_SOURCES = main.cpp commandwatcher.h commandwatcher.cpp
 
 AM_CXXFLAGS = $(QtCore_CFLAGS) $(QtGui_CFLAGS)
