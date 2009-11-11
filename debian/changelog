@@ -1,8 +1,9 @@
 contextkit-maemo (0.7~unreleased) unstable; urgency=low
 
   * modified bluez plugin customer tests to use the new cltool API.
+  * Added a libcontextsubscriber plugin for the full screen property.
 
- -- Gergely Risko <gergely+context@risko.hu>  Thu, 05 Nov 2009 13:56:59 +0200
+ -- Marja Hassinen <ext-marja.2.hassinen@nokia.com>  Wed, 11 Nov 2009 11:46:21 +0300
 
 contextkit-maemo (0.6) unstable; urgency=low
 

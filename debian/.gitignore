@@ -3,6 +3,8 @@ contextd-dbg/
 contextd-tests/
 libcontextsubscriberbluez/
 libcontextsubscriberbluez-dbg/
+libcontextsubscriberfullscreen/
+libcontextsubscriberfullscreen-dbg/
 libcontextsubscriberbluez-tests/
 files
 *.postinst.debhelper

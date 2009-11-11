@@ -18,7 +18,7 @@ Package: contextd
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: contextkit
-Description: dameon that implements some context properties
+Description: daemon that implements some context properties
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
@@ -28,7 +28,7 @@ Package: contextd-dbg
 Priority: extra
 Architecture: any
 Depends: contextd (= ${binary:Version})
-Description: dameon that implements some context properties
+Description: daemon that implements some context properties
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
@@ -57,7 +57,7 @@ Package: libcontextsubscriberbluez-dbg
 Priority: extra
 Architecture: any
 Depends: contextd (= ${binary:Version})
-Description: dameon that implements some context properties
+Description: A libcontextsubscriber plugin providing Bluetooth properties.
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
@@ -74,3 +74,22 @@ XB-Python-Version: ${python:Versions}
 Description: Automated customer tests for libcontextsubscriberbluez.
  .
  This package contains an automated customer test suite of the libcontextsubscriber Bluez plugin.
+
+Package: libcontextsubscriberfullscreen
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A libcontextsubscriber plugin providing full-screen properties.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the Fullscreen plugin for libcontextsubscriber.
+
+Package: libcontextsubscriberfullscreen-dbg
+Priority: extra
+Architecture: any
+Depends: contextd (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing full-screen properties.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the debug symbols for the Fullscreen plugin for libcontextsubscriber.
