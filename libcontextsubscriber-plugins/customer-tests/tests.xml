@@ -6,6 +6,7 @@
     <set name="libcontextsubscriberbluez suite" description="libcontextsubscriberbluez tests">
 	  <!-- Possibly some pre-steps to execute before running the test cases -->
       <pre_steps>
+	<step expected_result="0">/usr/share/libcontextsubscriberbluez-tests/waitforsilence</step>
       </pre_steps>
       <!-- At least one case per set, name mandatory, description mandatory, other optional -->
       <case name="lcsbluez001" description="This test verifies that the libcontextsubscriber Bluez plugin provides Bluetooth.Visible and Enabled" requirement="" timeout="30">

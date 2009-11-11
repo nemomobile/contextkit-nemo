@@ -48,6 +48,7 @@ install: build
 	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/*.py debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
 	cp libcontextsubscriber-plugins/customer-tests/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/test-bluez.context debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
+	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	chown -R root:root debian/tmp/usr/share/libcontextsubscriberbluez-tests
 
 	# set the executable flag on to all files that have a shebang line
