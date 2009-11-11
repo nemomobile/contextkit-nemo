@@ -80,6 +80,7 @@ class FullScreenPlugin : public IProviderPlugin
 
 public:
     explicit FullScreenPlugin();
+    ~FullScreenPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 

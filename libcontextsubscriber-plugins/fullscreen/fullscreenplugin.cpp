@@ -78,6 +78,15 @@ FullScreenPlugin::FullScreenPlugin()
     QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
 }
 
+/// Destructor. Tries to stop the runner.
+FullScreenPlugin::~FullScreenPlugin()
+{
+    runner.shouldRun = false;
+    // It's likely that the runner thread is waiting inside the
+    // XNextEvent call. Then this will only affect when it gets an
+    // event. TODO: how to make the runner thread exit XNextEvent?
+}
+
 /// Check whether the top-most window is in a fullscreen state. We
 /// ignore a specified amount of windows which are always fixed on
 /// top, see #define's. Schedules a valueChanged signal to be emitted
