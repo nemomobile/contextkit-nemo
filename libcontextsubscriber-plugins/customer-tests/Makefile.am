@@ -1,4 +1,4 @@
-SUBDIRS = bluez-plugin
+SUBDIRS = bluez-plugin fullscreen-plugin
 
 check-customer:
 	$(MAKE) -C bluez-plugin check-customer
