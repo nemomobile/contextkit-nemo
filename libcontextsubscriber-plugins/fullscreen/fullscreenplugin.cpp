@@ -21,6 +21,8 @@
 
 #include "logging.h"
 #include "fullscreenplugin.h"
+#include "sconnect.h"
+#include <QSocketNotifier>
 
 // How many fixed windows we always have on the top (possibly not
 // visible currently).
@@ -36,27 +38,11 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberFullScreen {
 
-/// Constructor. Store the FullScreenPlugin. It implements the runOnce
-/// function the Runner is supposed to call when its running.
-Runner::Runner(FullScreenPlugin* plugin)
-    : shouldRun(false), plugin(plugin)
-{
-}
-
-/// Overrides the function QThread::run(). Calls the runOnce function
-/// of the plugin.
-void Runner::run()
-{
-    while (shouldRun) {
-        plugin->runOnce();
-    }
-}
-
 /// Constructor. Opens the X display and creates the atoms. When this
 /// is done, the "ready" signal is scheduled to be emitted (we cannot
 /// emit it in the constructor).
 FullScreenPlugin::FullScreenPlugin()
-    : runner(this), fullScreenKey("Screen.FullScreen")
+    : fullScreenKey("Screen.FullScreen")
 {
     // Initialize the objects needed when communicating via X.
     dpy = XOpenDisplay(0);
@@ -72,19 +58,20 @@ FullScreenPlugin::FullScreenPlugin()
     windowTypeDesktopAtom = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DESKTOP", False);
     windowTypeNotificationAtom = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_NOTIFICATION", False);
 
+    // Fetch the fd used for communicating with X and start listening
+    // to it
+    xNotifier = new QSocketNotifier(ConnectionNumber(dpy), QSocketNotifier::Read, this);
+    sconnect(xNotifier, SIGNAL(activated(int)), this, SLOT(onXEvent()));
+
     // Emitting ready() is not allowed inside the constructor. Thus,
     // queue it.
 
     QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
 }
 
-/// Destructor. Tries to stop the runner.
+/// Destructor.
 FullScreenPlugin::~FullScreenPlugin()
 {
-    runner.shouldRun = false;
-    // It's likely that the runner thread is waiting inside the
-    // XNextEvent call. Then this will only affect when it gets an
-    // event. TODO: how to make the runner thread exit XNextEvent?
 }
 
 /// Check whether the top-most window is in a fullscreen state. We
@@ -119,7 +106,7 @@ void FullScreenPlugin::checkFullScreen()
     for (long i = numWindows - 1 - FIXED_ON_TOP; i >= 0; --i) {
         contextDebug() << "Checking window" << i << wins[i];
 
-        // FIXME: Is it enough to listen to the root window for
+        // TODO: Is it enough to listen to the root window for
         // _NET_CLIENT_LIST_STACKING? Or should we listen to other windows
         // as well?
 
@@ -132,7 +119,7 @@ void FullScreenPlugin::checkFullScreen()
 
         // Check the window type. If it is a desktop window or a
         // notification window, we're not interested.
-        // FIXME: Can we really have multiple types?
+        // TODO: Can we really have multiple types?
         bool interesting = true;
         unsigned char *data = 0;
         unsigned long count = 0;
@@ -156,7 +143,7 @@ void FullScreenPlugin::checkFullScreen()
         if (!interesting) continue;
 
         // Check the window state; whether it's fullscreen or not
-        // FIXME: Can we really have multiple states?
+        // TODO: Can we really have multiple states?
         result = XGetWindowProperty (dpy, wins[i], stateAtom,
                                      0L, 16L, False, XA_ATOM,
                                      &actualType, &actualFormat, &count, &bytesLeft, &data);
@@ -197,29 +184,34 @@ void FullScreenPlugin::checkFullScreen()
     XFree(windowData);
 }
 
-/// Block until the X has an event, and process it if needed (by
-/// calling checkFullScreen). This function is called from
-/// Runner::run.
-void FullScreenPlugin::runOnce()
+/// Check whether Xlib has an event for us. If so, process it: check
+/// whether the stacking order of the root window has changed, and if
+/// so, check the fullscreen status again.
+void FullScreenPlugin::onXEvent()
 {
     XEvent event;
+    int numEvents = XEventsQueued(dpy, QueuedAfterReading);
+    contextDebug() << "Can read from X, no of events" << numEvents;
+    if (numEvents <= 0) {
+        contextDebug() << "No events in the queue";
+        return;
+    }
 
-    // This blocks until we get an event
-    XNextEvent(dpy, &event);
-    contextDebug() << "Got an event";
+    for (int i=0; i < numEvents; ++i) {
+        // This blocks until we get an event, but now there should be one
+        contextDebug() << "Trying to read an event from X (blocking)";
+        XNextEvent(dpy, &event);
+        contextDebug() << "Got an event";
 
-    // It's possible that the property was unsubscribed while we
-    // were waiting
-    if (!runner.shouldRun) return;
-
-    if (event.type == PropertyNotify && event.xproperty.window == DefaultRootWindow(dpy)
-        && event.xproperty.atom == clientListStackingAtom) {
-        contextDebug() << "Interesting event";
-        // We're anyway going to check the full screen property;
-        // no need to check the other events we possibly have
-        cleanEventQueue();
-
-        checkFullScreen();
+        if (event.type == PropertyNotify && event.xproperty.window == DefaultRootWindow(dpy)
+            && event.xproperty.atom == clientListStackingAtom) {
+            contextDebug() << "Interesting event";
+            // We're anyway going to check the full screen property;
+            // no need to check the other events we possibly have
+            cleanEventQueue();
+            checkFullScreen();
+            break;
+        }
     }
 }
 
@@ -246,10 +238,6 @@ void FullScreenPlugin::subscribe(QSet<QString> keys)
         // Start listening to changes in the client list
         XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask);
         XFlush(dpy);
-
-        // Start the thread
-        runner.shouldRun = true;
-        runner.start();
     }
 }
 
@@ -259,12 +247,10 @@ void FullScreenPlugin::subscribe(QSet<QString> keys)
 void FullScreenPlugin::unsubscribe(QSet<QString> keys)
 {
     if (keys.contains(fullScreenKey)) {
+
         // Stop listening to changes in the client list
         XSelectInput(dpy, DefaultRootWindow(dpy), NoEventMask);
         XFlush(dpy);
-
-        // Stop the thread (will affect after the next event is read)
-        runner.shouldRun = false;
 
         // Clean the event queue so that we don't have old events when
         // a new subscripton comes

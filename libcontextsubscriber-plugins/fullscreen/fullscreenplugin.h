@@ -37,33 +37,10 @@ extern "C" {
     IProviderPlugin* pluginFactory(const QString& constructionString);
 }
 
+class QSocketNotifier;
+
 namespace ContextSubscriberFullScreen
 {
-
-/*!
-  \class Runner
-
-  \brief A helper thread for FullScreenPlugin.
-
-  FullScreenPlugin cannot inherit both IProviderPlugin and QThread
-  (QObject multiple inheritance seems to cause problems. Runner
-  implements the QThread part. Inside its run function it calls the
-  FullScreenPlugin::runOnce repeatedly.
-
-  */
-
-class FullScreenPlugin;
-
-class Runner : public QThread
-{
-public:
-    Runner(FullScreenPlugin* plugin);
-    virtual void run();
-
-    bool shouldRun;
-private:
-    FullScreenPlugin* plugin; ///< The object whose runOnce the Runner should invoke
-};
 
 /*!
   \class FullScreenPlugin
@@ -90,13 +67,14 @@ public slots:
 private slots:
     void emitReady();
     void emitValueChanged(QString key, bool value);
+    void onXEvent();
 
 private:
     void checkFullScreen();
     void cleanEventQueue();
 
-    Runner runner; ///< Helper for the thread functionality
     QString fullScreenKey; ///< Key of the fullscreen context property
+    QSocketNotifier* xNotifier; ///< For listening to the file descriptor used for communicating with X
 
     ::Display* dpy; ///< Pointer to the X display the plugin opens and uses
     ::Atom clientListStackingAtom; ///< X atom for querying the stacking client list
