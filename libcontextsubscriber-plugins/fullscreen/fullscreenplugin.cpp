@@ -38,6 +38,16 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberFullScreen {
 
+/// Handler for X errors. All errors are ignored: we cannot do any
+/// sophisticated handling, but we don't want the client process to
+/// exit in case of errors.
+int onXError(Display* eDpy, XErrorEvent* error)
+{
+    contextWarning() << "X error occured";
+    return 0;
+}
+
+
 /// Constructor. Opens the X display and creates the atoms. When this
 /// is done, the "ready" signal is scheduled to be emitted (we cannot
 /// emit it in the constructor).
@@ -50,6 +60,9 @@ FullScreenPlugin::FullScreenPlugin()
         emit failed("Cannot open display");
         return;
     }
+
+    // Add an X error handler to be able to ignore errors
+    XSetErrorHandler(onXError);
 
     clientListStackingAtom = XInternAtom(dpy, "_NET_CLIENT_LIST_STACKING", False);
     stateAtom = XInternAtom(dpy, "_NET_WM_STATE", False);
