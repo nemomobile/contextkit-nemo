@@ -1,4 +1,4 @@
-usr/share/libcontextsubscriberbluez-tests/bluez-plugin/test-bluez-plugin.py
+usr/share/libcontextsubscriberbluez-tests/test-bluez-plugin.py
 usr/share/libcontextsubscriberbluez-tests/tests.xml
 usr/share/libcontextsubscriberbluez-tests/waitforsilence
-usr/share/libcontextsubscriberbluez-tests/bluez-plugin/test-bluez.context
+usr/share/libcontextsubscriberbluez-tests/test-bluez.context
