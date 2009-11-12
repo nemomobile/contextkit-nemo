@@ -43,13 +43,22 @@ install: build
 	chown -R root:root debian/tmp/usr/share/contextd-tests
 
 	# libcontextsubscriberbluez-tests
-	mkdir -p debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
+	mkdir -p debian/tmp/usr/share/libcontextsubscriberbluez-tests
 
-	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/*.py debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
-	cp libcontextsubscriber-plugins/customer-tests/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests
-	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/test-bluez.context debian/tmp/usr/share/libcontextsubscriberbluez-tests/bluez-plugin
+	cp libcontextsubscriber-plugins/customer-tests/bluez/*.py debian/tmp/usr/share/libcontextsubscriberbluez-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez/test-bluez.context debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	chown -R root:root debian/tmp/usr/share/libcontextsubscriberbluez-tests
+
+	# libcontextsubscribersession-tests
+	mkdir -p debian/tmp/usr/share/libcontextsubscribersession-tests/
+
+	cp libcontextsubscriber-plugins/customer-tests/session/*.py debian/tmp/usr/share/libcontextsubscribersession-tests
+	cp libcontextsubscriber-plugins/customer-tests/session/tests.xml debian/tmp/usr/share/libcontextsubscribersession-tests
+	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscribersession-tests
+	chown -R root:root debian/tmp/usr/share/libcontextsubscribersession-tests
+
 
 	# set the executable flag on to all files that have a shebang line
 	grep -rl '^#!' debian/tmp/usr/share/contextd-tests | xargs chmod +x
@@ -69,6 +78,7 @@ binary-arch: build install
 	dh_installman -a
 	dh_strip -p contextd --dbg-package="contextd-dbg"
 	dh_strip -p libcontextsubscriberbluez --dbg-package="libcontextsubscriberbluez-dbg"
+	dh_strip -p libcontextsubscribersession --dbg-package="libcontextsubscribersession-dbg"
 	dh_pycentral -pcontextd-tests
 	dh_link -a
 	dh_compress -a

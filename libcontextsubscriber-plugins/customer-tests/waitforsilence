@@ -3,7 +3,7 @@
 # Wait until the load is below 2, but not more than 2 minutes.  Plus, dump
 # some information for post-mortem troubleshooting.
 
-exec >/tmp/xyzzy.log 2>&1;
+exec >/tmp/xyzzy.log 2>&1 </dev/null;
 echo ==== PWD ====; pwd;
 echo ==== UPTIME ====; uptime;
 echo ==== PS ====; ps;
