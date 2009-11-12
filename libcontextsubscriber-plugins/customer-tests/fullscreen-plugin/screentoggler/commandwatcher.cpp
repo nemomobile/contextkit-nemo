@@ -72,8 +72,10 @@ void CommandWatcher::interpret(const QString& command) const
 
         if (QString("full").startsWith(commandName)) {
             window->setWindowState(Qt::WindowFullScreen);
+            out << "full" << endl;
         } else if (QString("normal").startsWith(commandName)) {
             window->setWindowState(Qt::WindowNoState);
+            out << "normal" << endl;
         }
     }
 }

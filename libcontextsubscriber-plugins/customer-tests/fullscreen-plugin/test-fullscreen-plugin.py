@@ -50,6 +50,7 @@ class BluezPlugin(unittest.TestCase):
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:false"))
 
         program = CLTool("screentoggler", "full")
+
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:true"))
 
         program.close()
@@ -73,9 +74,14 @@ class BluezPlugin(unittest.TestCase):
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:false"))
 
         program.send("full")
+        # wait for the change to happen and the helper program to print out "full"
+        self.assert_(program.expect("full"))
+
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:true"))
 
         program.send("normal")
+        self.assert_(program.expect("normal"))
+
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:false"))
 
         program.close()
