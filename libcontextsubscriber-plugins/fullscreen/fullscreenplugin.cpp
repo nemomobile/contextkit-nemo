@@ -124,7 +124,7 @@ void FullScreenPlugin::checkFullScreen()
         return;
     }
 
-    bool interestingWindowsFound = false;
+    bool fullScreen = false;
     // Start reading the windows from the top
     Window *wins = (Window *)windowData;
     for (long i = numWindows - 1 - FIXED_ON_TOP; i >= 0; --i) {
@@ -172,7 +172,6 @@ void FullScreenPlugin::checkFullScreen()
 
         if (result != Success) continue;
 
-        bool fullScreen = false;
         Atom *states = (Atom *)data;
         for (unsigned int s = 0; s < count; ++s) {
             if (states[s] == fullScreenAtom) {
@@ -184,24 +183,14 @@ void FullScreenPlugin::checkFullScreen()
 
         // This window we're looking at is enough to determine whether
         // we're fullscreen or not.
-        interestingWindowsFound = true;
-
-        // The valueChanged is emitted in a delayed way, since this
-        // function is called from subscribe, and emitting
-        // valueChanged there makes libcontextsubscriber block.
-        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection,
-                                  Q_ARG(QString, fullScreenKey), Q_ARG(bool, fullScreen));
-
-        // We have successfully checked at least one interesting
-        // window; don't continue with the others.
         break;
     }
 
-    if (!interestingWindowsFound) {
-        // There were no windows except the desktop + notifications
-        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection,
-                                  Q_ARG(QString, fullScreenKey), Q_ARG(bool, false));
-    }
+    // The valueChanged is emitted in a delayed way, since this
+    // function is called from subscribe, and emitting valueChanged
+    // there makes libcontextsubscriber block.
+    QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection,
+                              Q_ARG(QString, fullScreenKey), Q_ARG(bool, fullScreen));
 
     XFree(windowData);
 
