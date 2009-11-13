@@ -24,6 +24,7 @@
 #include <QString>
 #include <QStringList>
 #include <QWidget>
+#include <QTextStream>
 #include <stdlib.h>
 
 int main(int argc, char **argv)
@@ -39,6 +40,11 @@ int main(int argc, char **argv)
 
     new CommandWatcher(STDIN_FILENO, &window, &app);
     window.show();
+
+    QTextStream out(stdout);
+    out << "ready" << endl;
+    out.flush();
+
 
     return app.exec();
 }

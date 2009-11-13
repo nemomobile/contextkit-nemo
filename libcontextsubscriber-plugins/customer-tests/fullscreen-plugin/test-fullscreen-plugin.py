@@ -31,7 +31,7 @@ from ContextKit.cltool import CLTool
 def timeoutHandler(signum, frame):
     raise Exception('Tests have been running for too long')
 
-class BluezPlugin(unittest.TestCase):
+class FullscreenPlugin(unittest.TestCase):
 
     def setUp(self):
         self.context_client = CLTool("context-listen", "Screen.FullScreen")
@@ -50,6 +50,7 @@ class BluezPlugin(unittest.TestCase):
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:false"))
 
         program = CLTool("screentoggler", "full")
+        self.assert_(program.expect("ready"))
 
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:true"))
 
@@ -60,6 +61,8 @@ class BluezPlugin(unittest.TestCase):
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:false"))
 
         program = CLTool("screentoggler")
+        self.assert_(program.expect("ready"))
+
         # no change signals should be delivered, so we need to query the value
         self.context_client.send("v Screen.FullScreen")
         self.assert_(self.context_client.expect("value: bool:false"))
@@ -70,6 +73,7 @@ class BluezPlugin(unittest.TestCase):
 
     def testToggleFullAndNormal(self):
         program = CLTool("screentoggler")
+        self.assert_(program.expect("ready"))
 
         self.assert_(self.context_client.expect("Screen.FullScreen = bool:false"))
 
