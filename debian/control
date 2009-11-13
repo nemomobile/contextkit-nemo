@@ -57,7 +57,7 @@ Description: A libcontextsubscriber plugin providing Bluetooth properties.
 Package: libcontextsubscriberbluez-dbg
 Priority: extra
 Architecture: any
-Depends: contextd (= ${binary:Version})
+Depends: libcontextsubscriberbluez (= ${binary:Version})
 Description: A libcontextsubscriber plugin providing Bluetooth properties.
  ContextKit is a system for providing real-time context awareness to
  applications.
@@ -88,7 +88,7 @@ Description: A libcontextsubscriber plugin providing full-screen properties.
 Package: libcontextsubscriberfullscreen-dbg
 Priority: extra
 Architecture: any
-Depends: contextd (= ${binary:Version})
+Depends: libcontextsubscriberfullscreen (= ${binary:Version})
 Description: A libcontextsubscriber plugin providing full-screen properties.
  ContextKit is a system for providing real-time context awareness to
  applications.
