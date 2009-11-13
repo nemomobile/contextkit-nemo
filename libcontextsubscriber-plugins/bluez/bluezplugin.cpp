@@ -24,6 +24,8 @@
 
 #include "logging.h"
 
+#include <asyncdbusinterface.h>
+
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 {
@@ -86,7 +88,7 @@ void BluezPlugin::connectToBluez()
         manager = 0;
     }
 
-    manager = new QDBusInterface(serviceName, managerPath, managerInterface, busConnection, this);
+    manager = new AsyncDBusInterface(serviceName, managerPath, managerInterface, busConnection, this);
     manager->callWithCallback("DefaultAdapter", QList<QVariant>(), this,
                               SLOT(replyDefaultAdapter(QDBusObjectPath)),
                               SLOT(replyDBusError(QDBusError)));
@@ -105,7 +107,7 @@ void BluezPlugin::replyDefaultAdapter(QDBusObjectPath path)
 {
     contextDebug();
     adapterPath = path.path();
-    adapter = new QDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
+    adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
     busConnection.connect(serviceName,
                           path.path(),
                           adapterInterface,

@@ -58,9 +58,7 @@ class BluezPlugin(unittest.TestCase):
         set_bluez_property("Discoverable", "false")
         set_bluez_property("Powered", "false")
 
-
-        self.context_client = CLTool("context-listen", "Bluetooth.Enabled"
-                                     ,"Bluetooth.Visible")
+        self.context_client = CLTool("context-listen", "Bluetooth.Enabled", "Bluetooth.Visible")
 
     def tearDown(self):
 
@@ -69,35 +67,25 @@ class BluezPlugin(unittest.TestCase):
         set_bluez_property("Powered", "true")
 
     def testInitial(self):
-
-        self.assert_(self.context_client.expect(CLTool.STDOUT, "Bluetooth.Visible = bool:false\nBluetooth.Enabled = bool:false"
-                        , 10)) # timeout == 1 second
+        self.assert_(self.context_client.expect("Bluetooth.Visible = bool:false\nBluetooth.Enabled = bool:false"))
 
 
     def testEnabledAndVisible(self):
         # Enable
         set_bluez_property("Powered", "true")
-        self.assert_(self.context_client.expect(CLTool.STDOUT,
-                              "Bluetooth.Visible = bool:false\nBluetooth.Enabled = bool:true",
-                              3)) # timeout == 1 second
+        self.assert_(self.context_client.expect("Bluetooth.Visible = bool:false\nBluetooth.Enabled = bool:true"))
 
         # Set visible
         set_bluez_property("Discoverable", "true")
-        self.assert_(self.context_client.expect(CLTool.STDOUT,
-                              "Bluetooth.Visible = bool:true",
-                              3)) # timeout == 1 second
+        self.assert_(self.context_client.expect("Bluetooth.Visible = bool:true"))
 
         # Set invisible
         set_bluez_property("Discoverable", "false")
-        self.assert_(self.context_client.expect(CLTool.STDOUT,
-                              "Bluetooth.Visible = bool:false",
-                              3)) # timeout == 1 second
+        self.assert_(self.context_client.expect("Bluetooth.Visible = bool:false"))
 
         # Disable
         set_bluez_property("Powered", "false")
-        self.assert_(self.context_client.expect(CLTool.STDOUT,
-                              "Bluetooth.Enabled = bool:false",
-                              3)) # timeout == 1 second
+        self.assert_(self.context_client.expect("Bluetooth.Enabled = bool:false"))
 
 if __name__ == "__main__":
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)

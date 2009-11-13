@@ -1,4 +1,4 @@
-contextkit-maemo (0.8~unreleased) unstable; urgency=low
+contextkit-maemo (0.8a~unreleased) unstable; urgency=low
 
   * added utility dbusnamewatcher and added bluetooth adapter
   retrieval and bluetoothd restart to customer tests
