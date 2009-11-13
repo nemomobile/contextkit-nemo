@@ -26,7 +26,7 @@
 #include <QThread>
 
 // Note: Including X11 headers needs to be done after including Qt
-// headers: Qt has an enum CursorShape and libx #defines CursorShape to 0.
+// headers: Qt has an enum CursorShape and Xlib #defines CursorShape to 0.
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -60,9 +60,6 @@ public:
     ~FullScreenPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
-
-public slots:
-    void runOnce();
 
 private slots:
     void emitReady();

@@ -38,6 +38,9 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberFullScreen {
 
+/// Typedef for Xlib error handling functions
+typedef int (*xerrfunc)(Display*, XErrorEvent*);
+
 /// Handler for X errors. All errors are ignored: we cannot do any
 /// sophisticated handling, but we don't want the client process to
 /// exit in case of errors.
@@ -61,9 +64,6 @@ FullScreenPlugin::FullScreenPlugin()
         return;
     }
 
-    // Add an X error handler to be able to ignore errors
-    XSetErrorHandler(onXError);
-
     clientListStackingAtom = XInternAtom(dpy, "_NET_CLIENT_LIST_STACKING", False);
     stateAtom = XInternAtom(dpy, "_NET_WM_STATE", False);
     fullScreenAtom = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
@@ -85,6 +85,8 @@ FullScreenPlugin::FullScreenPlugin()
 /// Destructor.
 FullScreenPlugin::~FullScreenPlugin()
 {
+    XCloseDisplay(dpy);
+    dpy = 0;
 }
 
 /// Check whether the top-most window is in a fullscreen state. We
@@ -103,6 +105,12 @@ void FullScreenPlugin::checkFullScreen()
     unsigned long numWindows, bytesLeft;
     unsigned char* windowData = 0;
 
+    // Set the error handler. A common situation is that we get a
+    // stacking client list from X, and while we are processing that
+    // list, a client has already exited. This will result in an
+    // BadWindow error.
+    xerrfunc oldHandler = XSetErrorHandler(onXError);
+
     // Get the stacking list of clients from the root window
     int result = XGetWindowProperty(dpy, DefaultRootWindow(dpy), clientListStackingAtom,
                                     0, 0x7fffffff, False, XA_WINDOW,
@@ -110,6 +118,9 @@ void FullScreenPlugin::checkFullScreen()
 
     if (result != Success || windowData == None) {
         contextDebug() << "Cannot get win props for root";
+        // Set back the old error handler
+        XSync(dpy, False);
+        XSetErrorHandler(oldHandler);
         return;
     }
 
@@ -132,7 +143,6 @@ void FullScreenPlugin::checkFullScreen()
 
         // Check the window type. If it is a desktop window or a
         // notification window, we're not interested.
-        // TODO: Can we really have multiple types?
         bool interesting = true;
         unsigned char *data = 0;
         unsigned long count = 0;
@@ -156,7 +166,6 @@ void FullScreenPlugin::checkFullScreen()
         if (!interesting) continue;
 
         // Check the window state; whether it's fullscreen or not
-        // TODO: Can we really have multiple states?
         result = XGetWindowProperty (dpy, wins[i], stateAtom,
                                      0L, 16L, False, XA_ATOM,
                                      &actualType, &actualFormat, &count, &bytesLeft, &data);
@@ -195,6 +204,10 @@ void FullScreenPlugin::checkFullScreen()
     }
 
     XFree(windowData);
+
+    // Set back the old error handler
+    XSync(dpy, False);
+    XSetErrorHandler(oldHandler);
 }
 
 /// Check whether Xlib has an event for us. If so, process it: check
@@ -290,7 +303,7 @@ void FullScreenPlugin::emitValueChanged(QString key, bool value)
 /// events don't get processed if the property is re-subscribed.
 void FullScreenPlugin::cleanEventQueue()
 {
-    int numEvents = XEventsQueued(dpy, QueuedAlready);
+    int numEvents = XEventsQueued(dpy, QueuedAfterReading);
     contextDebug() << "Ignoring" << numEvents << "events";
     XEvent event;
     for (int i=0; i<numEvents; ++i) {
