@@ -50,7 +50,9 @@ class BluezPlugin(unittest.TestCase):
         os.system("start bluetoothd &")
         os.system("dbusnamewatcher --system org.bluez 10")
         os.system("qdbus --literal --system org.bluez / org.bluez.Manager.DefaultAdapter")
-		print "Restart is over"
+        os.system("hciconfig")
+        os.system("ps -Af | grep -i bluetooth")
+        print "Restart is over"
         set_bluez_property("Discoverable", "false")
         set_bluez_property("Powered", "false")
 
