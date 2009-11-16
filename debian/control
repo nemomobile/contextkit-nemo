@@ -67,7 +67,7 @@ Description: A libcontextsubscriber plugin providing Bluetooth properties.
 Package: libcontextsubscriberbluez-tests
 Section: devel
 Architecture: any
-Depends: contextkit-utils, libcontextsubscriberbluez, ci-testing
+Depends: ${shlibs:Depends}, contextkit-utils, libcontextsubscriberbluez, ci-testing
 Recommends: python2.5, python (>= 2.5)
 XB-Maemo-CI-Packages: libcontextsubscriberbluez
 XB-Maemo-CI-Stage: staging, acceptance
@@ -98,7 +98,7 @@ Description: A libcontextsubscriber plugin providing the Session.State property.
 Package: libcontextsubscribersession-tests
 Section: devel
 Architecture: any
-Depends: contextkit-utils, libcontextsubscribersession, ci-testing
+Depends: ${shlibs:Depends}, contextkit-utils, libcontextsubscribersession, ci-testing
 Recommends: python2.5, python (>= 2.5)
 XB-Maemo-CI-Packages: libcontextsubscribersession
 XB-Maemo-CI-Stage: staging, acceptance
