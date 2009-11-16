@@ -1,10 +1,10 @@
-SUBDIRS = bluez-plugin fullscreen-plugin
+SUBDIRS = bluez fullscreen
 
 coverage: covoptioncheck
-	$(MAKE) -C fullscreen-plugin coverage
+	$(MAKE) -C fullscreen coverage
 
 check-customer:
-	$(MAKE) -C bluez-plugin check-customer && $(MAKE) -C fullscreen-plugin check-customer
+	$(MAKE) -C bluez check-customer && $(MAKE) -C fullscreen check-customer
 
 EXTRA_DIST = waitforsilence
 

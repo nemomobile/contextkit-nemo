@@ -45,17 +45,17 @@ install: build
 	# libcontextsubscriberbluez-tests
 	mkdir -p debian/tmp/usr/share/libcontextsubscriberbluez-tests
 
-	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/*.py debian/tmp/usr/share/libcontextsubscriberbluez-tests
-	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests
-	cp libcontextsubscriber-plugins/customer-tests/bluez-plugin/test-bluez.context debian/tmp/usr/share/libcontextsubscriberbluez-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez/*.py debian/tmp/usr/share/libcontextsubscriberbluez-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez/test-bluez.context debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	chown -R root:root debian/tmp/usr/share/libcontextsubscriberbluez-tests
 
 	# libcontextsubscriberfullscreen-tests
 	mkdir -p debian/tmp/usr/share/libcontextsubscriberfullscreen-tests/
 
-	cp libcontextsubscriber-plugins/customer-tests/fullscreen-plugin/*.py debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
-	cp libcontextsubscriber-plugins/customer-tests/fullscreen-plugin/tests.xml debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
+	cp libcontextsubscriber-plugins/customer-tests/fullscreen/*.py debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
+	cp libcontextsubscriber-plugins/customer-tests/fullscreen/tests.xml debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
 	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
 	chown -R root:root debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
 
@@ -78,6 +78,7 @@ binary-arch: build install
 	dh_installman -a
 	dh_strip -p contextd --dbg-package="contextd-dbg"
 	dh_strip -p libcontextsubscriberbluez --dbg-package="libcontextsubscriberbluez-dbg"
+	dh_strip -p libcontextsubscriberfullscreen --dbg-package="libcontextsubscriberfullscreen-dbg"
 	dh_pycentral -pcontextd-tests
 	dh_link -a
 	dh_compress -a

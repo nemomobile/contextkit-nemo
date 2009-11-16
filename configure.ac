@@ -55,9 +55,9 @@ AC_CONFIG_FILES([
 	libcontextsubscriber-plugins/bluez/Makefile
 	libcontextsubscriber-plugins/fullscreen/Makefile
 	libcontextsubscriber-plugins/customer-tests/Makefile
-	libcontextsubscriber-plugins/customer-tests/bluez-plugin/Makefile
-	libcontextsubscriber-plugins/customer-tests/fullscreen-plugin/Makefile
-	libcontextsubscriber-plugins/customer-tests/fullscreen-plugin/screentoggler/Makefile
+	libcontextsubscriber-plugins/customer-tests/bluez/Makefile
+	libcontextsubscriber-plugins/customer-tests/fullscreen/Makefile
+	libcontextsubscriber-plugins/customer-tests/fullscreen/screentoggler/Makefile
 ])
 
 AC_OUTPUT
