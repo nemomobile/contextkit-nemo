@@ -20,7 +20,7 @@
  */
 
 #include "logging.h"
-#include "fullscreenplugin.h"
+#include "sessionplugin.h"
 #include "sconnect.h"
 #include <QSocketNotifier>
 
@@ -33,10 +33,10 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 {
     // Note: it's the caller's responsibility to delete the plugin if
     // needed.
-    return new ContextSubscriberFullScreen::FullScreenPlugin();
+    return new ContextSubscriberSessionState::SessionStatePlugin();
 }
 
-namespace ContextSubscriberFullScreen {
+namespace ContextSubscriberSessionState {
 
 /// Typedef for Xlib error handling functions
 typedef int (*xerrfunc)(Display*, XErrorEvent*);
@@ -50,12 +50,13 @@ int onXError(Display* eDpy, XErrorEvent* error)
     return 0;
 }
 
-
 /// Constructor. Opens the X display and creates the atoms. When this
 /// is done, the "ready" signal is scheduled to be emitted (we cannot
 /// emit it in the constructor).
-FullScreenPlugin::FullScreenPlugin()
-    : fullScreenKey("Screen.FullScreen")
+SessionStatePlugin::SessionStatePlugin()
+    : sessionStateKey("Session.State"),
+      fullscreen(false),
+      blanked(false)
 {
     // Initialize the objects needed when communicating via X.
     dpy = XOpenDisplay(0);
@@ -83,7 +84,7 @@ FullScreenPlugin::FullScreenPlugin()
 }
 
 /// Destructor.
-FullScreenPlugin::~FullScreenPlugin()
+SessionStatePlugin::~SessionStatePlugin()
 {
     XCloseDisplay(dpy);
     dpy = 0;
@@ -93,7 +94,7 @@ FullScreenPlugin::~FullScreenPlugin()
 /// ignore a specified amount of windows which are always fixed on
 /// top, see #define's. Schedules a valueChanged signal to be emitted
 /// if the fullscreen status if found out.
-void FullScreenPlugin::checkFullScreen()
+void SessionStatePlugin::checkFullScreen()
 {
     if (dpy == 0) {
         contextWarning() << "Display == 0";
@@ -124,7 +125,7 @@ void FullScreenPlugin::checkFullScreen()
         return;
     }
 
-    bool fullScreen = false;
+    fullscreen = false;
     // Start reading the windows from the top
     Window *wins = (Window *)windowData;
     for (long i = numWindows - 1 - FIXED_ON_TOP; i >= 0; --i) {
@@ -175,7 +176,7 @@ void FullScreenPlugin::checkFullScreen()
         Atom *states = (Atom *)data;
         for (unsigned int s = 0; s < count; ++s) {
             if (states[s] == fullScreenAtom) {
-                fullScreen = true;
+                fullscreen = true;
             }
         }
         XFree(data);
@@ -189,8 +190,7 @@ void FullScreenPlugin::checkFullScreen()
     // The valueChanged is emitted in a delayed way, since this
     // function is called from subscribe, and emitting valueChanged
     // there makes libcontextsubscriber block.
-    QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection,
-                              Q_ARG(QString, fullScreenKey), Q_ARG(bool, fullScreen));
+    QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection);
 
     XFree(windowData);
 
@@ -202,7 +202,7 @@ void FullScreenPlugin::checkFullScreen()
 /// Check whether Xlib has an event for us. If so, process it: check
 /// whether the stacking order of the root window has changed, and if
 /// so, check the fullscreen status again.
-void FullScreenPlugin::onXEvent()
+void SessionStatePlugin::onXEvent()
 {
     XEvent event;
     int numEvents = XEventsQueued(dpy, QueuedAfterReading);
@@ -221,9 +221,9 @@ void FullScreenPlugin::onXEvent()
         if (event.type == PropertyNotify && event.xproperty.window == DefaultRootWindow(dpy)
             && event.xproperty.atom == clientListStackingAtom) {
             contextDebug() << "Interesting event";
-            // We're anyway going to check the full screen property;
+            // We're anyway going to check the full screen status;
             // no need to check the other events we possibly have
-            cleanEventQueue();
+            cleanXEventQueue();
             checkFullScreen();
             break;
         }
@@ -234,21 +234,21 @@ void FullScreenPlugin::onXEvent()
 /// fullscreen property was subscribed to, initiate the needed X
 /// things (e.g., start listening to root window events) and emit
 /// subscribeFinished.
-void FullScreenPlugin::subscribe(QSet<QString> keys)
+void SessionStatePlugin::subscribe(QSet<QString> keys)
 {
     // Check for invalid keys
-    foreach(const QString& key, keys) {
-        if (key != fullScreenKey) {
+    foreach (const QString& key, keys) {
+        if (key != sessionStateKey) {
             emit subscribeFailed(key, "Invalid key");
         }
     }
 
-    if (keys.contains(fullScreenKey)) {
+    if (keys.contains(sessionStateKey)) {
 
         checkFullScreen(); // This also signals valueChanged
 
         // Now the value is there; signal that the subscription is done.
-        emit subscribeFinished(fullScreenKey);
+        emit subscribeFinished(sessionStateKey);
 
         // Start listening to changes in the client list
         XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask);
@@ -256,12 +256,11 @@ void FullScreenPlugin::subscribe(QSet<QString> keys)
     }
 }
 
-/// Implementation of the IProviderPlugin::unsubscribe. If the
-/// fullscreen property was unsubscribed from, stop listening to X
-/// events.
-void FullScreenPlugin::unsubscribe(QSet<QString> keys)
+/// Implementation of the IProviderPlugin::unsubscribe. If the session
+/// state property was unsubscribed from, stop listening to X events.
+void SessionStatePlugin::unsubscribe(QSet<QString> keys)
 {
-    if (keys.contains(fullScreenKey)) {
+    if (keys.contains(sessionStateKey)) {
 
         // Stop listening to changes in the client list
         XSelectInput(dpy, DefaultRootWindow(dpy), NoEventMask);
@@ -269,28 +268,36 @@ void FullScreenPlugin::unsubscribe(QSet<QString> keys)
 
         // Clean the event queue so that we don't have old events when
         // a new subscripton comes
-        cleanEventQueue();
+        cleanXEventQueue();
     }
 }
 
 /// For emitting the ready() signal in a delayed way.
-void FullScreenPlugin::emitReady()
+void SessionStatePlugin::emitReady()
 {
     emit ready();
 }
 
 /// For emitting the ready() signal in a delayed way.
-void FullScreenPlugin::emitValueChanged(QString key, bool value)
+void SessionStatePlugin::emitValueChanged()
 {
-    emit valueChanged(key, value);
+    if (blanked) {
+        emit valueChanged(sessionStateKey, "suspended");
+    }
+    else if (fullscreen) {
+        emit valueChanged(sessionStateKey, "fullscreen");
+    }
+    else {
+        emit valueChanged(sessionStateKey, "normal");
+    }
 }
 
 /// Ignore X events which have already arrived. This is to prevent
 /// checking the fullscreen status multiple times when there are
-/// multiple events in the event queue. Also, when the fullscreen
+/// multiple events in the event queue. Also, when the session state
 /// property is unsubscribed, the event queue is cleared, so that the
 /// events don't get processed if the property is re-subscribed.
-void FullScreenPlugin::cleanEventQueue()
+void SessionStatePlugin::cleanXEventQueue()
 {
     int numEvents = XEventsQueued(dpy, QueuedAfterReading);
     contextDebug() << "Ignoring" << numEvents << "events";

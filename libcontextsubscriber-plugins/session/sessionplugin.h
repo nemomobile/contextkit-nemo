@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef FULLSCREENPLUGIN_H
-#define FULLSCREENPLUGIN_H
+#ifndef SESSIONSTATEPLUGIN_H
+#define SESSIONSTATEPLUGIN_H
 
 #include <iproviderplugin.h> // For IProviderPlugin definition
 #include <QThread>
@@ -39,39 +39,42 @@ extern "C" {
 
 class QSocketNotifier;
 
-namespace ContextSubscriberFullScreen
+namespace ContextSubscriberSessionState
 {
 
 /*!
-  \class FullScreenPlugin
+  \class SessionStatePlugin
 
-  \brief A libcontextsubscriber plugin for reading the full-screen
-  status from window manager via the X protocol. Provides the context
-  property Screen.FullScreen.
+  \brief A libcontextsubscriber plugin for providing the Session.State context property.
+
+  SessionStatePlugin reads the full-screen status from window manager
+  via the X protocol. It also listens to the screen blanking signal.
 
  */
 
-class FullScreenPlugin : public IProviderPlugin
+class SessionStatePlugin : public IProviderPlugin
 {
     Q_OBJECT
 
 public:
-    explicit FullScreenPlugin();
-    ~FullScreenPlugin();
+    explicit SessionStatePlugin();
+    ~SessionStatePlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 
 private slots:
     void emitReady();
-    void emitValueChanged(QString key, bool value);
+    void emitValueChanged();
     void onXEvent();
 
 private:
     void checkFullScreen();
-    void cleanEventQueue();
+    void cleanXEventQueue();
 
-    QString fullScreenKey; ///< Key of the fullscreen context property
+    QString sessionStateKey; ///< Key of the fullscreen context property
     QSocketNotifier* xNotifier; ///< For listening to the file descriptor used for communicating with X
+    bool fullscreen; ///< Whether we're currently in the fullscreen mode
+    bool blanked; ///< Whether the screen is currently blanked
 
     ::Display* dpy; ///< Pointer to the X display the plugin opens and uses
     ::Atom clientListStackingAtom; ///< X atom for querying the stacking client list

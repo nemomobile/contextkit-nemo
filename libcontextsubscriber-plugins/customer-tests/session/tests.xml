@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<testdefinition version="0.1">
+  <suite name="libcontextsubscribersession-tests">
+    <set name="libcontextsubscribersession suite" description="libcontextsubscribersession tests">
+      <pre_steps>
+	<step expected_result="0">/usr/share/libcontextsubscribersession-tests/waitforsilence</step>
+      </pre_steps>
+      <case name="Session.State-fullscreen" description="Test for Session.State when the fullscreen mode changes" requirement="" timeout="30">
+        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/libcontextsubscribersession-tests;export PATH=$PATH:/usr/lib/libcontextsubscribersession-tests/;python /usr/share/libcontextsubscribersession-tests/test-fullscreen.py</step>
+      </case>
+      <environments>
+        <scratchbox>false</scratchbox>
+        <hardware>true</hardware>
+      </environments>
+    </set>
+  </suite>
+</testdefinition>

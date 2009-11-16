@@ -9,12 +9,12 @@
 
 all: clean-orig Makefile.coverage
 	$(MAKE) -C ../../../../common   # redo it now, so it won't be rebuilt with coverage
-	$(MAKE) -f Makefile.coverage VPATH=../../../fullscreen CXXFLAGS=--coverage
+	$(MAKE) -f Makefile.coverage VPATH=../../../session CXXFLAGS=--coverage
 
-Makefile.coverage: ../../../fullscreen/Makefile clean-orig
-	cat $< | sed 's,^srcdir =.*,srcdir = ../../../fullscreen, ; s,^top_builddir =.*,top_builddir = ../../../.., ; s,^top_srcdir =.*,top_srcdir = ../../../..,' >$@
+Makefile.coverage: ../../../session/Makefile clean-orig
+	cat $< | sed 's,^srcdir =.*,srcdir = ../../../session, ; s,^top_builddir =.*,top_builddir = ../../../.., ; s,^top_srcdir =.*,top_srcdir = ../../../..,' >$@
 	rm -rf .deps
-	cp -av ../../../fullscreen/.deps .
+	cp -av ../../../session/.deps .
 
 clean: clean-orig
 	-$(MAKE) -f Makefile.coverage clean
@@ -24,6 +24,6 @@ clean: clean-orig
 	rm -f Makefile.coverage
 
 clean-orig:
-	$(MAKE) -C ../../../fullscreen clean
+	$(MAKE) -C ../../../session clean
 
 .PHONY: all clean clean-orig

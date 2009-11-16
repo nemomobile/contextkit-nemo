@@ -53,11 +53,11 @@ AC_CONFIG_FILES([
 	contextd/doc/Makefile
 	libcontextsubscriber-plugins/Makefile
 	libcontextsubscriber-plugins/bluez/Makefile
-	libcontextsubscriber-plugins/fullscreen/Makefile
+	libcontextsubscriber-plugins/session/Makefile
 	libcontextsubscriber-plugins/customer-tests/Makefile
 	libcontextsubscriber-plugins/customer-tests/bluez/Makefile
-	libcontextsubscriber-plugins/customer-tests/fullscreen/Makefile
-	libcontextsubscriber-plugins/customer-tests/fullscreen/screentoggler/Makefile
+	libcontextsubscriber-plugins/customer-tests/session/Makefile
+	libcontextsubscriber-plugins/customer-tests/session/screentoggler/Makefile
 ])
 
 AC_OUTPUT

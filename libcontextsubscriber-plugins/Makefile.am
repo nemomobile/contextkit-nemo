@@ -1,4 +1,4 @@
-SUBDIRS = bluez fullscreen customer-tests
+SUBDIRS = bluez session customer-tests
 
 coverage: covoptioncheck
 	$(MAKE) -C customer-tests coverage

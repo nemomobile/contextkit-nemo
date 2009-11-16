@@ -4,9 +4,9 @@ contextd-tests/
 libcontextsubscriberbluez/
 libcontextsubscriberbluez-dbg/
 libcontextsubscriberbluez-tests/
-libcontextsubscriberfullscreen/
-libcontextsubscriberfullscreen-dbg/
-libcontextsubscriberfullscreen-tests/
+libcontextsubscribersession/
+libcontextsubscribersession-dbg/
+libcontextsubscribersession-tests/
 files
 *.postinst.debhelper
 *.postrm.debhelper

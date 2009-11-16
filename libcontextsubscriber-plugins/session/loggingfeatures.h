@@ -19,9 +19,9 @@
  *
  */
 
-#ifndef FULLSCREENPLUGIN_LOGGINGFEATURES_H
-#define FULLSCREENPLUGIN_LOGGINGFEATURES_H
+#ifndef SESSIONSTATEPLUGIN_LOGGINGFEATURES_H
+#define SESSIONSTATEPLUGIN_LOGGINGFEATURES_H
 
-#define F_FULLSCREENPLUGIN   (ContextFeature("fullscreenplugin"))
+#define F_SESSIONSTATE (ContextFeature("sessionstate"))
 
 #endif

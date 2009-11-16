@@ -51,13 +51,13 @@ install: build
 	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscriberbluez-tests
 	chown -R root:root debian/tmp/usr/share/libcontextsubscriberbluez-tests
 
-	# libcontextsubscriberfullscreen-tests
-	mkdir -p debian/tmp/usr/share/libcontextsubscriberfullscreen-tests/
+	# libcontextsubscribersession-tests
+	mkdir -p debian/tmp/usr/share/libcontextsubscribersession-tests/
 
-	cp libcontextsubscriber-plugins/customer-tests/fullscreen/*.py debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
-	cp libcontextsubscriber-plugins/customer-tests/fullscreen/tests.xml debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
-	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
-	chown -R root:root debian/tmp/usr/share/libcontextsubscriberfullscreen-tests
+	cp libcontextsubscriber-plugins/customer-tests/session/*.py debian/tmp/usr/share/libcontextsubscribersession-tests
+	cp libcontextsubscriber-plugins/customer-tests/session/tests.xml debian/tmp/usr/share/libcontextsubscribersession-tests
+	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscribersession-tests
+	chown -R root:root debian/tmp/usr/share/libcontextsubscribersession-tests
 
 
 	# set the executable flag on to all files that have a shebang line
@@ -78,7 +78,7 @@ binary-arch: build install
 	dh_installman -a
 	dh_strip -p contextd --dbg-package="contextd-dbg"
 	dh_strip -p libcontextsubscriberbluez --dbg-package="libcontextsubscriberbluez-dbg"
-	dh_strip -p libcontextsubscriberfullscreen --dbg-package="libcontextsubscriberfullscreen-dbg"
+	dh_strip -p libcontextsubscribersession --dbg-package="libcontextsubscribersession-dbg"
 	dh_pycentral -pcontextd-tests
 	dh_link -a
 	dh_compress -a
