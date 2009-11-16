@@ -1,10 +1,12 @@
 SUBDIRS = bluez fullscreen
 
 coverage: covoptioncheck
-	$(MAKE) -C fullscreen coverage
+	$(MAKE) -C bluez coverage \
+	&& $(MAKE) -C fullscreen coverage
 
 check-customer:
-	$(MAKE) -C bluez check-customer && $(MAKE) -C fullscreen check-customer
+	$(MAKE) -C bluez check-customer \
+	&& $(MAKE) -C fullscreen check-customer
 
 EXTRA_DIST = waitforsilence
 
