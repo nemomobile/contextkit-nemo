@@ -3,8 +3,8 @@
 # seconds, but coverage build is slow, so we only build coverage for
 # customer tests, not always.
 
-# If you want to build lcs fullscreen plugin with coverage support,
-# you have to run make in this directory, the output is in
+# If you want to build libcontextsubscriber bluez plugin with coverage
+# support, you have to run make in this directory, the output is in
 # .libs
 
 all: clean-orig Makefile.coverage

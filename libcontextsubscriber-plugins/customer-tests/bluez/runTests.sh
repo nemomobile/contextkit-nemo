@@ -10,7 +10,7 @@ then
     rm -rf coverage-build/.libs/*.gcda
 else
     export CONTEXT_SUBSCRIBER_PLUGINS=../../bluez/.libs
-    make -C ../fullscreen
+    make -C ../../bluez
 fi
 
 # Run the tests

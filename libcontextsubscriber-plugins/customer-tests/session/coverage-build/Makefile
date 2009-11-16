@@ -3,9 +3,9 @@
 # seconds, but coverage build is slow, so we only build coverage for
 # customer tests, not always.
 
-# If you want to build lcs fullscreen plugin with coverage support,
-# you have to run make in this directory, the output is in
-# .libs
+# If you want to build libcontextsubscriber session plugin with
+# coverage support, you have to run make in this directory, the output
+# is in .libs
 
 all: clean-orig Makefile.coverage
 	$(MAKE) -C ../../../../common   # redo it now, so it won't be rebuilt with coverage

@@ -13,7 +13,7 @@ then
     rm -rf coverage-build/.libs/*.gcda
 else
     export CONTEXT_SUBSCRIBER_PLUGINS=../../session/.libs
-    make -C ../session
+    make -C ../../session
 fi
 
 # Use the .context file from the plugin directory
