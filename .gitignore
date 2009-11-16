@@ -3,6 +3,9 @@
 *.lo
 *.tar.gz
 *.tar.bz2
+*.gcno
+*.gcda
+*.la
 Makefile
 Makefile.in
 /aclocal.m4

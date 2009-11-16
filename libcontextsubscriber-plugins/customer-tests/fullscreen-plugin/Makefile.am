@@ -1,6 +1,16 @@
 SUBDIRS = screentoggler
 
-check-customer:
-	./run-locally.sh
+coverage: covoptioncheck
+	COVERAGE=1 ./runTests.sh
+.PHONY: coverage
 
-EXTRA_DIST = tests.xml run-locally.sh test-fullscreen-plugin.py
+clean-local:
+	-$(MAKE) -C coverage-build clean
+	rm -rf coverage
+
+check-customer:
+	./runTests.sh
+
+EXTRA_DIST = tests.xml runTests.sh test-fullscreen-plugin.py coverage-build
+
+include $(top_srcdir)/am/covoptioncheck.am
