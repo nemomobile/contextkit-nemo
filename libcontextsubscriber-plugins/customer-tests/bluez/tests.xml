@@ -5,7 +5,7 @@
       <pre_steps>
 	<step expected_result="0">/usr/share/libcontextsubscriberbluez-tests/waitforsilence</step>
       </pre_steps>
-      <case name="enabled-and-visible" description="This test verifies that the libcontextsubscriber Bluez plugin provides Bluetooth.Visible and Enabled" requirement="" timeout="30">
+      <case name="enabled-and-visible" description="This test verifies that the libcontextsubscriber Bluez plugin provides Bluetooth.Visible and Enabled" requirement="" timeout="60">
         <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/libcontextsubscriberbluez-tests;python /usr/share/libcontextsubscriberbluez-tests/test-bluez-plugin.py</step>
       </case>
       <environments>
