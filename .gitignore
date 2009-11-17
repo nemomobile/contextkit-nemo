@@ -3,6 +3,11 @@
 *.lo
 *.tar.gz
 *.tar.bz2
+*.gcno
+*.gcda
+*.la
+*.a
+*.moc
 Makefile
 Makefile.in
 /aclocal.m4
@@ -20,13 +25,6 @@ Makefile.in
 /ltmain.sh
 /m4
 /missing
-/tests/contextd_tests/context_provider.c
-/tests/contextd_tests/hal_plugin.c
-/tests/contextd_tests/libhal.c
-/tests/contextd_tests/plugin.c
-/tests/contextd_tests/test_hal_plugin
-/tests/contextd_tests/test_hal_plugin.c
-/tests/contextd_tests/test_hal_plugin.vala.stamp
 /build-stamp
 *.debhelper.log
 /debian/tmp
@@ -36,4 +34,6 @@ common/libcommon.la
 libcontextsubscriber-plugins/bluez/libcontextsubscriberbluez.la
 moc_*_h.cpp
 mocs.cpp
+coverage/
+Makefile.coverage
 

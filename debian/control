@@ -10,6 +10,7 @@ Build-Depends: debhelper (>= 5),
                libcontextprovider-dev (>= 0.3),
                libcontextsubscriber-dev (> 0.3.9),
                libqt4-dev,
+	       libx11-dev,
                doxygen
 XS-Python-Version: all
 Standards-Version: 3.8.0
@@ -18,7 +19,7 @@ Package: contextd
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: contextkit
-Description: dameon that implements some context properties
+Description: daemon that implements some context properties
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
@@ -28,7 +29,7 @@ Package: contextd-dbg
 Priority: extra
 Architecture: any
 Depends: contextd (= ${binary:Version})
-Description: dameon that implements some context properties
+Description: daemon that implements some context properties
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
@@ -56,8 +57,8 @@ Description: A libcontextsubscriber plugin providing Bluetooth properties.
 Package: libcontextsubscriberbluez-dbg
 Priority: extra
 Architecture: any
-Depends: contextd (= ${binary:Version})
-Description: dameon that implements some context properties
+Depends: libcontextsubscriberbluez (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing Bluetooth properties.
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
@@ -66,11 +67,42 @@ Description: dameon that implements some context properties
 Package: libcontextsubscriberbluez-tests
 Section: devel
 Architecture: any
-Depends: contextkit-utils, libcontextsubscriberbluez
+Depends: ${shlibs:Depends}, contextkit-utils, libcontextsubscriberbluez, ci-testing
 Recommends: python2.5, python (>= 2.5)
 XB-Maemo-CI-Packages: libcontextsubscriberbluez
-XB-Maemo-CI-Stage: staging, validation
+XB-Maemo-CI-Stage: staging, acceptance
 XB-Python-Version: ${python:Versions}
 Description: Automated customer tests for libcontextsubscriberbluez.
  .
  This package contains an automated customer test suite of the libcontextsubscriber Bluez plugin.
+
+Package: libcontextsubscribersession
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A libcontextsubscriber plugin providing the Session.State property.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the Session.State plugin for libcontextsubscriber.
+
+Package: libcontextsubscribersession-dbg
+Priority: extra
+Architecture: any
+Depends: libcontextsubscribersession (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing the Session.State property.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the Session.State plugin for libcontextsubscriber.
+
+Package: libcontextsubscribersession-tests
+Section: devel
+Architecture: any
+Depends: ${shlibs:Depends}, contextkit-utils, libcontextsubscribersession, ci-testing
+Recommends: python2.5, python (>= 2.5)
+XB-Maemo-CI-Packages: libcontextsubscribersession
+XB-Maemo-CI-Stage: staging, acceptance
+XB-Python-Version: ${python:Versions}
+Description: Automated customer tests for libcontextsubscribersession.
+ .
+ This package contains an automated customer test suite of the libcontextsubscriber session plugin.
