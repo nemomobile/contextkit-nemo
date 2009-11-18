@@ -31,7 +31,7 @@ from ContextKit.cltool import CLTool
 def timeoutHandler(signum, frame):
     raise Exception('Tests have been running for too long')
 
-class FullscreenPlugin(unittest.TestCase):
+class SessionPlugin(unittest.TestCase):
 
     def setUp(self):
         self.context_client = CLTool("context-listen", "Session.State")
