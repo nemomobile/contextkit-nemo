@@ -5,8 +5,11 @@
       <pre_steps>
 	<step expected_result="0">/usr/share/libcontextsubscribersession-tests/waitforsilence</step>
       </pre_steps>
-      <case name="Session.State-fullscreen" description="Test for Session.State when the fullscreen mode changes" requirement="" timeout="30">
-        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/libcontextsubscribersession-tests;export PATH=$PATH:/usr/lib/libcontextsubscribersession-tests/;python /usr/share/libcontextsubscribersession-tests/test-fullscreen.py</step>
+      <case name="Session.State-fullscreen" description="Test for Session.State when the fullscreen mode changes">
+        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/libcontextsubscribersession-tests;export PATH=$PATH:/usr/lib/libcontextsubscribersession-tests/; export CONTEXT_CORE_DECLARATIONS=/dev/null; export CONTEXT_PROVIDERS=/usr/share/libcontextsubscriber-session-tests; python /usr/share/libcontextsubscribersession-tests/test-fullscreen.py</step>
+      </case>
+      <case name="Session.State-blanking" description="Test for Session.State when the screen blanking mode changes">
+        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/libcontextsubscribersession-tests;export PATH=$PATH:/usr/lib/libcontextsubscribersession-tests/; export CONTEXT_CORE_DECLARATIONS=/dev/null; export CONTEXT_PROVIDERS=/usr/share/libcontextsubscriber-session-tests; python /usr/share/libcontextsubscribersession-tests/test-blanking.py</step>
       </case>
       <environments>
         <scratchbox>false</scratchbox>

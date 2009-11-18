@@ -11,6 +11,6 @@ clean-local:
 check-customer:
 	./runTests.sh
 
-EXTRA_DIST = tests.xml runTests.sh test-fullscreen.py coverage-build
+EXTRA_DIST = tests.xml runTests.sh test-fullscreen.py test-blanking.py coverage-build session.context fake-blanking.context
 
 include $(top_srcdir)/am/covoptioncheck.am

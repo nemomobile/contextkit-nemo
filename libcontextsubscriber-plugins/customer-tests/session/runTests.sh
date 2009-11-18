@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 which context-listen 1>/dev/null || { echo "Install contextkit-utils to run the test" && exit 1 ; }
 
@@ -16,11 +16,14 @@ else
     make -C ../../session
 fi
 
-# Use the .context file from the plugin directory
-export CONTEXT_PROVIDERS=../../session/
+# Use the .context file from the current directory
+export CONTEXT_CORE_DECLARATIONS=/dev/null
+export CONTEXT_PROVIDERS=.
 
-# Run the test
-python2.5 test-fullscreen.py
+# Run the tests
+#python2.5 test-fullscreen.py
+
+python2.5 test-blanking.py
 
 if [ -n "$COVERAGE" ]
 then

@@ -23,6 +23,8 @@
 #define SESSIONSTATEPLUGIN_H
 
 #include <iproviderplugin.h> // For IProviderPlugin definition
+
+#include <contextproperty.h>
 #include <QThread>
 
 // Note: Including X11 headers needs to be done after including Qt
@@ -74,7 +76,6 @@ private:
     QString sessionStateKey; ///< Key of the fullscreen context property
     QSocketNotifier* xNotifier; ///< For listening to the file descriptor used for communicating with X
     bool fullscreen; ///< Whether we're currently in the fullscreen mode
-    bool blanked; ///< Whether the screen is currently blanked
 
     ::Display* dpy; ///< Pointer to the X display the plugin opens and uses
     ::Atom clientListStackingAtom; ///< X atom for querying the stacking client list
@@ -83,6 +84,8 @@ private:
     ::Atom windowTypeNotificationAtom; ///< X atom for the notification window type
     ::Atom stateAtom; ///< X atom for querying the window state
     ::Atom fullScreenAtom; ///< X atom for the fullscreen window state
+
+    ContextProperty screenBlanked; ///< Context property for listening to the screen blanking status
 };
 }
 
