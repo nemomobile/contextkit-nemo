@@ -21,7 +21,7 @@ export CONTEXT_CORE_DECLARATIONS=/dev/null
 export CONTEXT_PROVIDERS=.
 
 # Run the tests
-#python2.5 test-fullscreen.py
+python2.5 test-fullscreen.py
 
 python2.5 test-blanking.py
 
