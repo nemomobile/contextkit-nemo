@@ -63,7 +63,7 @@ private slots:
     void replyGetProperties(QMap<QString, QVariant> map);
     void onPropertyChanged(QString key, QDBusVariant value);
     void onNameOwnerChanged(QString name, QString oldOwner, QString newOwner);
-    void emitValueChangedAndFinished(QString key);
+
 private:
     void connectToBluez();
     AsyncDBusInterface* manager; ///< Bluez Manager interface

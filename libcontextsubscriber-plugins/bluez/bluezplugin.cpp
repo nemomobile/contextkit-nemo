@@ -154,15 +154,11 @@ void BluezPlugin::subscribe(QSet<QString> keys)
 {
     contextDebug() << keys;
 
-    // This is a workaround because of a libcontextsubscriber bug:
-    // We don't emit valueChanged and subscribeFinished right away, but delay it.
-    // The fix: plugin emits subscribeFinished(key, value).
-
     foreach(const QString& key, keys) {
         // Ensure that we give some values for the subscribed properties
         if (propertyCache.contains(key)) {
             contextDebug() << "Key" << key << "found in cache";
-            QMetaObject::invokeMethod(this, "emitValueChangedAndFinished", Qt::QueuedConnection, Q_ARG(QString, key));
+            emit subscribeFinished(key, propertyCache[key]);
         }
         else {
             // This shouldn't occur if the plugin functions correctly
@@ -171,17 +167,6 @@ void BluezPlugin::subscribe(QSet<QString> keys)
         }
     }
 }
-
-/// This is a hack, see BluezPlugin::subscribe().
-void BluezPlugin::emitValueChangedAndFinished(QString key)
-{
-    // We need to first call valueChanged, and only then
-    // subscribeFinished, since emitting subscribeFinished means that
-    // we have a value.
-    emit valueChanged(key, propertyCache[key]);
-    emit subscribeFinished(key);
-}
-
 
 /// Implementation of the IPropertyProvider::unsubscribe. We're not
 /// keeping track on subscriptions, so we don't need to do anything.
