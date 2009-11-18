@@ -55,6 +55,8 @@ install: build
 	mkdir -p debian/tmp/usr/share/libcontextsubscribersession-tests/
 
 	cp libcontextsubscriber-plugins/customer-tests/session/*.py debian/tmp/usr/share/libcontextsubscribersession-tests
+	cp libcontextsubscriber-plugins/customer-tests/session/*.context debian/tmp/usr/share/libcontextsubscribersession-tests
+
 	cp libcontextsubscriber-plugins/customer-tests/session/tests.xml debian/tmp/usr/share/libcontextsubscribersession-tests
 	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscribersession-tests
 	chown -R root:root debian/tmp/usr/share/libcontextsubscribersession-tests

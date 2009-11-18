@@ -1,4 +1,7 @@
 usr/share/libcontextsubscribersession-tests/test-fullscreen.py
+usr/share/libcontextsubscribersession-tests/test-blanking.py
+usr/share/libcontextsubscribersession-tests/session.context
+usr/share/libcontextsubscribersession-tests/fake-blanking.context
 usr/share/libcontextsubscribersession-tests/tests.xml
 usr/share/libcontextsubscribersession-tests/waitforsilence
 usr/lib/libcontextsubscribersession-tests/screentoggler
