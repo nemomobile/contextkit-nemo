@@ -46,7 +46,6 @@ typedef int (*xerrfunc)(Display*, XErrorEvent*);
 /// exit in case of errors.
 int onXError(Display* eDpy, XErrorEvent* error)
 {
-    contextWarning() << "X error occured";
     return 0;
 }
 
@@ -291,11 +290,12 @@ void SessionStatePlugin::emitReady()
     emit ready();
 }
 
-/// For emitting the ready() signal in a delayed way.
+/// Check the current status of the Session.State property and emit
+/// the valueChanged signal.
 void SessionStatePlugin::emitValueChanged()
 {
     QVariant blanked = screenBlanked.value();
-    if (blanked.isNull() == false && blanked.toBool() == true) {
+    if (!blanked.isNull() && blanked.toBool()) {
         emit valueChanged(sessionStateKey, "blanked");
     }
     // Either the screen is not blanked or we don't know
