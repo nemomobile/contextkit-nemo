@@ -1,4 +1,4 @@
-testdir = $(libdir)/libcontextsubscribersession-tests
+testdir = $(libdir)/context-session-tests
 test_PROGRAMS = screentoggler
 screentoggler_SOURCES = main.cpp commandwatcher.h commandwatcher.cpp
 

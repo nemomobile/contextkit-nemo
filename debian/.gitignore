@@ -7,6 +7,12 @@ libcontextsubscriberbluez-tests/
 libcontextsubscribersession/
 libcontextsubscribersession-dbg/
 libcontextsubscribersession-tests/
+context-bluetooth/
+context-bluetooth-dbg/
+context-bluetooth-tests/
+context-session/
+context-session-dbg/
+context-session-tests/
 files
 *.postinst.debhelper
 *.postrm.debhelper

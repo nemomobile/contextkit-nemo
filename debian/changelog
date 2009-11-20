@@ -1,8 +1,11 @@
 contextkit-maemo (0.7.2~unreleased) unstable; urgency=low
 
-  * 
+  * Refined Session.State property (include screen blanking detection).
+  * Renamed libcontextsubscriber plugin packages:
+  libcontextsubscriberbluez -> context-bluetooth,
+  libcontextsubscribersession -> context-session
 
- -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Tue, 17 Nov 2009 13:54:19 +0200
+ -- Marja Hassinen <ext-marja.2.hassinen@nokia.com>  Fri, 20 Nov 2009 10:22:55 +0200
 
 contextkit-maemo (0.7.1) unstable; urgency=low
 

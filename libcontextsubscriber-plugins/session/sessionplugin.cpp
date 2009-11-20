@@ -46,7 +46,6 @@ typedef int (*xerrfunc)(Display*, XErrorEvent*);
 /// exit in case of errors.
 int onXError(Display* eDpy, XErrorEvent* error)
 {
-    contextWarning() << "X error occured";
     return 0;
 }
 
@@ -56,7 +55,7 @@ int onXError(Display* eDpy, XErrorEvent* error)
 SessionStatePlugin::SessionStatePlugin()
     : sessionStateKey("Session.State"),
       fullscreen(false),
-      blanked(false)
+      screenBlanked("Screen.Blanked")
 {
     // Initialize the objects needed when communicating via X.
     dpy = XOpenDisplay(0);
@@ -81,6 +80,13 @@ SessionStatePlugin::SessionStatePlugin()
     // queue it.
 
     QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
+
+    // Connect to the screen blanking property
+    sconnect(&screenBlanked, SIGNAL(valueChanged()), this, SLOT(emitValueChanged()));
+
+    // From the start, the screen blanking property doesn't need to be
+    // subscribed
+    screenBlanked.unsubscribe();
 }
 
 /// Destructor.
@@ -253,6 +259,9 @@ void SessionStatePlugin::subscribe(QSet<QString> keys)
         // Start listening to changes in the client list
         XSelectInput(dpy, DefaultRootWindow(dpy), PropertyChangeMask);
         XFlush(dpy);
+
+        // Start listening to the screen blanking status
+        screenBlanked.subscribe();
     }
 }
 
@@ -269,6 +278,9 @@ void SessionStatePlugin::unsubscribe(QSet<QString> keys)
         // Clean the event queue so that we don't have old events when
         // a new subscripton comes
         cleanXEventQueue();
+
+        // Stop listening to the screen blanking status
+        screenBlanked.unsubscribe();
     }
 }
 
@@ -278,12 +290,15 @@ void SessionStatePlugin::emitReady()
     emit ready();
 }
 
-/// For emitting the ready() signal in a delayed way.
+/// Check the current status of the Session.State property and emit
+/// the valueChanged signal.
 void SessionStatePlugin::emitValueChanged()
 {
-    if (blanked) {
-        emit valueChanged(sessionStateKey, "suspended");
+    QVariant blanked = screenBlanked.value();
+    if (!blanked.isNull() && blanked.toBool()) {
+        emit valueChanged(sessionStateKey, "blanked");
     }
+    // Either the screen is not blanked or we don't know
     else if (fullscreen) {
         emit valueChanged(sessionStateKey, "fullscreen");
     }

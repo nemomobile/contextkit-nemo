@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 which context-listen 1>/dev/null || { echo "Install contextkit-utils to run the test" && exit 1 ; }
 
