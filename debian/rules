@@ -42,24 +42,24 @@ install: build
 	cp -f contextd/customer-tests/*.py debian/tmp/usr/share/contextd-tests
 	chown -R root:root debian/tmp/usr/share/contextd-tests
 
-	# libcontextsubscriberbluez-tests
-	mkdir -p debian/tmp/usr/share/libcontextsubscriberbluez-tests
+	# context-bluetooth-tests
+	mkdir -p debian/tmp/usr/share/context-bluetooth-tests
 
-	cp libcontextsubscriber-plugins/customer-tests/bluez/*.py debian/tmp/usr/share/libcontextsubscriberbluez-tests
-	cp libcontextsubscriber-plugins/customer-tests/bluez/tests.xml debian/tmp/usr/share/libcontextsubscriberbluez-tests
-	cp libcontextsubscriber-plugins/customer-tests/bluez/test-bluez.context debian/tmp/usr/share/libcontextsubscriberbluez-tests
-	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscriberbluez-tests
-	chown -R root:root debian/tmp/usr/share/libcontextsubscriberbluez-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez/*.py debian/tmp/usr/share/context-bluetooth-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez/tests.xml debian/tmp/usr/share/context-bluetooth-tests
+	cp libcontextsubscriber-plugins/customer-tests/bluez/test-bluez.context debian/tmp/usr/share/context-bluetooth-tests
+	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/context-bluetooth-tests
+	chown -R root:root debian/tmp/usr/share/context-bluetooth-tests
 
-	# libcontextsubscribersession-tests
-	mkdir -p debian/tmp/usr/share/libcontextsubscribersession-tests/
+	# context-session-tests
+	mkdir -p debian/tmp/usr/share/context-session-tests/
 
-	cp libcontextsubscriber-plugins/customer-tests/session/*.py debian/tmp/usr/share/libcontextsubscribersession-tests
-	cp libcontextsubscriber-plugins/customer-tests/session/*.context debian/tmp/usr/share/libcontextsubscribersession-tests
+	cp libcontextsubscriber-plugins/customer-tests/session/*.py debian/tmp/usr/share/context-session-tests
+	cp libcontextsubscriber-plugins/customer-tests/session/*.context debian/tmp/usr/share/context-session-tests
 
-	cp libcontextsubscriber-plugins/customer-tests/session/tests.xml debian/tmp/usr/share/libcontextsubscribersession-tests
-	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/libcontextsubscribersession-tests
-	chown -R root:root debian/tmp/usr/share/libcontextsubscribersession-tests
+	cp libcontextsubscriber-plugins/customer-tests/session/tests.xml debian/tmp/usr/share/context-session-tests
+	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/context-session-tests
+	chown -R root:root debian/tmp/usr/share/context-session-tests
 
 
 	# set the executable flag on to all files that have a shebang line
@@ -79,15 +79,15 @@ binary-arch: build install
 	dh_installmenu -a
 	dh_installman -a
 	dh_strip -p contextd --dbg-package="contextd-dbg"
-	dh_strip -p libcontextsubscriberbluez --dbg-package="libcontextsubscriberbluez-dbg"
-	dh_strip -p libcontextsubscribersession --dbg-package="libcontextsubscribersession-dbg"
-	dh_strip -p libcontextsubscriberbluez-tests
-	dh_strip -p libcontextsubscribersession-tests
+	dh_strip -p context-bluetooth --dbg-package="context-bluetooth-dbg"
+	dh_strip -p context-session --dbg-package="context-session-dbg"
+	dh_strip -p context-bluetooth-tests
+	dh_strip -p context-session-tests
 	dh_pycentral -pcontextd-tests
 	dh_link -a
 	dh_compress -a
 	dh_fixperms -a
-	dh_makeshlibs -a -V -Xlibcontextsubscriberbluez -Xlibcontextsubscribersession
+	dh_makeshlibs -a -V -Xcontext-bluetooth -Xcontext-session
 	dh_installdeb -a
 	dh_shlibdeps -a
 	dh_gencontrol -a

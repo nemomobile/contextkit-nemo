@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 5),
                libtool,
                python-central,
                libcontextprovider-dev (>= 0.3),
-               libcontextsubscriber-dev (> 0.3.9),
+               libcontextsubscriber-dev (> 0.4),
                libqt4-dev,
 	       libx11-dev,
                doxygen
@@ -38,71 +38,75 @@ Description: daemon that implements some context properties
 Package: contextd-tests
 Section: devel
 Architecture: any
-Depends: python-contextkit, contextd
+Depends: python-contextkit, contextkit-utils, contextd
 Recommends: python2.5, python (>= 2.5)
 XB-Python-Version: ${python:Versions}
 Description: contextd automated customer tests
  .
  This package contains an automated customer testsuite of the contextd daemon.
 
-Package: libcontextsubscriberbluez
+Package: context-bluetooth
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Replaces: libcontextsubscriberbluez (<< 0.7.2)
+Conflicts: libcontextsubscriberbluez (<< 0.7.2)
 Description: A libcontextsubscriber plugin providing Bluetooth properties.
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
  This package provides the Bluez plugin for libcontextsubscriber.
 
-Package: libcontextsubscriberbluez-dbg
+Package: context-bluetooth-dbg
 Priority: extra
 Architecture: any
-Depends: libcontextsubscriberbluez (= ${binary:Version})
+Depends: context-bluetooth (= ${binary:Version})
 Description: A libcontextsubscriber plugin providing Bluetooth properties.
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
  This package contains the debug symbols for the Bluez plugin for libcontextsubscriber.
 
-Package: libcontextsubscriberbluez-tests
+Package: context-bluetooth-tests
 Section: devel
 Architecture: any
-Depends: ${shlibs:Depends}, contextkit-utils, libcontextsubscriberbluez, ci-testing
+Depends: ${shlibs:Depends}, contextkit-utils, python-contextkit, context-bluetooth, ci-testing
 Recommends: python2.5, python (>= 2.5)
-XB-Maemo-CI-Packages: libcontextsubscriberbluez
+XB-Maemo-CI-Packages: context-bluetooth
 XB-Maemo-CI-Stage: staging, acceptance
 XB-Python-Version: ${python:Versions}
-Description: Automated customer tests for libcontextsubscriberbluez.
+Description: Automated customer tests for context-bluetooth.
  .
  This package contains an automated customer test suite of the libcontextsubscriber Bluez plugin.
 
-Package: libcontextsubscribersession
+Package: context-session
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Replaces: libcontextsubscribersession (<< 0.7.2)
+Conflicts: libcontextsubscribersession (<< 0.7.2)
 Description: A libcontextsubscriber plugin providing the Session.State property.
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
  This package contains the Session.State plugin for libcontextsubscriber.
 
-Package: libcontextsubscribersession-dbg
+Package: context-session-dbg
 Priority: extra
 Architecture: any
-Depends: libcontextsubscribersession (= ${binary:Version})
+Depends: context-session (= ${binary:Version})
 Description: A libcontextsubscriber plugin providing the Session.State property.
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
  This package contains the Session.State plugin for libcontextsubscriber.
 
-Package: libcontextsubscribersession-tests
+Package: context-session-tests
 Section: devel
 Architecture: any
-Depends: ${shlibs:Depends}, contextkit-utils, libcontextsubscribersession, ci-testing
+Depends: ${shlibs:Depends}, contextkit-utils, python-contextkit, context-session, ci-testing
 Recommends: python2.5, python (>= 2.5)
-XB-Maemo-CI-Packages: libcontextsubscribersession
+XB-Maemo-CI-Packages: context-session
 XB-Maemo-CI-Stage: staging, acceptance
 XB-Python-Version: ${python:Versions}
-Description: Automated customer tests for libcontextsubscribersession.
+Description: Automated customer tests for context-session.
  .
  This package contains an automated customer test suite of the libcontextsubscriber session plugin.

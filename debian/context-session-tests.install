@@ -1,0 +1,7 @@
+usr/share/context-session-tests/test-fullscreen.py
+usr/share/context-session-tests/test-blanking.py
+usr/share/context-session-tests/session.context
+usr/share/context-session-tests/fake-blanking.context
+usr/share/context-session-tests/tests.xml
+usr/share/context-session-tests/waitforsilence
+usr/lib/context-session-tests/screentoggler
