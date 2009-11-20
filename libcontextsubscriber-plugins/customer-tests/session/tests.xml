@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <testdefinition version="0.1">
-  <suite name="libcontextsubscribersession-tests">
-    <set name="libcontextsubscribersession suite" description="libcontextsubscribersession tests">
+  <suite name="context-session-tests">
+    <set name="context-session suite" description="Tests for context-session">
       <pre_steps>
-	<step expected_result="0">/usr/share/libcontextsubscribersession-tests/waitforsilence</step>
+	<step expected_result="0">/usr/share/context-session-tests/waitforsilence</step>
       </pre_steps>
       <case name="Session.State-fullscreen" description="Test for Session.State when the fullscreen mode changes">
-        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/libcontextsubscribersession-tests;export PATH=$PATH:/usr/lib/libcontextsubscribersession-tests/; export CONTEXT_CORE_DECLARATIONS=/dev/null; export CONTEXT_PROVIDERS=/usr/share/libcontextsubscribersession-tests; python /usr/share/libcontextsubscribersession-tests/test-fullscreen.py</step>
+        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/context-session-tests;export PATH=$PATH:/usr/lib/context-session-tests/; export CONTEXT_CORE_DECLARATIONS=/dev/null; export CONTEXT_PROVIDERS=/usr/share/context-session-tests; python /usr/share/context-session-tests/test-fullscreen.py</step>
       </case>
       <case name="Session.State-blanking" description="Test for Session.State when the screen blanking mode changes">
-        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/libcontextsubscribersession-tests;export PATH=$PATH:/usr/lib/libcontextsubscribersession-tests/; export CONTEXT_CORE_DECLARATIONS=/dev/null; export CONTEXT_PROVIDERS=/usr/share/libcontextsubscribersession-tests; python /usr/share/libcontextsubscribersession-tests/test-blanking.py</step>
+        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/context-session-tests;export PATH=$PATH:/usr/lib/context-session-tests/; export CONTEXT_CORE_DECLARATIONS=/dev/null; export CONTEXT_PROVIDERS=/usr/share/context-session-tests; python /usr/share/context-session-tests/test-blanking.py</step>
       </case>
       <environments>
         <scratchbox>false</scratchbox>
