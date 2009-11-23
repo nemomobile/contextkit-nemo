@@ -44,49 +44,49 @@ class SessionPlugin(unittest.TestCase):
         self.assert_(self.context_client.expect("providers: Session.State@/session-1\n"))
 
     def testInitial(self):
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
     def testStartFull(self):
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         program = CLTool("screentoggler", "full")
         self.assert_(program.expect("ready"))
 
-        self.assert_(self.context_client.expect("Session.State = QString:fullscreen"))
+        self.assert_(self.context_client.expect('Session.State = QString:"fullscreen"'))
 
         program.close()
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
     def testStartNormal(self):
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         program = CLTool("screentoggler")
         self.assert_(program.expect("ready"))
 
         # no change signals should be delivered, so we need to query the value
         self.context_client.send("v Session.State")
-        self.assert_(self.context_client.expect("value: QString:normal"))
+        self.assert_(self.context_client.expect('value: QString:"normal"'))
 
         program.close()
         self.context_client.send("v Session.State")
-        self.assert_(self.context_client.expect("value: QString:normal"))
+        self.assert_(self.context_client.expect('value: QString:"normal"'))
 
     def testToggleFullAndNormal(self):
         program = CLTool("screentoggler")
         self.assert_(program.expect("ready"))
 
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         program.send("full")
         # wait for the change to happen and the helper program to print out "full"
         self.assert_(program.expect("full"))
 
-        self.assert_(self.context_client.expect("Session.State = QString:fullscreen"))
+        self.assert_(self.context_client.expect('Session.State = QString:"fullscreen"'))
 
         program.send("normal")
         self.assert_(program.expect("normal"))
 
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         program.close()
 

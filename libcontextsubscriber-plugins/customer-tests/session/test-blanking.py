@@ -42,22 +42,22 @@ class SessionPlugin(unittest.TestCase):
         self.provider.close()
 
     def testInitial(self):
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
     def testBlanking(self):
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         self.provider.send("Screen.Blanked=true")
-        self.assert_(self.context_client.expect("Session.State = QString:blanked"))
+        self.assert_(self.context_client.expect('Session.State = QString:"blanked"'))
 
         self.provider.send("Screen.Blanked=false")
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         self.provider.send("Screen.Blanked=true")
-        self.assert_(self.context_client.expect("Session.State = QString:blanked"))
+        self.assert_(self.context_client.expect('Session.State = QString:"blanked"'))
 
         self.provider.send("unset Screen.Blanked")
-        self.assert_(self.context_client.expect("Session.State = QString:normal"))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
 if __name__ == "__main__":
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
