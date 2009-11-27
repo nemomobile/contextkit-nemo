@@ -34,6 +34,8 @@ def timeoutHandler(signum, frame):
 class SessionPlugin(unittest.TestCase):
 
     def setUp(self):
+        if "DISPLAY" not in os.environ:
+            os.environ["DISPLAY"] = ":0.0"
         self.context_client = CLTool("context-listen", "Session.State")
 
     def tearDown(self):

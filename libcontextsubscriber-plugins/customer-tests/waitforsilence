@@ -14,6 +14,7 @@ echo ==== TOP ====; top -n1 -b;
 echo ==== DF ====; df;
 echo ==== IFCONFIG ====; ifconfig;
 echo ==== ROUTE ====; route -n;
+echo ==== ENV ====; printenv;
 
 for t in `seq 60`; do
 	read l _ _ _ _ < /proc/loadavg;
