@@ -1,8 +1,8 @@
-contextkit-maemo (0.7.3~unreleased) unstable; urgency=low
+contextkit-maemo (0.7.3) unstable; urgency=low
 
-  *
+  * Customer test refinements.
 
- -- Marja Hassinen <ext-marja.2.hassinen@nokia.com>  Fri, 20 Nov 2009 10:22:55 +0200
+ -- Marja Hassinen <ext-marja.2.hassinen@nokia.com>  Mon, 7 Dec 2009 12:40:20 +0200
 contextkit-maemo (0.7.2) unstable; urgency=low
 
   * Refined Session.State property (include screen blanking detection).
