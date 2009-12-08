@@ -15,6 +15,9 @@
         <scratchbox>false</scratchbox>
         <hardware>true</hardware>
       </environments>
+      <get>
+        <file>/tmp/xyzzy.log</file>
+      </get>
     </set>
   </suite>
 </testdefinition>
