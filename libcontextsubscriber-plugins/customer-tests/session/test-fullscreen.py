@@ -54,23 +54,23 @@ class SessionPlugin(unittest.TestCase):
 
     def testInitial(self):
         self.context_client.send("new Session.State")
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
 
     def testStartFull(self):
         self.context_client.send("new Session.State")
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
 
         program = CLTool("screentoggler", "full")
         self.assert_(program.expect("ready"))
 
-        self.assert_(self.context_client.expect('Session.State = QString:"fullscreen"'))
+        self.assert_(self.context_client.expect('Session.State = QString:"fullscreen"', timeout=10))
 
         program.close()
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
 
     def testStartNormal(self):
         self.context_client.send("new Session.State")
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
 
         program = CLTool("screentoggler")
         self.assert_(program.expect("ready"))
@@ -89,7 +89,7 @@ class SessionPlugin(unittest.TestCase):
         self.assert_(program.expect("ready"))
 
         self.context_client.send("new Session.State")
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
 
         program.send("full")
         # wait for the change to happen and the helper program to print out "full"
