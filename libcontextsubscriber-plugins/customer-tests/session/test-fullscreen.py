@@ -36,23 +36,29 @@ class SessionPlugin(unittest.TestCase):
     def setUp(self):
         if "DISPLAY" not in os.environ:
             os.environ["DISPLAY"] = ":0.0"
-        self.context_client = CLTool("context-listen", "Session.State")
+        # start context-listen, but don't subscribe yet to anything
+        # (to separate the start-up delay from the subscription +
+        # initial value computation delay)
+        self.context_client = CLTool("context-listen")
         # wait for the context-listen to start
-        #self.context_client.expect("Available commands")
+        self.context_client.expect("Available commands")
 
     def tearDown(self):
         self.context_client.close()
         self.context_client.wait()
 
     def testProvider(self):
+        self.context_client.send("new Session.State")
         self.context_client.send("providers Session.State")
         self.assert_(self.context_client.expect("providers: Session.State@/session-1\n"))
 
     def testInitial(self):
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
+        self.context_client.send("new Session.State")
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
     def testStartFull(self):
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
+        self.context_client.send("new Session.State")
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         program = CLTool("screentoggler", "full")
         self.assert_(program.expect("ready"))
@@ -63,7 +69,8 @@ class SessionPlugin(unittest.TestCase):
         self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
     def testStartNormal(self):
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
+        self.context_client.send("new Session.State")
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         program = CLTool("screentoggler")
         self.assert_(program.expect("ready"))
@@ -81,7 +88,8 @@ class SessionPlugin(unittest.TestCase):
         program = CLTool("screentoggler")
         self.assert_(program.expect("ready"))
 
-        self.assert_(self.context_client.expect('Session.State = QString:"normal"', timeout=10))
+        self.context_client.send("new Session.State")
+        self.assert_(self.context_client.expect('Session.State = QString:"normal"'))
 
         program.send("full")
         # wait for the change to happen and the helper program to print out "full"
