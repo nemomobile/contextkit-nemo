@@ -26,7 +26,6 @@
 #include <timedvalue.h>
 
 #include "profile_dbus.h"
-#include "keys_nokia.h"
 
 //#include <QtDBus>
 #include <QDBusArgument>
