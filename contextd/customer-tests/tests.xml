@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <testdefinition version="0.1">
   <!-- Test suite, name mandatory - the same as test package name -->
-  <suite name="contextd-tests">
+  <suite name="contextd-tests" domain="Data Management">
     <!-- At least one set per suite, name and description mandatory -->
-    <set name="contextd suite" description="Contextd tests">
+    <set name="contextd suite" description="Contextd tests" level="Component" type="Functional">
       <!-- At least one case per set, name mandatory, description mandatory, other optional -->
 	  <!-- Possibly some pre-steps to execute before running the test cases -->
       <pre_steps>
         <step>. /tmp/session_bus_address.user</step>
       </pre_steps>
-      <case name="lowmem001" description="Test if lowmem kernel module is configured" requirement="" timeout="5">
+      <case name="lowmem001" description="Test if lowmem kernel module is configured" requirement="" timeout="5" insignificant="true">
         <!-- At least one step per test, expected_result optional - tells which return code is considered passed -->
         <step expected_result="0">/usr/share/contextd-tests/memorypressure.py</step>
       </case>
-      <case name="battery001" description="Test if the Battery.ChargePercentage property is exposed" requirement="" timeout="5">
+      <case name="battery001" description="Test if the Battery.ChargePercentage property is exposed" requirement="" timeout="5" insignificant="true">
         <!-- At least one step per test, expected_result optional - tells which return code is considered passed -->
         <step expected_result="0">/usr/share/contextd-tests/chargepercentage.py</step>
       </case>

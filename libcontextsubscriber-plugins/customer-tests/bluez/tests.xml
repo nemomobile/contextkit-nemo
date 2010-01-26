@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <testdefinition version="0.1">
-  <suite name="context-bluetooth-tests">
-    <set name="context-bluetooth suite" description="Tests for context-bluetooth">
+  <suite name="context-bluetooth-tests" domain="Data Management" level="Component" type="Functional">
+    <set name="context-bluetooth suite" description="Tests for context-bluetooth" feature="Connectivity">
       <pre_steps>
 	<step expected_result="0">/usr/share/context-bluetooth-tests/waitforsilence</step>
       </pre_steps>
-      <case name="enabled-and-visible" description="This test verifies that the libcontextsubscriber Bluez plugin provides Bluetooth.Visible and Enabled" requirement="" timeout="60">
+      <case name="enabled-and-visible" description="This test verifies that the libcontextsubscriber Bluez plugin provides Bluetooth.Visible and Enabled" requirement="" timeout="60" insignificant="true">
         <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/context-bluetooth-tests;python /usr/share/context-bluetooth-tests/test-bluez-plugin.py</step>
       </case>
       <environments>

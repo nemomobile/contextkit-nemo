@@ -43,11 +43,8 @@ def set_bluez_property(property, value):
 class BluezPlugin(unittest.TestCase):
 
     def setUp(self):
-        os.environ["CONTEXT_PROVIDERS"] = "."
         # Make Bluetooth invisible and un-enabled
         # Note: This test will alter the bluetooth settings of the system!
-        os.system("stop bluetoothd")
-        os.system("start bluetoothd &")
         os.system("dbusnamewatcher --system org.bluez 10")
         os.system("hciconfig hci0 up")
         set_bluez_property("Discoverable", "false")
