@@ -48,9 +48,9 @@ ProfilePlugin::ProfilePlugin()
 //    qDBusRegisterMetaType<MyStructure>();
 //    qDBusRegisterMetaType<QList<MyStructure > >();
  
-    bool succ = QDBusConnection::systemBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, 
-                                                     PROFILED_CHANGED, QString("bbsa(sss)"), this, 
-                                                     SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)));
+    bool succ = QDBusConnection::sessionBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, 
+                                                      PROFILED_CHANGED, this, 
+                                                      SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)));
     if (!succ) {
       qDebug() << "profileplugin: cannot connect to profiled.";
     }

@@ -110,3 +110,22 @@ XB-Python-Version: ${python:Versions}
 Description: Automated customer tests for context-session.
  .
  This package contains an automated customer test suite of the libcontextsubscriber session plugin.
+
+Package: context-profile
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A libcontextsubscriber plugin providing the profile property.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the profile plugin for libcontextsubscriber.
+
+Package: context-profile-dbg
+Priority: extra
+Architecture: any
+Depends: context-profile (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing the profile property.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the profile plugin for libcontextsubscriber.

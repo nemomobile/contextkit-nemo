@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<testdefinition version="0.1">
+  <suite name="context-profile-tests">
+    <set name="context-profile suite" description="Tests for context-profile">
+      <pre_steps>
+	<step expected_result="0">/usr/share/context-profile-tests/waitforsilence</step>
+      </pre_steps>
+      <case name="name" description="This test verifies that the libcontextsubscriber profile plugin provides Profile.Name" requirement="" timeout="60">
+        <step expected_result="0">. /tmp/session_bus_address.user;cd /usr/share/context-profile-tests;python /usr/share/context-profile-tests/test-profile-plugin.py</step>
+      </case>
+      <environments>
+        <scratchbox>false</scratchbox>
+        <hardware>true</hardware>
+      </environments>
+    </set>
+  </suite>
+</testdefinition>
