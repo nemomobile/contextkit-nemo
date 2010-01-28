@@ -20,17 +20,29 @@
  */
 
 #include "profileplugin.h"
-#include "sconnect.h"
-
 #include "logging.h"
-#include <timedvalue.h>
-
 #include "profile_dbus.h"
+#include <QtDBus>
 
-//#include <QtDBus>
-#include <QDBusArgument>
-#include <QDBusPendingCall>
-#include <QDBusPendingReply>
+// Marshall the MyStructure data into a D-Bus argument
+QDBusArgument &operator<<(QDBusArgument &argument, const MyStructure &mystruct)
+{
+    argument.beginStructure();
+    argument << mystruct.key << mystruct.val << mystruct.type;
+    argument.endStructure();
+    return argument;
+}
+
+// Retrieve the MyStructure data from the D-Bus argument
+const QDBusArgument &operator>>(const QDBusArgument &argument, MyStructure &mystruct)
+{
+    argument.beginStructure();
+    argument >> mystruct.key;
+    argument >> mystruct.val;
+    argument >> mystruct.type;
+    argument.endStructure();
+    return argument;
+}
 
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -45,18 +57,18 @@ namespace ContextSubscriberProfile {
 /// Constructor. Try to connect to ProfileD right away.
 ProfilePlugin::ProfilePlugin()
 {
-//    qDBusRegisterMetaType<MyStructure>();
-//    qDBusRegisterMetaType<QList<MyStructure > >();
+    qDBusRegisterMetaType<MyStructure>();
+    qDBusRegisterMetaType<QList<MyStructure > >();
  
     bool succ = QDBusConnection::sessionBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, 
-                                                      PROFILED_CHANGED, this, 
+                                                      PROFILED_CHANGED, QString("bbsa(sss)"), this, 
                                                       SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)));
     if (!succ) {
       qDebug() << "profileplugin: cannot connect to profiled.";
     }
 
     activeProfile = "";
-    QDBusInterface *interface = new QDBusInterface(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, QDBusConnection::systemBus());
+    QDBusInterface *interface = new QDBusInterface(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, QDBusConnection::sessionBus());
     QDBusPendingCall async = interface->asyncCall(PROFILED_GET_PROFILE);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(async, this);
 
@@ -76,7 +88,7 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
     }
 }
 
-void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, QList<MyStructure> keyValType)
+void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, QList<MyStructure> /*keyValType*/)
 {
     if (changed && active) {
         activeProfile = profile;

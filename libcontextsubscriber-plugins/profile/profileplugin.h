@@ -25,9 +25,6 @@
 #include <iproviderplugin.h> // For IProviderPlugin definition
 
 #include <QObject>
-#include <QDBusError>
-#include <QDBusObjectPath>
-#include <QDBusInterface>
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -35,14 +32,17 @@ extern "C" {
     IProviderPlugin* pluginFactory(const QString& constructionString);
 }
 
+class QDBusPendingCallWatcher;
+class QDBusArgument;
+
 struct MyStructure
 {
     QString key, val, type;
 };
-
+QDBusArgument &operator<<(QDBusArgument &a, const MyStructure &mystruct);
+const QDBusArgument &operator>>(const QDBusArgument &a, MyStructure &mystruct);
 Q_DECLARE_METATYPE(MyStructure)
-
-class QDBusPendingCallWatcher;
+Q_DECLARE_METATYPE(QList<MyStructure>)
 
 namespace ContextSubscriberProfile
 {
