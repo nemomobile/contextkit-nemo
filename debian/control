@@ -131,3 +131,15 @@ Description: A libcontextsubscriber plugin providing the profile property.
  applications.
  .
  This package contains the profile plugin for libcontextsubscriber.
+
+Package: context-profile-tests
+Section: devel
+Architecture: any
+Depends: ${shlibs:Depends}, contextkit-utils, python-contextkit, context-profile, ci-testing
+Recommends: python2.5, python (>= 2.5)
+XB-Maemo-CI-Packages: context-profile
+XB-Maemo-CI-Stage: acceptance, validation
+XB-Python-Version: ${python:Versions}
+Description: Automated customer tests for context-profile.
+ .
+ This package contains an automated customer test suite of the libcontextsubscriber profile plugin.

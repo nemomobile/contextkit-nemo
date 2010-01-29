@@ -36,7 +36,7 @@ def timeoutHandler(signum, frame):
     raise Exception('Tests have been running for too long')
 
 def set_profile_property(property, value):
-    os.system("dbus-send --system --dest=com.nokia.profiled  --print-reply --type=method_call /com/nokia/profiled com.nokia.profiled.%s string:%s" % (property, value))
+    os.system("dbus-send --dest=com.nokia.profiled --print-reply --type=method_call /com/nokia/profiled com.nokia.profiled.%s string:%s" % (property, value))
     time.sleep(1)
 
 
@@ -44,14 +44,9 @@ class ProfilePlugin(unittest.TestCase):
 
     def setUp(self):
         os.environ["CONTEXT_PROVIDERS"] = "."
-        # Make Bluetooth invisible and un-enabled
-        # Note: This test will alter the bluetooth settings of the system!
-        os.system("stop bluetoothd")
-        os.system("start bluetoothd &")
-        os.system("dbusnamewatcher --system org.bluez 10")
-        os.system("hciconfig hci0 up")
-        set_bluez_property("Discoverable", "false")
-        set_bluez_property("Powered", "false")
+
+        # Set the initial value before subscribe
+        set_profile_property("set_profile", "general")
 
         self.context_client = CLTool("context-listen", "Profile.Name")
 
@@ -60,21 +55,19 @@ class ProfilePlugin(unittest.TestCase):
         # Restore some default values for Profile
         set_profile_property("set_profile", "general")
 
-    def testInitial(self):
-        self.assert_(self.context_client.expect("Profile.Name = general"))
+    def testProfileName(self):
+        self.assert_(self.context_client.expect("Profile.Name = QString:\"general\""))
 
-
-    def testEnabledAndVisible(self):
         # silent
         set_profile_property("set_profile", "silent")
-        self.assert_(self.context_client.expect("Profile.Name = string:silent"))
+        self.assert_(self.context_client.expect("Profile.Name = QString:\"silent\""))
 
         # meeting
         set_profile_property("set_profile", "meeting")
-        self.assert_(self.context_client.expect("Profile.Name = string:meeting"))
+        self.assert_(self.context_client.expect("Profile.Name = QString:\"meeting\""))
 
 if __name__ == "__main__":
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
-    signal.signal(signal.SIGALRM, timeoutHandler)
-    signal.alarm(60)
+#    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
+#    signal.signal(signal.SIGALRM, timeoutHandler)
+#    signal.alarm(60)
     unittest.main()

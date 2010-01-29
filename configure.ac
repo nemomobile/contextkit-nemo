@@ -60,6 +60,7 @@ AC_CONFIG_FILES([
 	libcontextsubscriber-plugins/customer-tests/bluez/Makefile
 	libcontextsubscriber-plugins/customer-tests/session/Makefile
 	libcontextsubscriber-plugins/customer-tests/session/screentoggler/Makefile
+	libcontextsubscriber-plugins/customer-tests/profile/Makefile
 ])
 
 AC_OUTPUT
