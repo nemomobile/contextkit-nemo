@@ -61,6 +61,16 @@ install: build
 	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/context-session-tests
 	chown -R root:root debian/tmp/usr/share/context-session-tests
 
+	# context-profile-tests
+	mkdir -p debian/tmp/usr/share/context-profile-tests/
+
+	cp libcontextsubscriber-plugins/customer-tests/profile/*.py debian/tmp/usr/share/context-profile-tests
+	cp libcontextsubscriber-plugins/customer-tests/profile/*.context debian/tmp/usr/share/context-profile-tests
+
+	cp libcontextsubscriber-plugins/customer-tests/profile/tests.xml debian/tmp/usr/share/context-profile-tests
+	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/context-profile-tests
+	chown -R root:root debian/tmp/usr/share/context-profile-tests
+
 
 	# set the executable flag on to all files that have a shebang line
 	grep -rl '^#!' debian/tmp/usr/share/contextd-tests | xargs chmod +x
@@ -81,13 +91,15 @@ binary-arch: build install
 	dh_strip -p contextd --dbg-package="contextd-dbg"
 	dh_strip -p context-bluetooth --dbg-package="context-bluetooth-dbg"
 	dh_strip -p context-session --dbg-package="context-session-dbg"
+	dh_strip -p context-profile --dbg-package="context-profile-dbg"
 	dh_strip -p context-bluetooth-tests
 	dh_strip -p context-session-tests
+	dh_strip -p context-profile-tests
 	dh_pycentral -pcontextd-tests
 	dh_link -a
 	dh_compress -a
 	dh_fixperms -a
-	dh_makeshlibs -a -V -Xcontext-bluetooth -Xcontext-session
+	dh_makeshlibs -a -V -Xcontext-bluetooth -Xcontext-session -Xcontext-profile
 	dh_installdeb -a
 	dh_shlibdeps -a
 	dh_gencontrol -a
