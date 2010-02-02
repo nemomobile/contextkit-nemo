@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Nokia Corporation.
+ * Copyright (C) 2010 Nokia Corporation.
  *
  * Contact: Marius Vollmer <marius.vollmer@nokia.com>
  *
@@ -23,6 +23,8 @@
 #include "logging.h"
 #include "profile_dbus.h"
 #include <QtDBus>
+
+#define PROPERTY_PROFILE_NAME "Profile.Name"
 
 // Marshall the MyStructure data into a D-Bus argument
 QDBusArgument &operator<<(QDBusArgument &argument, const MyStructure &mystruct)
@@ -60,15 +62,15 @@ ProfilePlugin::ProfilePlugin()
     qDBusRegisterMetaType<MyStructure>();
     qDBusRegisterMetaType<QList<MyStructure > >();
  
-    bool succ = QDBusConnection::sessionBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, 
-                                                      PROFILED_CHANGED, QString("bbsa(sss)"), this, 
+    bool succ = QDBusConnection::sessionBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
+                                                      PROFILED_CHANGED, QString("bbsa(sss)"), this,
                                                       SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)));
     if (!succ) {
       qDebug() << "profileplugin: cannot connect to profiled.";
     }
 
     activeProfile = "";
-    QDBusInterface *interface = new QDBusInterface(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, QDBusConnection::sessionBus());
+    QDBusInterface *interface = new QDBusInterface(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, QDBusConnection::sessionBus(), this);
     QDBusPendingCall async = interface->asyncCall(PROFILED_GET_PROFILE);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(async, this);
 
@@ -81,10 +83,11 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
     QDBusPendingReply<QString> reply = *call;
     if (reply.isError()) {
         qDebug() << Q_FUNC_INFO << "error reply:" << reply.error().name();
+        emit failed("Can not connect to profiled.");
     } else {
         activeProfile = reply.argumentAt<0>();
         emit ready();
-        emit valueChanged("Profile.Name", activeProfile);
+        emit valueChanged(PROPERTY_PROFILE_NAME, activeProfile);
     }
 }
 
@@ -92,7 +95,7 @@ void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, Q
 {
     if (changed && active) {
         activeProfile = profile;
-        emit valueChanged("Profile.Name", activeProfile);
+        emit valueChanged(PROPERTY_PROFILE_NAME, activeProfile);
     }
 }
 
@@ -105,11 +108,10 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
 
     foreach(const QString& key, keys) {
         // Ensure that we give some values for the subscribed properties
-        if (key == "Profile.Name" && activeProfile != "") {
+        if (key == PROPERTY_PROFILE_NAME && activeProfile != "") {
             contextDebug() << "Key" << key << "found in cache";
             emit subscribeFinished(key, QVariant(activeProfile));
-        }
-        else {
+        } else {
             // This shouldn't occur if the plugin functions correctly
             contextCritical() << "Key not in cache" << key;
             emit subscribeFailed(key, "Requested properties not supported by ProfileD");
