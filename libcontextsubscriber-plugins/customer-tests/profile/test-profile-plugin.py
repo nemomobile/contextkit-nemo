@@ -67,7 +67,7 @@ class ProfilePlugin(unittest.TestCase):
         self.assert_(self.context_client.expect("Profile.Name = QString:\"meeting\""))
 
 if __name__ == "__main__":
-#    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
-#    signal.signal(signal.SIGALRM, timeoutHandler)
-#    signal.alarm(60)
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
+    signal.signal(signal.SIGALRM, timeoutHandler)
+    signal.alarm(60)
     unittest.main()
