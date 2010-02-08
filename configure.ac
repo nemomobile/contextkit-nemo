@@ -55,6 +55,8 @@ AC_CONFIG_FILES([
 	libcontextsubscriber-plugins/bluez/Makefile
 	libcontextsubscriber-plugins/session/Makefile
 	libcontextsubscriber-plugins/profile/Makefile
+	libcontextsubscriber-plugins/battery/Makefile
+	libcontextsubscriber-plugins/battery/sandbox/Makefile
 	libcontextsubscriber-plugins/customer-tests/Makefile
 	libcontextsubscriber-plugins/customer-tests/dbusnamewatcher/Makefile
 	libcontextsubscriber-plugins/customer-tests/bluez/Makefile
