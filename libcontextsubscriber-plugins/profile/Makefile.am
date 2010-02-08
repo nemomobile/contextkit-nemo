@@ -1,6 +1,6 @@
 plugindir = $(libdir)/contextkit/subscriber-plugins/
 plugin_LTLIBRARIES = profile-1.la
-profile_1_la_SOURCES = profileplugin.cpp profileplugin.h
+profile_1_la_SOURCES = profileplugin.cpp profileplugin.h profile_dbus.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
 	      $(CTXTSUBS_CFLAGS)					\
