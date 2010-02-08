@@ -26,9 +26,10 @@ import sys
 import unittest
 import os
 import string
-from subprocess import Popen, PIPE
 import time
 import signal
+import dbus
+from subprocess import Popen, PIPE
 from time import sleep
 from ContextKit.cltool import CLTool
 
@@ -39,12 +40,17 @@ def set_profile(value):
     os.system("dbus-send --dest=com.nokia.profiled --print-reply --type=method_call /com/nokia/profiled com.nokia.profiled.set_profile string:%s" % (value))
     time.sleep(1)
 
+def get_profile():
+    bus = dbus.SessionBus()
+    profiled = bus.get_object('com.nokia.profiled','/com/nokia/profiled')
+    profiled_iface = dbus.Interface(profiled, dbus_interface='com.nokia.profiled')
+    current_profile = profiled_iface.get_profile()
+    time.sleep(1)
+    return current_profile
 
 class ProfilePlugin(unittest.TestCase):
 
     def setUp(self):
-        os.environ["CONTEXT_PROVIDERS"] = "."
-
         # Set the initial value before subscribe
         set_profile("general")
 
@@ -65,6 +71,18 @@ class ProfilePlugin(unittest.TestCase):
         # meeting
         set_profile("meeting")
         self.assert_(self.context_client.expect("Profile.Name = QString:\"meeting\""))
+
+        # outdoors
+        set_profile("outdoors")
+        self.assert_(self.context_client.expect("Profile.Name = QString:\"outdoors\""))
+
+    def testInvalidProfileName(self):
+        self.assert_(self.context_client.expect("Profile.Name = QString:\"general\""))
+        set_profile("")
+        self.assertEqual(get_profile(),"general")
+        self.assertFalse(self.context_client.expect("Profile.Name = QString:\"general\"", wantdump=False, timeout=10))
+        self.context_client.send("value Profile.Name")
+        self.assert_(self.context_client.expect("value: QString:\"general\""))
 
 if __name__ == "__main__":
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)

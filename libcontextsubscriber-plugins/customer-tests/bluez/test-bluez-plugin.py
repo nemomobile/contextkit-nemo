@@ -63,9 +63,10 @@ class BluezPlugin(unittest.TestCase):
 
 
     def testEnabledAndVisible(self):
+        self.assert_(self.context_client.expect("Bluetooth.Visible = bool:false\nBluetooth.Enabled = bool:false"))
         # Enable
         set_bluez_property("Powered", "true")
-        self.assert_(self.context_client.expect("Bluetooth.Visible = bool:false\nBluetooth.Enabled = bool:true"))
+        self.assert_(self.context_client.expect("Bluetooth.Enabled = bool:true"))
 
         # Set visible
         set_bluez_property("Discoverable", "true")
