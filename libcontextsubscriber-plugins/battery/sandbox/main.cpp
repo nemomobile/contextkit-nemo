@@ -1,4 +1,6 @@
-#include "bmeipc.h"
+extern "C" {
+    #include "bmeipc.h"
+}
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -67,7 +69,6 @@ int main(int argc, char *argv[])
         break;
     }
 
-    fprintf(stdout,"%d\n",st[BATTERY_LEVEL_NOW]);
-    fprintf(stdout,"%d\n",st[BATTERY_LEVEL_MAX]);
+    printf("level:%d bars:%d\n",st[BATTERY_LEVEL_NOW],st[BATTERY_LEVEL_MAX]);
 
 }
