@@ -13,6 +13,9 @@ CXXFLAGS="$CXXFLAGS -Wall"
 AC_PROG_LIBTOOL
 AM_PATH_PYTHON
 
+AC_CHECK_FILE([/usr/include/bme/bmeipc.h], [],
+AC_MSG_ERROR([please install libbmeipc-dev]))
+
 # check for libraries
 PKG_CHECK_MODULES_SUBST([DBUS], [dbus-1])
 PKG_CHECK_MODULES_SUBST([QtTest], [QtTest])
@@ -23,6 +26,7 @@ PKG_CHECK_MODULES_SUBST([QtGui], [QtGui])
 PKG_CHECK_MODULES_SUBST([x11], [x11])
 PKG_CHECK_MODULES_SUBST([CTXTPROV], [contextprovider-1.0])
 PKG_CHECK_MODULES_SUBST([CTXTSUBS], [contextsubscriber-1.0])
+
 
 AC_PROG_QT_MOC
 AC_PROG_QT_UIC
