@@ -23,10 +23,19 @@
 #define BATTERYPLUGIN_H
 
 #include <iproviderplugin.h> // For IProviderPlugin definition
+#include "bme/bmeipc.h"
 
 #include <QDBusError>
 #include <QDBusObjectPath>
 #include <QDBusInterface>
+#include <QTimer>
+
+#define ON_BATTERY       "Battery.OnBattery"
+#define LOW_BATTERY      "Battery.LowBattery"
+#define CHARGE_PERCENT   "Battery.ChargePercentage"
+#define TIME_UNTIL_LOW   "Battery.TimeUntilLow"
+#define TIME_UNTIL_FULL  "Battery.TimeUntilFull"
+#define IS_CHARGING      "Battery.IsCharging"
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -40,7 +49,7 @@ namespace ContextSubscriberBattery
 /*!
   \class BatteryPlugin
 
-  \brief A libcontextsubscriber plugin for communicating with BME. 
+  \brief A libcontextsubscriber plugin for communicating with BME.
   Provides context properties Battery.*
 
  */
@@ -51,12 +60,20 @@ class BatteryPlugin : public IProviderPlugin
 
 public:
     explicit BatteryPlugin();
+    ~BatteryPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 
 private slots:
     void emitValueChanged();
     void onBMEEvent();
+    void timedOut();
+
+private:
+    bool readBatteryStats();
+    // List of properties provided by this plugin
+    QMap<QString, QVariant> propertiesCache;
+    QTimer* timer;
 };
 }
 
