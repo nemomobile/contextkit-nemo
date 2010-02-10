@@ -143,3 +143,22 @@ XB-Python-Version: ${python:Versions}
 Description: Automated customer tests for context-profile.
  .
  This package contains an automated customer test suite of the libcontextsubscriber profile plugin.
+
+Package: context-battery
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A libcontextsubscriber plugin providing the battery properties.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the battery plugin for libcontextsubscriber.
+
+Package: context-battery-dbg
+Priority: extra
+Architecture: any
+Depends: context-battery (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing the battery properties.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the debug symbols for the battery libcontextsubscriber plugin.
