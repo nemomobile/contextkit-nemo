@@ -18,12 +18,12 @@
  * 02110-1301 USA
  *
  */
-
 #include "batteryplugin.h"
 #include "sconnect.h"
-
 #include "logging.h"
-
+extern "C" {
+    #include "bme/bmeipc.h"
+}
 
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -41,6 +41,7 @@ BatteryPlugin::BatteryPlugin()
 {
     timer = new QTimer(this);
     sconnect(timer, SIGNAL(timeout()), this, SLOT(timedOut()));
+    QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
 }
 
 /// Destructor.
@@ -81,12 +82,14 @@ void BatteryPlugin::unsubscribe(QSet<QString> keys)
 
 bool BatteryPlugin::readBatteryStats()
 {
-    bool newVal;
+    bool newVal, newIval;
     bmestat_t st;
     int32_t sd = -1;
-
+    int intVal = 0;
+    double floatVal;
+    
     contextDebug() << "Read stats";
-    emit valueChanged(IS_CHARGING,propertiesCache[IS_CHARGING]);
+    //emit valueChanged(IS_CHARGING,propertiesCache[IS_CHARGING]);
 
     if (0 > (sd = bmeipc_open())){
         contextDebug() << "Can not open bme file descriptor";
@@ -100,23 +103,58 @@ bool BatteryPlugin::readBatteryStats()
         return false;
     }
 
-    if (st[CHARGING_STATE] == CHARGING_STATE_STARTED || st[CHARGING_STATE] == CHARGING_STATE_SPECIAL)
+    if (st[CHARGING_STATE] == CHARGING_STATE_STARTED || st[CHARGING_STATE] == CHARGING_STATE_SPECIAL) {
         newVal = true;
-    else newVal = false;
+        newIval = false;
+    }
+
+    if (st[CHARGING_STATE] == CHARGING_STATE_STOPPED || st[CHARGING_STATE] == CHARGING_STATE_ERROR) {
+        newVal = false;
+        newIval = true;
+    }
 
     if (propertiesCache[IS_CHARGING] != newVal) {
         propertiesCache[IS_CHARGING] = newVal;
-        emit valueChanged(IS_CHARGING,propertiesCache[IS_CHARGING]);
+        contextDebug() << "Value queued for emission" << propertiesCache[IS_CHARGING];
+        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, IS_CHARGING));
     }
 
-/*
-    if (st[BATTERY_STATE] == BATTERY_STATE_LOW)
-        propertiesCache["batteryLow"] = QVariant(true);
+    if (propertiesCache[ON_BATTERY] != newIval) {
+        propertiesCache[ON_BATTERY] = newIval;
+        contextDebug() << "Value queued for emission" << propertiesCache[ON_BATTERY];
+        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, ON_BATTERY));
+    }
 
-    propertiesCache["timeUntilLow"] = QVariant(st[BATTERY_TIME_LEFT]);
-    propertiesCache["timeUntilFull"] = QVariant(st[CHARGING_TIME]);
-    propertiesCache["chargePercentage"] = QVariant(st[BATTERY_LEVEL_NOW]/st[BATTERY_LEVEL_MAX]);
-*/
+    intVal = st[CHARGING_TIME] / 60;
+    if (propertiesCache[TIME_UNTIL_FULL] != intVal) {
+        propertiesCache[TIME_UNTIL_FULL] = intVal;
+        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, TIME_UNTIL_FULL));
+    }
+
+    if (st[BATTERY_STATE] == BATTERY_STATE_LOW)
+        newVal = true;
+
+    if (propertiesCache[LOW_BATTERY] != newVal) {
+        propertiesCache[LOW_BATTERY] = newVal;
+        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, LOW_BATTERY));
+    }
+
+    //floatVal = ((double)(st[BATTERY_LEVEL_NOW]/st[BATTERY_LEVEL_MAX])) * 100;
+    floatVal = ((double)(st[BATTERY_CAPA_NOW] * 100 / st[BATTERY_CAPA_MAX]));
+
+    if (propertiesCache[CHARGE_PERCENT] != (int)floatVal) {
+        propertiesCache[CHARGE_PERCENT] = (int)floatVal;
+        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, CHARGE_PERCENT));
+    }
+
+    intVal = st[BATTERY_TIME_LEFT] / 3600;
+    if (propertiesCache[TIME_UNTIL_LOW] != intVal) {
+        propertiesCache[TIME_UNTIL_LOW] = intVal;
+        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, TIME_UNTIL_LOW));
+    }
+
+    bmeipc_close(sd);
+
     return true;
 }
 
@@ -124,15 +162,38 @@ bool BatteryPlugin::readBatteryStats()
 /// A BMEEvent is received
 void BatteryPlugin::timedOut()
 {
-    if (readBatteryStats()){
-    }
+    readBatteryStats();
 }
 
-/// Check the current status of the Session.State property and emit
-/// the valueChanged signal.
-void BatteryPlugin::emitValueChanged()
+/// For emitting the ready() signal in a delayed way.
+void BatteryPlugin::emitReady()
 {
+    emit ready();
 }
+
+///
+void BatteryPlugin::emitValueChanged(QString key)
+{
+    if (key == IS_CHARGING)
+        emit valueChanged(IS_CHARGING, propertiesCache[IS_CHARGING]);
+
+    if (key == ON_BATTERY)
+        emit valueChanged(ON_BATTERY, propertiesCache[ON_BATTERY]);
+
+    if (key == TIME_UNTIL_LOW)
+        emit valueChanged(TIME_UNTIL_LOW, propertiesCache[TIME_UNTIL_LOW]);
+
+    if (key == TIME_UNTIL_FULL)
+        emit valueChanged(TIME_UNTIL_FULL, propertiesCache[TIME_UNTIL_FULL]);
+
+    if (key == LOW_BATTERY)
+        emit valueChanged(LOW_BATTERY, propertiesCache[LOW_BATTERY]);
+
+    if (key == CHARGE_PERCENT)
+        emit valueChanged(CHARGE_PERCENT, propertiesCache[CHARGE_PERCENT]);
+
+}
+
 
 } // end namespace
 

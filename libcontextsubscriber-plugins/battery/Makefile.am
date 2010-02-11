@@ -4,7 +4,7 @@ plugindir = $(libdir)/contextkit/subscriber-plugins/
 plugin_LTLIBRARIES = battery-1.la
 battery_1_la_SOURCES = batteryplugin.cpp batteryplugin.h loggingfeatures.h
 
-AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
+AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS)			\
 	      $(CTXTSUBS_CFLAGS) 					\
 	      '-DCONTEXT_LOG_MODULE_NAME="batteryplugin"'
 
@@ -15,7 +15,7 @@ battery_1_la_LDFLAGS = -avoid-version -module
 $(top_builddir)/common/libcommon.a:
 	$(MAKE) -C $(top_builddir)/common libcommon.a
 
-LIBS += $(QtCore_LIBS) $(QtDBus_LIBS) -lbmeipc
+LIBS += $(QtCore_LIBS) -lbmeipc
 battery_1_la_LIBADD=$(top_builddir)/common/libcommon.la
 
 .PHONY: $(top_builddir)/common/libcommon.la

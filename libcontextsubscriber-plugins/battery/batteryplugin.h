@@ -23,7 +23,6 @@
 #define BATTERYPLUGIN_H
 
 #include <iproviderplugin.h> // For IProviderPlugin definition
-#include "bme/bmeipc.h"
 
 #include <QDBusError>
 #include <QDBusObjectPath>
@@ -65,9 +64,10 @@ public:
     virtual void unsubscribe(QSet<QString> keys);
 
 private slots:
-    void emitValueChanged();
     void onBMEEvent();
     void timedOut();
+    void emitReady();
+    void emitValueChanged(QString key);
 
 private:
     bool readBatteryStats();
