@@ -39,6 +39,13 @@ namespace ContextSubscriberBattery {
 /// Constructor. Try to connect to Battery right away.
 BatteryPlugin::BatteryPlugin()
 {
+    propertiesCache.insert(ON_BATTERY,QVariant());
+    propertiesCache.insert(LOW_BATTERY,QVariant());
+    propertiesCache.insert(CHARGE_PERCENT,QVariant());
+    propertiesCache.insert(TIME_UNTIL_LOW,QVariant());
+    propertiesCache.insert(TIME_UNTIL_FULL,QVariant());
+    propertiesCache.insert(IS_CHARGING,QVariant());
+
     timer = new QTimer(this);
     sconnect(timer, SIGNAL(timeout()), this, SLOT(timedOut()));
     QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
@@ -54,7 +61,8 @@ BatteryPlugin::~BatteryPlugin()
 /// right away.
 void BatteryPlugin::subscribe(QSet<QString> keys)
 {
-    readBatteryStats();
+    QMetaObject::invokeMethod(this, "readBatteryStats", Qt::QueuedConnection);
+    //readBatteryStats();
 
     // Check for invalid keys
     foreach(const QString& key, keys) {
@@ -82,75 +90,72 @@ void BatteryPlugin::unsubscribe(QSet<QString> keys)
 
 bool BatteryPlugin::readBatteryStats()
 {
-    bool newVal, newIval;
     bmestat_t st;
-    int32_t sd = -1;
-    int intVal = 0;
-    double floatVal;
-    
-    contextDebug() << "Read stats";
-    //emit valueChanged(IS_CHARGING,propertiesCache[IS_CHARGING]);
+    bool newVal;
+    //int32_t sd = -1;
+    int intVal = 0, sd = -1;
 
     if (0 > (sd = bmeipc_open())){
-        contextDebug() << "Can not open bme file descriptor";
-        emit failed("Can not open bme file descriptor");
+        contextDebug() << "Cannot open BME file descriptor";
+        emit failed("Cannot open BME file descriptor");
         return false;
     }
 
     if (0 > bmeipc_stat(sd, &st)) {
-        contextDebug() << "Can not get bme statistics";
-        emit failed("Can not get bme statistics");
+        contextDebug() << "Cannot get BME statistics";
+        emit failed("Cannot get BME statistics");
         return false;
     }
 
-    if (st[CHARGING_STATE] == CHARGING_STATE_STARTED || st[CHARGING_STATE] == CHARGING_STATE_SPECIAL) {
+    if (st[CHARGING_STATE] == CHARGING_STATE_STARTED || st[CHARGING_STATE] == CHARGING_STATE_SPECIAL)
         newVal = true;
-        newIval = false;
-    }
 
-    if (st[CHARGING_STATE] == CHARGING_STATE_STOPPED || st[CHARGING_STATE] == CHARGING_STATE_ERROR) {
+    if (st[CHARGING_STATE] == CHARGING_STATE_STOPPED || st[CHARGING_STATE] == CHARGING_STATE_ERROR)
         newVal = false;
-        newIval = true;
-    }
 
     if (propertiesCache[IS_CHARGING] != newVal) {
         propertiesCache[IS_CHARGING] = newVal;
-        contextDebug() << "Value queued for emission" << propertiesCache[IS_CHARGING];
-        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, IS_CHARGING));
+        emit valueChanged(IS_CHARGING, propertiesCache[IS_CHARGING]);
+        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, IS_CHARGING));
     }
 
-    if (propertiesCache[ON_BATTERY] != newIval) {
-        propertiesCache[ON_BATTERY] = newIval;
-        contextDebug() << "Value queued for emission" << propertiesCache[ON_BATTERY];
-        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, ON_BATTERY));
+    if (propertiesCache[ON_BATTERY] != newVal) {
+        propertiesCache[ON_BATTERY] = !newVal;
+        emit valueChanged(ON_BATTERY, propertiesCache[ON_BATTERY]);
+        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, ON_BATTERY));
     }
 
-    intVal = st[CHARGING_TIME] / 60;
+    intVal = st[CHARGING_TIME] * 60;
     if (propertiesCache[TIME_UNTIL_FULL] != intVal) {
         propertiesCache[TIME_UNTIL_FULL] = intVal;
-        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, TIME_UNTIL_FULL));
+        emit valueChanged(TIME_UNTIL_FULL, propertiesCache[TIME_UNTIL_FULL]);
+        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, TIME_UNTIL_FULL));
     }
 
     if (st[BATTERY_STATE] == BATTERY_STATE_LOW)
         newVal = true;
+    else newVal = false;
 
     if (propertiesCache[LOW_BATTERY] != newVal) {
         propertiesCache[LOW_BATTERY] = newVal;
-        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, LOW_BATTERY));
+        emit valueChanged(LOW_BATTERY, propertiesCache[LOW_BATTERY]);
+        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, LOW_BATTERY));
     }
 
-    //floatVal = ((double)(st[BATTERY_LEVEL_NOW]/st[BATTERY_LEVEL_MAX])) * 100;
-    floatVal = ((double)(st[BATTERY_CAPA_NOW] * 100 / st[BATTERY_CAPA_MAX]));
+    intVal = st[BATTERY_CAPA_NOW] * 100 / st[BATTERY_CAPA_MAX];
 
-    if (propertiesCache[CHARGE_PERCENT] != (int)floatVal) {
-        propertiesCache[CHARGE_PERCENT] = (int)floatVal;
-        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, CHARGE_PERCENT));
+    if (propertiesCache[CHARGE_PERCENT] != intVal) {
+        propertiesCache[CHARGE_PERCENT] = intVal;
+        emit valueChanged(CHARGE_PERCENT, propertiesCache[CHARGE_PERCENT]);
+        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, CHARGE_PERCENT));
     }
 
-    intVal = st[BATTERY_TIME_LEFT] / 3600;
+    intVal = st[BATTERY_TIME_LEFT] * 60;
+
     if (propertiesCache[TIME_UNTIL_LOW] != intVal) {
         propertiesCache[TIME_UNTIL_LOW] = intVal;
-        QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, TIME_UNTIL_LOW));
+        emit valueChanged(TIME_UNTIL_LOW, propertiesCache[TIME_UNTIL_LOW]);
+        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, TIME_UNTIL_LOW));
     }
 
     bmeipc_close(sd);
