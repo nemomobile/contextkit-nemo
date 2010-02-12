@@ -27,14 +27,7 @@
 #include <QDBusError>
 #include <QDBusObjectPath>
 #include <QDBusInterface>
-#include <QTimer>
-
-#define ON_BATTERY       "Battery.OnBattery"
-#define LOW_BATTERY      "Battery.LowBattery"
-#define CHARGE_PERCENT   "Battery.ChargePercentage"
-#define TIME_UNTIL_LOW   "Battery.TimeUntilLow"
-#define TIME_UNTIL_FULL  "Battery.TimeUntilFull"
-#define IS_CHARGING      "Battery.IsCharging"
+#include <QSet>
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -65,15 +58,16 @@ public:
 
 private slots:
     void onBMEEvent();
-    void timedOut();
-    void emitReady();
-    void emitValueChanged(QString key);
+    void emitFailed(const QString &msg);
+    void emitBatteryValues();
+    void readInitialValues();
 
 private:
-    bool readBatteryStats();
+    bool readBatteryValues();
     // List of properties provided by this plugin
-    QMap<QString, QVariant> propertiesCache;
-    QTimer* timer;
+    int inotifyFd;
+    QMap<QString, QVariant> propertyCache;
+    QSet<QString> subscribedProperties;
 };
 }
 

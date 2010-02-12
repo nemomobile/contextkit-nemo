@@ -28,6 +28,7 @@
 #include <QSocketNotifier>
 #include <QFileSystemWatcher>
 #include <QVarLengthArray>
+#include <QFile>
 
 extern "C" {
     #include "bme/bmeipc.h"
@@ -40,6 +41,7 @@ extern "C" {
 #define TIME_UNTIL_FULL  "Battery.TimeUntilFull"
 #define IS_CHARGING      "Battery.IsCharging"
 #define BMEIPC_EVENT	 "/tmp/.bmeevt"
+#define NANOSECS_PER_MIN 60000000
 
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -55,25 +57,10 @@ namespace ContextSubscriberBattery {
 /// Constructor. Try to connect to Battery right away.
 BatteryPlugin::BatteryPlugin()
 {
-    propertiesCache.insert(ON_BATTERY,QVariant());
-    propertiesCache.insert(LOW_BATTERY,QVariant());
-    propertiesCache.insert(CHARGE_PERCENT,QVariant());
-    propertiesCache.insert(TIME_UNTIL_LOW,QVariant());
-    propertiesCache.insert(TIME_UNTIL_FULL,QVariant());
-    propertiesCache.insert(IS_CHARGING,QVariant());
-
-    inotifyFd = bmeipc_eopen(-1); // Mask is thrown away
-    fcntl(inotifyFd, F_SETFD, FD_CLOEXEC);
-    int wd = inotify_add_watch(inotifyFd, BMEIPC_EVENT, (IN_CLOSE_WRITE | IN_DELETE_SELF));
-    if (0 > wd) {
-        contextDebug() << "inotify_add_watch failed";
-        emit failed("Requested properties not supported by BME");
-    }
-    QSocketNotifier *sn = new QSocketNotifier(inotifyFd, QSocketNotifier::Read, this);
-    connect(sn, SIGNAL(activated(int)), this, SLOT(onBMEEvent()));
-
-    QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
+    // try out: replace emitReady by ready and kill emitReady slot
+    QMetaObject::invokeMethod(this, "readInitialValues", Qt::QueuedConnection);
 }
+
 
 /// Destructor.
 BatteryPlugin::~BatteryPlugin()
@@ -85,102 +72,88 @@ BatteryPlugin::~BatteryPlugin()
 /// right away.
 void BatteryPlugin::subscribe(QSet<QString> keys)
 {
-    QMetaObject::invokeMethod(this, "readBatteryStats", Qt::QueuedConnection);
-    //readBatteryStats();
 
-    // Check for invalid keys
-    foreach(const QString& key, keys) {
-        if (propertiesCache.contains(key)) {
-            contextDebug() << "Key" << key << "found in cache";
-            emit subscribeFinished(key, propertiesCache[key]);
-        }
+    if (subscribedProperties.isEmpty()) {
+
+        inotifyFd = bmeipc_eopen(-1); // Mask is thrown away
+
+        if (0 > inotifyFd)
+
+            QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection,Q_ARG(QString,"Battery plugin failed to add watcher for BME events"));
+
         else {
-            // This shouldn't occur if the plugin functions correctly
-            contextCritical() << "Key not in cache" << key;
-            emit failed("Requested properties not supported by BME");
+
+            if (!QFile::exists(BMEIPC_EVENT))
+                bmeipc_epush(0);
+
+            fcntl(inotifyFd, F_SETFD, FD_CLOEXEC);
+            int wd = inotify_add_watch(inotifyFd, BMEIPC_EVENT, (IN_CLOSE_WRITE | IN_DELETE_SELF));
+
+            if (0 > wd)
+                QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection,Q_ARG(QString,"Battery plugin failed to add watcher for BME events"));
+            else {
+                QSocketNotifier *sn = new QSocketNotifier(inotifyFd, QSocketNotifier::Read, this);
+                connect(sn, SIGNAL(activated(int)), this, SLOT(onBMEEvent()));
+            }
         }
     }
+
+    subscribedProperties.unite(keys);
+    // assume that we already have gotten the value for each property
+    foreach(const QString& key, keys)
+        emit subscribeFinished(key, propertyCache[key]);
 }
 
 /// Implementation of the IPropertyProvider::unsubscribe. We're not
 /// keeping track on subscriptions, so we don't need to do anything.
 void BatteryPlugin::unsubscribe(QSet<QString> keys)
 {
+    //TODO: remove the keys from subscribedProperties
+    // if empty close inotify
+
 }
 
-bool BatteryPlugin::readBatteryStats()
+bool BatteryPlugin::readBatteryValues()
 {
     bmestat_t st;
-    bool newVal;
-    //int32_t sd = -1;
-    int intVal = 0, sd = -1;
+    int sd = -1;
 
     if (0 > (sd = bmeipc_open())){
         contextDebug() << "Cannot open BME file descriptor";
-        emit failed("Cannot open BME file descriptor");
         return false;
     }
 
     if (0 > bmeipc_stat(sd, &st)) {
         contextDebug() << "Cannot get BME statistics";
-        emit failed("Cannot get BME statistics");
         return false;
     }
 
-    if (st[CHARGING_STATE] == CHARGING_STATE_STARTED || st[CHARGING_STATE] == CHARGING_STATE_SPECIAL)
-        newVal = true;
+    propertyCache[IS_CHARGING] = (st[CHARGING_STATE] == CHARGING_STATE_STARTED);
 
-    if (st[CHARGING_STATE] == CHARGING_STATE_STOPPED || st[CHARGING_STATE] == CHARGING_STATE_ERROR)
-        newVal = false;
+    propertyCache[ON_BATTERY] =  (st[CHARGER_STATE] != CHARGER_STATE_CONNECTED);
 
-    if (propertiesCache[IS_CHARGING] != newVal) {
-        propertiesCache[IS_CHARGING] = newVal;
-        emit valueChanged(IS_CHARGING, propertiesCache[IS_CHARGING]);
-        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, IS_CHARGING));
-    }
+    propertyCache[LOW_BATTERY] = (st[BATTERY_STATE] == BATTERY_STATE_LOW);
 
-    if (propertiesCache[ON_BATTERY] != newVal) {
-        propertiesCache[ON_BATTERY] = !newVal;
-        emit valueChanged(ON_BATTERY, propertiesCache[ON_BATTERY]);
-        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, ON_BATTERY));
-    }
+    if (st[BATTERY_CAPA_MAX] != 0)
+        propertyCache[CHARGE_PERCENT] = st[BATTERY_CAPA_NOW] * 100 / st[BATTERY_CAPA_MAX];
+    else
+        propertyCache[CHARGE_PERCENT] = QVariant();
 
-    intVal = st[CHARGING_TIME] * 60;
-    if (propertiesCache[TIME_UNTIL_FULL] != intVal) {
-        propertiesCache[TIME_UNTIL_FULL] = intVal;
-        emit valueChanged(TIME_UNTIL_FULL, propertiesCache[TIME_UNTIL_FULL]);
-        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, TIME_UNTIL_FULL));
-    }
+    propertyCache[TIME_UNTIL_FULL] = (quint64)st[CHARGING_TIME] * NANOSECS_PER_MIN;
 
-    if (st[BATTERY_STATE] == BATTERY_STATE_LOW)
-        newVal = true;
-    else newVal = false;
-
-    if (propertiesCache[LOW_BATTERY] != newVal) {
-        propertiesCache[LOW_BATTERY] = newVal;
-        emit valueChanged(LOW_BATTERY, propertiesCache[LOW_BATTERY]);
-        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, LOW_BATTERY));
-    }
-
-    intVal = st[BATTERY_CAPA_NOW] * 100 / st[BATTERY_CAPA_MAX];
-
-    if (propertiesCache[CHARGE_PERCENT] != intVal) {
-        propertiesCache[CHARGE_PERCENT] = intVal;
-        emit valueChanged(CHARGE_PERCENT, propertiesCache[CHARGE_PERCENT]);
-        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, CHARGE_PERCENT));
-    }
-
-    intVal = st[BATTERY_TIME_LEFT] * 60;
-
-    if (propertiesCache[TIME_UNTIL_LOW] != intVal) {
-        propertiesCache[TIME_UNTIL_LOW] = intVal;
-        emit valueChanged(TIME_UNTIL_LOW, propertiesCache[TIME_UNTIL_LOW]);
-        //QMetaObject::invokeMethod(this, "emitValueChanged", Qt::QueuedConnection, Q_ARG(QString, TIME_UNTIL_LOW));
-    }
+    propertyCache[TIME_UNTIL_LOW] = (quint64)st[BATTERY_TIME_LEFT] * NANOSECS_PER_MIN;
 
     bmeipc_close(sd);
 
     return true;
+
+}
+
+
+void BatteryPlugin::emitBatteryValues()
+{
+    foreach(const QString& key, subscribedProperties)
+        emit valueChanged(key, propertyCache[key]);
 }
 
 
@@ -193,36 +166,25 @@ void BatteryPlugin::onBMEEvent()
     QVarLengthArray<char, 4096> buffer(buffSize);
     buffSize = read(inotifyFd, buffer.data(), buffSize);
 
-    readBatteryStats();
+    if (readBatteryValues())
+        emitBatteryValues();
+    else
+        emit failed ("Battery plugin could not read values from BME");
+
 }
 
-/// For emitting the ready() signal in a delayed way.
-void BatteryPlugin::emitReady()
+void BatteryPlugin::readInitialValues()
 {
-    emit ready();
+    if (readBatteryValues())
+        emit ready();
+    else
+        emit failed ("Battery plugin could not read values from BME");
 }
 
-///
-void BatteryPlugin::emitValueChanged(QString key)
+/// For emitting the failed() signal in a delayed way.
+void BatteryPlugin::emitFailed(const QString &msg)
 {
-    if (key == IS_CHARGING)
-        emit valueChanged(IS_CHARGING, propertiesCache[IS_CHARGING]);
-
-    if (key == ON_BATTERY)
-        emit valueChanged(ON_BATTERY, propertiesCache[ON_BATTERY]);
-
-    if (key == TIME_UNTIL_LOW)
-        emit valueChanged(TIME_UNTIL_LOW, propertiesCache[TIME_UNTIL_LOW]);
-
-    if (key == TIME_UNTIL_FULL)
-        emit valueChanged(TIME_UNTIL_FULL, propertiesCache[TIME_UNTIL_FULL]);
-
-    if (key == LOW_BATTERY)
-        emit valueChanged(LOW_BATTERY, propertiesCache[LOW_BATTERY]);
-
-    if (key == CHARGE_PERCENT)
-        emit valueChanged(CHARGE_PERCENT, propertiesCache[CHARGE_PERCENT]);
-
+    emit failed(msg);
 }
 
 
