@@ -18,12 +18,28 @@
  * 02110-1301 USA
  *
  */
+
+#include <fcntl.h>
+#include <sys/inotify.h>
+#include <sys/ioctl.h>
+#include "logging.h"
 #include "batteryplugin.h"
 #include "sconnect.h"
-#include "logging.h"
+#include <QSocketNotifier>
+#include <QFileSystemWatcher>
+#include <QVarLengthArray>
+
 extern "C" {
     #include "bme/bmeipc.h"
 }
+
+#define ON_BATTERY       "Battery.OnBattery"
+#define LOW_BATTERY      "Battery.LowBattery"
+#define CHARGE_PERCENT   "Battery.ChargePercentage"
+#define TIME_UNTIL_LOW   "Battery.TimeUntilLow"
+#define TIME_UNTIL_FULL  "Battery.TimeUntilFull"
+#define IS_CHARGING      "Battery.IsCharging"
+#define BMEIPC_EVENT	 "/tmp/.bmeevt"
 
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -46,8 +62,16 @@ BatteryPlugin::BatteryPlugin()
     propertiesCache.insert(TIME_UNTIL_FULL,QVariant());
     propertiesCache.insert(IS_CHARGING,QVariant());
 
-    timer = new QTimer(this);
-    sconnect(timer, SIGNAL(timeout()), this, SLOT(timedOut()));
+    inotifyFd = bmeipc_eopen(-1); // Mask is thrown away
+    fcntl(inotifyFd, F_SETFD, FD_CLOEXEC);
+    int wd = inotify_add_watch(inotifyFd, BMEIPC_EVENT, (IN_CLOSE_WRITE | IN_DELETE_SELF));
+    if (0 > wd) {
+        contextDebug() << "inotify_add_watch failed";
+        emit failed("Requested properties not supported by BME");
+    }
+    QSocketNotifier *sn = new QSocketNotifier(inotifyFd, QSocketNotifier::Read, this);
+    connect(sn, SIGNAL(activated(int)), this, SLOT(onBMEEvent()));
+
     QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
 }
 
@@ -76,16 +100,12 @@ void BatteryPlugin::subscribe(QSet<QString> keys)
             emit failed("Requested properties not supported by BME");
         }
     }
-
-    timer->start(1000);
-
 }
 
 /// Implementation of the IPropertyProvider::unsubscribe. We're not
 /// keeping track on subscriptions, so we don't need to do anything.
 void BatteryPlugin::unsubscribe(QSet<QString> keys)
 {
-    timer->stop();
 }
 
 bool BatteryPlugin::readBatteryStats()
@@ -165,8 +185,14 @@ bool BatteryPlugin::readBatteryStats()
 
 
 /// A BMEEvent is received
-void BatteryPlugin::timedOut()
+void BatteryPlugin::onBMEEvent()
 {
+    // Empty buffer. Should not blog, since we got signal from QSocketNotifier
+    int buffSize = 0;
+    ioctl(inotifyFd, FIONREAD, (char *) &buffSize);
+    QVarLengthArray<char, 4096> buffer(buffSize);
+    buffSize = read(inotifyFd, buffer.data(), buffSize);
+
     readBatteryStats();
 }
 
