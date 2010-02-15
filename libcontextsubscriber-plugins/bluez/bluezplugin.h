@@ -62,13 +62,13 @@ public:
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 
-private slots:
+private Q_SLOTS:
     void replyDBusError(QDBusError err);
+    void replyDefaultAdapterError(QDBusError err);
     void replyDefaultAdapter(QDBusObjectPath path);
     void replyGetProperties(QMap<QString, QVariant> map);
     void onPropertyChanged(QString key, QDBusVariant value);
-
-private Q_SLOTS:
+    void onDefaultAdapterChanged(QDBusObjectPath path);
     void emitReady();
     void emitFailed(QString reason = QString("Bluez left D-Bus"));
 

@@ -23,7 +23,7 @@
 #include "sconnect.h"
 
 #include "logging.h"
-
+// This is for getting rid of synchronous D-Bus introspection calls Qt does.
 #include <asyncdbusinterface.h>
 
 #include <QDBusServiceWatcher>
@@ -57,8 +57,17 @@ BluezPlugin::BluezPlugin() : manager(0), adapter(0), status(NotConnected), servi
 
 void BluezPlugin::disconnectFromBluez()
 {
-    qDebug() << "disconnecting from bluez";
     status = NotConnected;
+
+    // Disconnect D-Bus signals
+    busConnection.disconnect(serviceName, managerPath,
+                             managerInterface, "DefaultAdapterChanged",
+                             this, SLOT(onDefaultAdapterChanged(QDBusObjectPath)));
+
+    busConnection.disconnect(serviceName, adapterPath,
+                             adapterInterface, "PropertyChanged",
+                             this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+
     delete adapter;
     adapter = 0;
     delete manager;
@@ -70,23 +79,46 @@ void BluezPlugin::disconnectFromBluez()
 /// Try to establish the connection to BlueZ.
 void BluezPlugin::connectToBluez()
 {
-    qDebug() << "connecting to bluez";
     disconnectFromBluez();
     status = Connecting;
 
-    // FIXME: this is "too early"; bluez might not have a default adapter yet
+    // If this function is executed because Bluez has just appeared on D-Bus,
+    // it might be too early for the default adaptor to exist. It might be
+    // that the DefaultAdapter call fails. To tackle that, we don't treat that
+    // as a real failure, but before calling DefaultAdapter, we subscribe to
+    // the DefaultAdapterChanged signal from Bluez. When Bluez gets the
+    // default adapter set up, we will get our callback called. A drawback: if
+    // the default adapter is never assigned, this plugin won't inform the
+    // upper layer of the error; it will just look as if everything is fine
+    // (properties keep their old values or are unknown).
 
+    busConnection.connect(serviceName, managerPath, managerInterface, "DefaultAdapterChanged",
+                          this, SLOT(onDefaultAdapterChanged(QDBusObjectPath)));
     manager = new AsyncDBusInterface(serviceName, managerPath, managerInterface, busConnection, this);
     manager->callWithCallback("DefaultAdapter", QList<QVariant>(), this,
                               SLOT(replyDefaultAdapter(QDBusObjectPath)),
-                              SLOT(replyDBusError(QDBusError)));
-    serviceWatcher = new QDBusServiceWatcher(serviceName, busConnection);
+                              SLOT(replyDefaultAdapterError(QDBusError)));
+
     // When Bluez disappears from D-Bus, we emit failed to signal that we're
     // not able to take in subscriptions. And when Bluez reappears, we emit
     // "ready". Then the upper layer will renew its subscriptions (and we
     // reconnect to bluez if needed).
+    serviceWatcher = new QDBusServiceWatcher(serviceName, busConnection);
     connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)), this, SLOT(emitReady()), Qt::QueuedConnection);
     connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)), this, SLOT(emitFailed()));
+}
+
+/// Called when a D-Bus error occurs when processing our
+/// callWithCallback of DefaultAdapter.
+void BluezPlugin::replyDefaultAdapterError(QDBusError err)
+{
+    // It might be that we're calling DefaultAdapter but there is none
+    // currently; try to get it later. Tell the upper layer that all keys are
+    // now subscribe (they will keep their previous values) and hope that the
+    // DefaultAdapter signal comes at some point.
+    foreach (const QString& key, pendingSubscriptions)
+        emit subscribeFinished(key);
+    pendingSubscriptions.clear();
 }
 
 /// Called when a D-Bus error occurs when processing our
@@ -106,7 +138,23 @@ void BluezPlugin::replyDefaultAdapter(QDBusObjectPath path)
     adapterPath = path.path();
     adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
     busConnection.connect(serviceName,
-                          path.path(),
+                          adapterPath,
+                          adapterInterface,
+                          "PropertyChanged",
+                          this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+    adapter->callWithCallback("GetProperties", QList<QVariant>(), this,
+                              SLOT(replyGetProperties(QMap<QString, QVariant>)),
+                              SLOT(replyDBusError(QDBusError)));
+}
+
+/// Called when Bluez changes its default adapter.
+void BluezPlugin::onDefaultAdapterChanged(QDBusObjectPath path)
+{
+    adapterPath = path.path();
+    delete adapter;
+    adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
+    busConnection.connect(serviceName,
+                          adapterPath,
                           adapterInterface,
                           "PropertyChanged",
                           this, SLOT(onPropertyChanged(QString, QDBusVariant)));
