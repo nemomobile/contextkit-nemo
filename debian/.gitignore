@@ -13,6 +13,9 @@ context-bluetooth-tests/
 context-session/
 context-session-dbg/
 context-session-tests/
+context-profile/
+context-profile-dbg/
+context-profile-tests/
 files
 *.postinst.debhelper
 *.postrm.debhelper
