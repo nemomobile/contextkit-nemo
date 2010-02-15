@@ -62,20 +62,10 @@ ProfilePlugin::ProfilePlugin()
     qDBusRegisterMetaType<MyStructure>();
     qDBusRegisterMetaType<QList<MyStructure > >();
  
-    bool succ = QDBusConnection::sessionBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
-                                                      PROFILED_CHANGED, QString("bbsa(sss)"), this,
-                                                      SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)));
-    if (!succ) {
-      qDebug() << "profileplugin: cannot connect to profiled.";
-    }
-
     activeProfile = "";
-    QDBusInterface *interface = new QDBusInterface(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE, QDBusConnection::sessionBus(), this);
-    QDBusPendingCall async = interface->asyncCall(PROFILED_GET_PROFILE);
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(async, this);
 
-    QObject::connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
-                     this, SLOT(getProfileCallFinishedSlot(QDBusPendingCallWatcher*)));
+    // Emit delayed signal, so caller has a change to connect to us before.
+    QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
 void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
@@ -84,10 +74,10 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
     if (reply.isError()) {
         qDebug() << Q_FUNC_INFO << "error reply:" << reply.error().name();
         emit failed("Can not connect to profiled.");
+        emit subscribeFailed(PROPERTY_PROFILE_NAME, "Can not connect to profiled.");
     } else {
         activeProfile = reply.argumentAt<0>();
-        emit ready();
-        emit valueChanged(PROPERTY_PROFILE_NAME, activeProfile);
+        emit subscribeFinished(PROPERTY_PROFILE_NAME, QVariant(activeProfile));
     }
 }
 
@@ -104,26 +94,40 @@ void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, Q
 /// right away.
 void ProfilePlugin::subscribe(QSet<QString> keys)
 {
-    contextDebug() << keys;
+    contextDebug() << "subscribed keys:" << keys;
 
-    foreach(const QString& key, keys) {
-        // Ensure that we give some values for the subscribed properties
-        if (key == PROPERTY_PROFILE_NAME && activeProfile != "") {
-            contextDebug() << "Key" << key << "found in cache";
-            emit subscribeFinished(key, QVariant(activeProfile));
-        } else {
-            // This shouldn't occur if the plugin functions correctly
-            contextCritical() << "Key not in cache" << key;
-            emit subscribeFailed(key, "Requested properties not supported by ProfileD");
-            emit failed("Requested properties not supported by ProfileD");
-        }
+    // If would have more than one property, we would have check here if we are already connected to ProfileD.
+
+    // Connect to profile changed signal
+    bool succ = QDBusConnection::sessionBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
+                                                      PROFILED_CHANGED, QString("bbsa(sss)"), this,
+                                                      SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)));
+    if (!succ) {
+        emit failed("Can not connect to profiled.");
+        return;
     }
+
+    // Get current profile from ProfileD
+    QDBusInterface *interface = new QDBusInterface(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
+                                                   QDBusConnection::sessionBus(), this);
+    QDBusPendingCall async = interface->asyncCall(PROFILED_GET_PROFILE);
+    QDBusPendingCallWatcher *callWatcher = new QDBusPendingCallWatcher(async, this);
+
+    QObject::connect(callWatcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
+                     this, SLOT(getProfileCallFinishedSlot(QDBusPendingCallWatcher*)));
+
 }
 
 /// Implementation of the IPropertyProvider::unsubscribe. We're not
 /// keeping track on subscriptions, so we don't need to do anything.
 void ProfilePlugin::unsubscribe(QSet<QString> keys)
 {
+    if (!QDBusConnection::sessionBus().disconnect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
+                                                  PROFILED_CHANGED, QString("bbsa(sss)"), this,
+                                                  SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)))) {
+       qDebug() << "profileplugin: cannot disconnect from profiled.";
+    }
+    activeProfile = "";
 }
 
 } // end namespace
