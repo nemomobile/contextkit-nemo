@@ -60,7 +60,8 @@ SessionStatePlugin::SessionStatePlugin()
     // Initialize the objects needed when communicating via X.
     dpy = XOpenDisplay(0);
     if (dpy == 0) {
-        emit failed("Cannot open display");
+        // we can't emit failed(); here; nobody is connected
+        QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection, Q_ARG(QString, "Cannot open display"));
         return;
     }
 
@@ -288,6 +289,12 @@ void SessionStatePlugin::unsubscribe(QSet<QString> keys)
 void SessionStatePlugin::emitReady()
 {
     emit ready();
+}
+
+/// For emitting the failed() signal in a delayed way.
+void SessionStatePlugin::emitFailed(QString reason)
+{
+    emit failed(reason);
 }
 
 /// Check the current status of the Session.State property and emit

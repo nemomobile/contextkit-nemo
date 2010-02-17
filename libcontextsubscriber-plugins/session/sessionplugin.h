@@ -66,6 +66,7 @@ public:
 
 private slots:
     void emitReady();
+    void emitFailed(QString reason);
     void emitValueChanged();
     void onXEvent();
 
