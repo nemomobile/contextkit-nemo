@@ -220,10 +220,8 @@ void BluezPlugin::subscribe(QSet<QString> keys)
         }
     }
     else {
-        foreach(const QString& key, keys) {
-            pendingSubscriptions << key;
-            wantedSubscriptions << key;
-        }
+        pendingSubscriptions.unite(keys);
+        wantedSubscriptions.unite(keys);
         if (status == NotConnected)
             connectToBluez();
     }
@@ -234,8 +232,7 @@ void BluezPlugin::subscribe(QSet<QString> keys)
 /// make us connect again.
 void BluezPlugin::unsubscribe(QSet<QString> keys)
 {
-    foreach(const QString& key, keys)
-        wantedSubscriptions.remove(key);
+    wantedSubscriptions.subtract(keys);
     if (wantedSubscriptions.isEmpty()) {
         disconnectFromBluez();
     }
