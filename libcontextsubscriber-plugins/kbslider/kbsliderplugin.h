@@ -54,11 +54,11 @@ public:
     virtual void unsubscribe(QSet<QString> keys);
 
 private Q_SLOTS:
-    void emitReady();
     void onKbEvent();
     void readInitialValues();
 
 private:
+    QString findInputDevice();
     QSet<QString> pendingSubscriptions;
     QSet<QString> wantedSubscriptions;
 };

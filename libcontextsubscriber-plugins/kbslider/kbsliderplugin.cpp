@@ -24,6 +24,14 @@
 
 #include "logging.h"
 
+#define EVENT_NAME QString("gpio-keys")
+#define EVENT_DIR "/dev/input"
+
+#include <QDir>
+#include <linux/input.h>
+#include <stdio.h>
+#include <fcntl.h>
+
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 {
@@ -36,7 +44,8 @@ namespace ContextSubscriberKbSlider {
 
 KbSliderPlugin::KbSliderPlugin()
 {
-    QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
+    findInputDevice();
+    QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
 void KbSliderPlugin::readInitialValues()
@@ -45,6 +54,37 @@ void KbSliderPlugin::readInitialValues()
     foreach (const QString& key, pendingSubscriptions)
         emit subscribeFinished(key, QVariant(0)/*some value we got*/);
     pendingSubscriptions.clear();
+}
+
+/// Searches the /dev/input/event0... files, queries the names, and stops when
+/// it finds the name EVENT_NAME
+QString KbSliderPlugin::findInputDevice()
+{
+    static bool checked = false; // Whether we've tried to find the device
+    static QString foundDevice = ""; // The device name we've found (empty if none)
+
+    if (!checked) {
+        checked = true;
+        QDir dir(EVENT_DIR);
+        // Loop through the files in that directory, read the input name from each
+        int fd;
+        char inputName[256];
+        foreach (const QString& fileName,
+                 dir.entryList(QStringList() << "event*", QDir::System)) {
+            QString filePath = dir.filePath(fileName);
+            fd = open(filePath.toLocal8Bit().constData(), O_RDONLY);
+            if (fd < 0) continue;
+            ioctl(fd, EVIOCGNAME(sizeof(inputName)), inputName);
+            close(fd);
+            if (QString(inputName) == EVENT_NAME) {
+                foundDevice = filePath;
+                break;
+            }
+        }
+    }
+    // Now we have tried to find the device file, but haven't necessarily
+    // succeeded
+    return foundDevice;
 }
 
 void KbSliderPlugin::onKbEvent()
@@ -73,12 +113,6 @@ void KbSliderPlugin::unsubscribe(QSet<QString> keys)
     if (wantedSubscriptions.isEmpty()) {
         // TODO: stop all our activities
     }
-}
-
-// For emitting the ready() signal in a delayed way
-void KbSliderPlugin::emitReady()
-{
-    emit ready();
 }
 
 } // end namespace
