@@ -118,7 +118,6 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
             return;
         }
 
-        qDebug() << "subscribe";
         serviceWatcher = new QDBusServiceWatcher(PROFILED_SERVICE, QDBusConnection::sessionBus());
         connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)),
                 this, SLOT(serviceRegisteredSlot(const QString&)));
