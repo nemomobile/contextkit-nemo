@@ -61,6 +61,7 @@ private:
     QString findInputDevice();
     QSet<QString> pendingSubscriptions;
     QSet<QString> wantedSubscriptions;
+    QVariant kbOpen;
 };
 }
 

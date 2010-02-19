@@ -26,6 +26,10 @@
 
 #define EVENT_NAME QString("gpio-keys")
 #define EVENT_DIR "/dev/input"
+#define EVENT_KEY KEY_CAMERA // FIXME: change this to the slider
+// Context keys
+#define KEY_KB_PRESENT QString("maemo/InternalKeyboard/Present")
+#define KEY_KB_OPEN QString("/maemo/InternalKeyboard/Open")
 
 #include <QDir>
 #include <linux/input.h>
@@ -42,17 +46,39 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberKbSlider {
 
+#define BITS_PER_LONG (sizeof(long) * 8)
+#define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
+#define test_bit(bit, array)    ((array[LONG(bit)] >> OFF(bit)) & 1)
+#define LONG(x) ((x)/BITS_PER_LONG)
+#define OFF(x)  ((x)%BITS_PER_LONG)
+
 KbSliderPlugin::KbSliderPlugin()
 {
-    findInputDevice();
-    QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
+    // Try to find a correct input device for us
+    if (findInputDevice().isEmpty())
+        QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection);
+    else
+        QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
 void KbSliderPlugin::readInitialValues()
 {
-    // TODO: really read the initial values
-    foreach (const QString& key, pendingSubscriptions)
-        emit subscribeFinished(key, QVariant(0)/*some value we got*/);
+    qDebug() << "Read initial values";
+    unsigned long bits[NBITS(KEY_MAX)] = {0};
+
+    int fd = open(findInputDevice().toAscii().constData(), O_RDONLY);
+
+    // FIXME: perhaps change this to EVIOCGSW too
+    if (ioctl(fd, EVIOCGKEY(KEY_MAX), bits) > 0) {
+        if (test_bit(EVENT_KEY, bits))
+            kbOpen = QVariant(true);
+        else
+            kbOpen = QVariant(false);
+    }
+
+    // TODO: where to read the "kb present" info?
+    if (pendingSubscriptions.contains(KEY_KB_OPEN))
+        emit subscribeFinished(KEY_KB_OPEN, kbOpen);
     pendingSubscriptions.clear();
 }
 
@@ -96,6 +122,7 @@ void KbSliderPlugin::onKbEvent()
 void KbSliderPlugin::subscribe(QSet<QString> keys)
 {
     if (!wantedSubscriptions.isEmpty()) {
+        // We're already up to date
         foreach (const QString& key, keys)
             emit subscribeFinished(key);
     }
