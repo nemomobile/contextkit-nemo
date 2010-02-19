@@ -32,6 +32,8 @@ extern "C" {
     IProviderPlugin* pluginFactory(const QString& constructionString);
 }
 
+class QSocketNotifier;
+
 namespace ContextSubscriberKbSlider
 {
 
@@ -61,7 +63,9 @@ private:
     QString findInputDevice();
     QSet<QString> pendingSubscriptions;
     QSet<QString> wantedSubscriptions;
-    QVariant kbOpen;
+    QVariant kbOpen; // current value of the "keyboard open" key
+    QSocketNotifier* sn;
+    int eventFd;
 };
 }
 

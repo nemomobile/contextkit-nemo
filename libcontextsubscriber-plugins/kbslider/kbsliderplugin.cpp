@@ -32,6 +32,8 @@
 #define KEY_KB_OPEN QString("/maemo/InternalKeyboard/Open")
 
 #include <QDir>
+#include <QSocketNotifier>
+
 #include <linux/input.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -52,7 +54,8 @@ namespace ContextSubscriberKbSlider {
 #define LONG(x) ((x)/BITS_PER_LONG)
 #define OFF(x)  ((x)%BITS_PER_LONG)
 
-KbSliderPlugin::KbSliderPlugin()
+KbSliderPlugin::KbSliderPlugin():
+    sn(0)
 {
     // Try to find a correct input device for us
     if (findInputDevice().isEmpty())
@@ -66,10 +69,8 @@ void KbSliderPlugin::readInitialValues()
     qDebug() << "Read initial values";
     unsigned long bits[NBITS(KEY_MAX)] = {0};
 
-    int fd = open(findInputDevice().toAscii().constData(), O_RDONLY);
-
     // FIXME: perhaps change this to EVIOCGSW too
-    if (ioctl(fd, EVIOCGKEY(KEY_MAX), bits) > 0) {
+    if (ioctl(eventFd, EVIOCGKEY(KEY_MAX), bits) > 0) {
         if (test_bit(EVENT_KEY, bits))
             kbOpen = QVariant(true);
         else
@@ -93,12 +94,11 @@ QString KbSliderPlugin::findInputDevice()
         checked = true;
         QDir dir(EVENT_DIR);
         // Loop through the files in that directory, read the input name from each
-        int fd;
         char inputName[256];
         foreach (const QString& fileName,
                  dir.entryList(QStringList() << "event*", QDir::System)) {
             QString filePath = dir.filePath(fileName);
-            fd = open(filePath.toLocal8Bit().constData(), O_RDONLY);
+            int fd = open(filePath.toLocal8Bit().constData(), O_RDONLY);
             if (fd < 0) continue;
             ioctl(fd, EVIOCGNAME(sizeof(inputName)), inputName);
             close(fd);
@@ -115,7 +115,16 @@ QString KbSliderPlugin::findInputDevice()
 
 void KbSliderPlugin::onKbEvent()
 {
-    // TODO: update the values
+    // Something happened in the input file; read the events, decide whether
+    // they're interesting, and update the context properties.
+    qDebug() << "on kb event";
+    struct input_event events[64];
+    size_t rd = read(eventFd, events, sizeof(struct input_event)*64);
+    for (size_t i = 0; i < rd/sizeof(struct input_event); ++i) {
+        qDebug() << events[i].type << events[i].code << events[i].value;
+    }
+    // note: find out whether we get activated again if we didn't read all
+    // that is available
 }
 
 /// Implementation of the IPropertyProvider::subscribe.
@@ -128,6 +137,22 @@ void KbSliderPlugin::subscribe(QSet<QString> keys)
     }
     else {
         pendingSubscriptions.unite(keys);
+        // Start polling the event file
+        eventFd = open(findInputDevice().toAscii().constData(), O_RDONLY);
+        if (eventFd < 0) {
+            foreach (const QString& key, keys)
+                emit subscribeFailed(key, "Cannot open event file");
+            emit failed("Cannot open event file");
+            return;
+        }
+        sn = new QSocketNotifier(eventFd, QSocketNotifier::Read);
+        sconnect(sn, SIGNAL(activated(int)), this, SLOT(onKbEvent()));
+
+        // FIXME
+        /*while(1) {
+            onKbEvent();
+            }*/
+
         QMetaObject::invokeMethod(this, "readInitialValues", Qt::QueuedConnection);
     }
     wantedSubscriptions.unite(keys);
@@ -138,7 +163,10 @@ void KbSliderPlugin::unsubscribe(QSet<QString> keys)
 {
     wantedSubscriptions.subtract(keys);
     if (wantedSubscriptions.isEmpty()) {
-        // TODO: stop all our activities
+        // stop all our activities
+        delete sn;
+        sn = 0;
+        close(eventFd);
     }
 }
 
