@@ -93,9 +93,9 @@ void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, Q
     }
 }
 
-/// Implementation of the IPropertyProvider::subscribe. We don't need
-/// any extra work for subscribing to keys, thus subscribe is finished
-/// right away.
+/// Implementation of the IPropertyProvider::subscribe. Connect to the profile
+/// changed signal, and check the current profile with an asynchronous D-Bus
+/// call. subscribeFinished() will be emitted when the call has finished.
 void ProfilePlugin::subscribe(QSet<QString> keys)
 {
     contextDebug() << "subscribed keys:" << keys;
