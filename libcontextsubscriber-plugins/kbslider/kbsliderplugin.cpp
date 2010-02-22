@@ -26,7 +26,7 @@
 
 #define EVENT_NAME QString("gpio-keys")
 #define EVENT_DIR "/dev/input"
-#define EVENT_KEY KEY_CAMERA // FIXME: change this to the slider
+#define EVENT_ID 10
 // Context keys
 #define KEY_KB_PRESENT QString("maemo/InternalKeyboard/Present")
 #define KEY_KB_OPEN QString("/maemo/InternalKeyboard/Open")
@@ -69,15 +69,9 @@ void KbSliderPlugin::readInitialValues()
     qDebug() << "Read initial values";
     unsigned long bits[NBITS(KEY_MAX)] = {0};
 
-    // FIXME: perhaps change this to EVIOCGSW too
-    if (ioctl(eventFd, EVIOCGKEY(KEY_MAX), bits) > 0) {
-        if (test_bit(EVENT_KEY, bits))
-            kbOpen = QVariant(true);
-        else
-            kbOpen = QVariant(false);
-    }
+    if (ioctl(eventFd, EVIOCGSW(KEY_MAX), bits) > 0)
+        kbOpen = QVariant(test_bit(EVENT_ID, bits) ? false : true);
 
-    // TODO: where to read the "kb present" info?
     if (pendingSubscriptions.contains(KEY_KB_OPEN))
         emit subscribeFinished(KEY_KB_OPEN, kbOpen);
     pendingSubscriptions.clear();
@@ -121,8 +115,10 @@ void KbSliderPlugin::onKbEvent()
     struct input_event events[64];
     size_t rd = read(eventFd, events, sizeof(struct input_event)*64);
     for (size_t i = 0; i < rd/sizeof(struct input_event); ++i) {
-        qDebug() << events[i].type << events[i].code << events[i].value;
+        if (events[i].type == EV_SW && events[i].code == EVENT_ID)
+            kbOpen = (events[i].value == 0);
     }
+    emit valueChanged(KEY_KB_OPEN, kbOpen);
     // note: find out whether we get activated again if we didn't read all
     // that is available
 }
@@ -147,11 +143,6 @@ void KbSliderPlugin::subscribe(QSet<QString> keys)
         }
         sn = new QSocketNotifier(eventFd, QSocketNotifier::Read);
         sconnect(sn, SIGNAL(activated(int)), this, SLOT(onKbEvent()));
-
-        // FIXME
-        /*while(1) {
-            onKbEvent();
-            }*/
 
         QMetaObject::invokeMethod(this, "readInitialValues", Qt::QueuedConnection);
     }
