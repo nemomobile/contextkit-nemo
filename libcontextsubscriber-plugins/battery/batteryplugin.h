@@ -28,6 +28,9 @@
 #include <QDBusObjectPath>
 #include <QDBusInterface>
 #include <QSet>
+#include <QStringList>
+
+class QSocketNotifier;
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -52,7 +55,6 @@ class BatteryPlugin : public IProviderPlugin
 
 public:
     explicit BatteryPlugin();
-    ~BatteryPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 
@@ -60,14 +62,17 @@ private slots:
     void onBMEEvent();
     void emitFailed(const QString &msg);
     void emitBatteryValues();
-    void readInitialValues();
+    void readInitialValues(QSet <QString> keys);
 
 private:
     bool readBatteryValues();
+    void initProviderSource();
+    void cleanProviderSource();
     // List of properties provided by this plugin
     int inotifyFd;
     QMap<QString, QVariant> propertyCache;
     QSet<QString> subscribedProperties;
+    QSocketNotifier *sn;
 };
 }
 

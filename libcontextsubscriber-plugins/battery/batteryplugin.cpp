@@ -19,16 +19,20 @@
  *
  */
 
+#include "batteryplugin.h"
+#include "logging.h"
+#include "sconnect.h"
 #include <fcntl.h>
 #include <sys/inotify.h>
 #include <sys/ioctl.h>
-#include "logging.h"
-#include "batteryplugin.h"
-#include "sconnect.h"
 #include <QSocketNotifier>
 #include <QFileSystemWatcher>
 #include <QVarLengthArray>
 #include <QFile>
+#include <QStringList>
+#include <QSet>
+
+Q_DECLARE_METATYPE(QSet<QString>);
 
 extern "C" {
     #include "bme/bmeipc.h"
@@ -54,76 +58,98 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 namespace ContextSubscriberBattery {
 
 
-/// Constructor. Try to connect to Battery right away.
-BatteryPlugin::BatteryPlugin()
+/// Constructor.
+BatteryPlugin::BatteryPlugin():inotifyFd(-1), sn(NULL)
 {
-    // try out: replace emitReady by ready and kill emitReady slot
-    QMetaObject::invokeMethod(this, "readInitialValues", Qt::QueuedConnection);
+    // Plugin is ready to take subscriptions in
+    QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
 
-/// Destructor.
-BatteryPlugin::~BatteryPlugin()
-{
-}
-
-/// Implementation of the IPropertyProvider::subscribe. We don't need
-/// any extra work for subscribing to keys, thus subscribe is finished
-/// right away.
+/// Implementation of the IPropertyProvider::subscribe.
+/// The provider source of the battery properties is initialised only on the first subscription.
+/// Otherwise, the new properties to subscribe to are tracked in the cache.
 void BatteryPlugin::subscribe(QSet<QString> keys)
 {
-
     if (subscribedProperties.isEmpty()) {
+        qRegisterMetaType<QSet <QString> >("QSet<QString>");
+        QMetaObject::invokeMethod(this, "readInitialValues", Qt::QueuedConnection, Q_ARG(QSet <QString>, keys));
+        initProviderSource();
+    } else
+        subscribedProperties.unite(keys);
+}
+
+/// Implementation of the IPropertyProvider::unsubscribe.
+/// Properties to unsubscribe are removed from the cache.
+/// The provider source is closed and cleaned up when no properties remain in the cache.
+void BatteryPlugin::unsubscribe(QSet<QString> keys)
+{
+    subscribedProperties.subtract(keys);
+    if (subscribedProperties.isEmpty())
+        cleanProviderSource();
+}
+
+/// Start to watch the provider source BMEIPC_EVENT on first subscription or when the source has been deleted or moved
+bool BatteryPlugin::initProviderSource()
+{
+    if (!QFile::exists(BMEIPC_EVENT))
+        if (bmeipc_epush(0) < 0) {
+            QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection,Q_ARG(QString,"Battery plugin failed to create file BMEIPC_EVENT"));
+            return false;
+        }
+
+    if (inotifyFd < 0) {
 
         inotifyFd = bmeipc_eopen(-1); // Mask is thrown away
 
-        if (0 > inotifyFd)
-
-            QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection,Q_ARG(QString,"Battery plugin failed to add watcher for BME events"));
+        if (inotifyFd < 0) {
+            QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection,Q_ARG(QString,"Battery plugin failed to retrieve file descriptor for BMEIPC_EVENT"));
+            return false;
+        }
 
         else {
-
-            if (!QFile::exists(BMEIPC_EVENT))
-                bmeipc_epush(0);
-
             fcntl(inotifyFd, F_SETFD, FD_CLOEXEC);
-            int wd = inotify_add_watch(inotifyFd, BMEIPC_EVENT, (IN_CLOSE_WRITE | IN_DELETE_SELF));
+            int wd = inotify_add_watch(inotifyFd, BMEIPC_EVENT, (IN_DELETE_SELF | IN_MOVE_SELF));
 
-            if (0 > wd)
-                QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection,Q_ARG(QString,"Battery plugin failed to add watcher for BME events"));
+            if (wd < 0) {
+                QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection,Q_ARG(QString,"Battery plugin failed to add watcher on BMEIPC_EVENT"));
+                return false;
+            }
             else {
-                QSocketNotifier *sn = new QSocketNotifier(inotifyFd, QSocketNotifier::Read, this);
+                sn = new QSocketNotifier(inotifyFd, QSocketNotifier::Read, this);
                 connect(sn, SIGNAL(activated(int)), this, SLOT(onBMEEvent()));
             }
         }
     }
-
-    subscribedProperties.unite(keys);
-    // assume that we already have gotten the value for each property
-    foreach(const QString& key, keys)
-        emit subscribeFinished(key, propertyCache[key]);
+    return true;
 }
 
-/// Implementation of the IPropertyProvider::unsubscribe. We're not
-/// keeping track on subscriptions, so we don't need to do anything.
-void BatteryPlugin::unsubscribe(QSet<QString> keys)
+/// When the provicer source BMEIPC_EVENT is deleted, moved or when all properties have been unsubscribed
+/// watcher is removed
+void BatteryPlugin::cleanProviderSource()
 {
-    //TODO: remove the keys from subscribedProperties
-    // if empty close inotify
-
+    delete sn;
+    sn = NULL;
+    // No need to remove watchers. All  associated  watches are
+    // automatically freed when file descriptor is close
+    bmeipc_close(inotifyFd);
+    inotifyFd = -1;
 }
 
+/// Called when provider source has been modified and new values are available
 bool BatteryPlugin::readBatteryValues()
 {
     bmestat_t st;
     int sd = -1;
 
-    if (0 > (sd = bmeipc_open())){
-        contextDebug() << "Cannot open BME file descriptor";
+    propertyCache[CHARGE_PERCENT] = QVariant(20);
+
+    if ((sd = bmeipc_open()) < 0){
+        contextDebug() << "Cannot open socket connected to BME server";
         return false;
     }
 
-    if (0 > bmeipc_stat(sd, &st)) {
+    if (bmeipc_stat(sd, &st) < 0) {
         contextDebug() << "Cannot get BME statistics";
         return false;
     }
@@ -149,34 +175,52 @@ bool BatteryPlugin::readBatteryValues()
 
 }
 
-
+/// Values of battery properties are emitted only if we were able to read BME statistics
 void BatteryPlugin::emitBatteryValues()
 {
-    foreach(const QString& key, subscribedProperties)
+    foreach(const QString& key, subscribedProperties) {
+        contextDebug() << "emit ValueChanged" << key << "," << propertyCache[key];
         emit valueChanged(key, propertyCache[key]);
+    }
 }
 
 
-/// A BMEEvent is received
+/// When provider source has been modified, we emit ValueChanged signal
+/// Otherwise, we handle gracefully the deletion of the source and try to recover
 void BatteryPlugin::onBMEEvent()
 {
+
     // Empty buffer. Should not blog, since we got signal from QSocketNotifier
     int buffSize = 0;
     ioctl(inotifyFd, FIONREAD, (char *) &buffSize);
     QVarLengthArray<char, 4096> buffer(buffSize);
     buffSize = read(inotifyFd, buffer.data(), buffSize);
+    inotify_event *ev = reinterpret_cast<inotify_event *>(buffer.data());
 
-    if (readBatteryValues())
-        emitBatteryValues();
-    else
-        emit failed ("Battery plugin could not read values from BME");
-
+    if ((ev->mask & IN_DELETE_SELF) || (ev->mask & IN_MOVE_SELF)) {
+        cleanProviderSource();
+        emit failed ("Provider source of battery plugin was deleted or moved");
+        if (initProviderSource())
+            QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
+    } else if ((ev->mask & IN_IGNORED)) {
+        contextDebug() << "Do nothing because this event means that watcher has been removed automatically";
+    } else {
+        if (readBatteryValues())
+            emitBatteryValues();
+        else
+            emit failed ("Battery plugin could not read values from BME");
+    }
 }
-
-void BatteryPlugin::readInitialValues()
+/// Called only on first subscription
+void BatteryPlugin::readInitialValues(QSet <QString> keys)
 {
-    if (readBatteryValues())
-        emit ready();
+    if (readBatteryValues()) {
+        foreach(const QString& key, keys) {
+            emit subscribeFinished(key, propertyCache[key]);
+        }
+        subscribedProperties.unite(keys);
+    }
+
     else
         emit failed ("Battery plugin could not read values from BME");
 }
