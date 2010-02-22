@@ -59,16 +59,11 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberProfile {
 
-/// Constructor. Try to connect to ProfileD right away.
 ProfilePlugin::ProfilePlugin()
+    : activeProfile(""), interface(0), callWatcher(0), serviceWatcher(0)
 {
     qDBusRegisterMetaType<MyStructure>();
     qDBusRegisterMetaType<QList<MyStructure > >();
- 
-    activeProfile = "";
-    interface = NULL;
-    callWatcher = NULL;
-    serviceWatcher = NULL;
 
     // Emit delayed signal, so caller has a change to connect to us before.
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
@@ -80,7 +75,6 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
     if (reply.isError()) {
         qDebug() << Q_FUNC_INFO << "error reply:" << reply.error().name();
         emit failed("Can not connect to profiled.");
-        emit subscribeFailed(PROPERTY_PROFILE_NAME, "Can not connect to profiled.");
     } else {
         activeProfile = reply.argumentAt<0>();
         emit subscribeFinished(PROPERTY_PROFILE_NAME, QVariant(activeProfile));
@@ -135,8 +129,8 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
             this, SLOT(getProfileCallFinishedSlot(QDBusPendingCallWatcher*)));
 }
 
-/// Implementation of the IPropertyProvider::unsubscribe. We're not
-/// keeping track on subscriptions, so we don't need to do anything.
+/// Implementation of the IPropertyProvider::unsubscribe. Stop listening to
+/// the profile changed signal and profiled disappearing from D-Bus.
 void ProfilePlugin::unsubscribe(QSet<QString> keys)
 {
     delete serviceWatcher;
@@ -149,14 +143,19 @@ void ProfilePlugin::unsubscribe(QSet<QString> keys)
     activeProfile = "";
 }
 
-void ProfilePlugin::serviceRegisteredSlot(const QString& serviceName)
+void ProfilePlugin::serviceRegisteredSlot(const QString& /*serviceName*/)
 {
     emit ready();
 }
 
-void ProfilePlugin::serviceUnregisteredSlot(const QString& serviceName)
+void ProfilePlugin::serviceUnregisteredSlot(const QString& /*serviceName*/)
 {
     emit failed("ProfileD unregistered from DBus.");
+    // We are still connected to the "service registered" signal, so we'll
+    // notice if profiled comes back. We also keep the connection to the
+    // profile changed signal. When profiled comes back, we emit ready and the
+    // upper layer re-subscribes. In subscribe, serviceWatcher is not
+    // recreated.
 }
 
 } // end namespace
