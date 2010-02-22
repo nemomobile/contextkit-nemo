@@ -60,8 +60,9 @@ SessionStatePlugin::SessionStatePlugin()
     // Initialize the objects needed when communicating via X.
     dpy = XOpenDisplay(0);
     if (dpy == 0) {
-        // we can't emit failed(); here; nobody is connected
-        QMetaObject::invokeMethod(this, "emitFailed", Qt::QueuedConnection, Q_ARG(QString, "Cannot open display"));
+        // we can't emit failed() here; nobody is connected. Queue it.
+        QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection,
+                                  Q_ARG(QString, "Cannot open display"));
         return;
     }
 
@@ -79,8 +80,7 @@ SessionStatePlugin::SessionStatePlugin()
 
     // Emitting ready() is not allowed inside the constructor. Thus,
     // queue it.
-
-    QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 
     // Connect to the screen blanking property
     sconnect(&screenBlanked, SIGNAL(valueChanged()), this, SLOT(emitValueChanged()));
@@ -283,18 +283,6 @@ void SessionStatePlugin::unsubscribe(QSet<QString> keys)
         // Stop listening to the screen blanking status
         screenBlanked.unsubscribe();
     }
-}
-
-/// For emitting the ready() signal in a delayed way.
-void SessionStatePlugin::emitReady()
-{
-    emit ready();
-}
-
-/// For emitting the failed() signal in a delayed way.
-void SessionStatePlugin::emitFailed(QString reason)
-{
-    emit failed(reason);
 }
 
 /// Check the current status of the Session.State property and emit
