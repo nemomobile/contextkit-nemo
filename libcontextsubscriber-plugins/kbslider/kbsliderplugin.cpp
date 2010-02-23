@@ -26,7 +26,7 @@
 
 #define EVENT_NAME QString("gpio-keys")
 #define EVENT_DIR "/dev/input"
-#define EVENT_ID 10
+#define EVENT_ID SW_KEYPAD_SLIDE
 // Context keys
 #define KEY_KB_PRESENT QString("maemo/InternalKeyboard/Present")
 #define KEY_KB_OPEN QString("/maemo/InternalKeyboard/Open")
@@ -59,7 +59,7 @@ KbSliderPlugin::KbSliderPlugin():
 {
     // Try to find a correct input device for us
     if (findInputDevice().isEmpty())
-        QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection, Q_ARG(QString, "Cannot find input device"));
     else
         QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
