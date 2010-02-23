@@ -1,3 +1,4 @@
+if NEVER
 bin_PROGRAMS = main
 main_SOURCES = main.cpp batterywatcher.h
 
@@ -8,7 +9,4 @@ LIBS += $(QtCore_LIBS) -lbmeipc
 nodist_main_SOURCES = mocs.cpp
 QT_TOMOC = $(filter %.h, $(main_SOURCES))
 include $(top_srcdir)/am/qt.am
-
-# library dependency hack for seamless make in contextd
-
-
+endif

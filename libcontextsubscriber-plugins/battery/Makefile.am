@@ -2,7 +2,7 @@ SUBDIRS = sandbox
 
 plugindir = $(libdir)/contextkit/subscriber-plugins/
 plugin_LTLIBRARIES = battery-1.la
-battery_1_la_SOURCES = batteryplugin.cpp batteryplugin.h loggingfeatures.h
+battery_1_la_SOURCES = batteryplugin.cpp batteryplugin.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS)			\
 	      $(CTXTSUBS_CFLAGS) 					\
@@ -12,13 +12,13 @@ AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS)			\
 # avoid-version: Don't add version numbers after .so
 battery_1_la_LDFLAGS = -avoid-version -module
 
-$(top_builddir)/common/libcommon.a:
-	$(MAKE) -C $(top_builddir)/common libcommon.a
+$(top_builddir)/common/libcommon.la: FORCE
+	$(MAKE) -C $(top_builddir)/common libcommon.la
 
 LIBS += $(QtCore_LIBS) -lbmeipc
 battery_1_la_LIBADD=$(top_builddir)/common/libcommon.la
 
-.PHONY: $(top_builddir)/common/libcommon.la
+.PHONY: FORCE
 
 # moccing
 nodist_battery_1_la_SOURCES = mocs.cpp
