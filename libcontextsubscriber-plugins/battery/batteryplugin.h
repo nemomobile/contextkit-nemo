@@ -60,16 +60,15 @@ public:
 
 private slots:
     void onBMEEvent();
-    void emitFailed(const QString &msg);
-    void emitBatteryValues();
-    void readInitialValues(QSet <QString> keys);
+    void emitSubscribeFinished(QSet <QString> keys);
+    bool readBatteryValues();
 
 private:
-    bool readBatteryValues();
-    void initProviderSource();
+    bool initProviderSource();
     void cleanProviderSource();
-    // List of properties provided by this plugin
+
     int inotifyFd;
+    int bmeevt_watch;
     QMap<QString, QVariant> propertyCache;
     QSet<QString> subscribedProperties;
     QSocketNotifier *sn;
