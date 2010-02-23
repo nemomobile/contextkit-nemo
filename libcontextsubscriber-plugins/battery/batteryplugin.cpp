@@ -70,7 +70,7 @@ BatteryPlugin::BatteryPlugin():
 }
 
 /// The provider source of the battery properties is initialised only on the
-/// first subscription.
+/// first subscription. Initialisation means adding watcher to BMEIPC_EVENT
 void BatteryPlugin::subscribe(QSet<QString> keys)
 {
     if (subscribedProperties.isEmpty()) {
@@ -111,7 +111,7 @@ bool BatteryPlugin::initProviderSource()
     return true;
 }
 
-/// When the provicer source BMEIPC_EVENT is deleted, moved or when all
+/// Called when the provicer source BMEIPC_EVENT is deleted, moved or when all
 /// properties have been unsubscribed watcher is removed
 void BatteryPlugin::cleanProviderSource()
 {
@@ -176,7 +176,7 @@ void BatteryPlugin::onBMEEvent()
     }
 }
 
-/// Called only on first subscription
+/// Called only on first subscription of each property
 void BatteryPlugin::emitSubscribeFinished(QSet<QString> keys)
 {
     foreach(const QString& key, keys) {
