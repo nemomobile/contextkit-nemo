@@ -25,11 +25,11 @@
 #include "logging.h"
 
 #define GPIO_FILE "/dev/input/gpio-keys"
-#define KEYPAD_FILE "/dev/input/gpio-keys"
+#define KEYPAD_FILE "/dev/input/keypad"
 
 #define SLIDE_EVENT_ID SW_KEYPAD_SLIDE
 // Context keys
-#define KEY_KB_PRESENT QString("maemo/InternalKeyboard/Present")
+#define KEY_KB_PRESENT QString("/maemo/InternalKeyboard/Present")
 #define KEY_KB_OPEN QString("/maemo/InternalKeyboard/Open")
 
 #include <QDir>
@@ -63,11 +63,10 @@ KbSliderPlugin::KbSliderPlugin():
 
 /// Reads the KEYPAD_FILE, and checks the events it offers. If it offers the
 /// QWERTY key events, sets kbPresent to true, otherwise, to false.
-void KbSliderPlugin::readKeyboardPresence()
+void KbSliderPlugin::readKbPresent()
 {
     static bool read = false;
     if (!read) {
-        qDebug() << "reading";
         read = true;
         QFile file(KEYPAD_FILE);
         if (!file.exists()) return;
@@ -78,7 +77,6 @@ void KbSliderPlugin::readKeyboardPresence()
         unsigned long keys[NBITS(KEY_MAX)] = {0};
         if (ioctl(keypadFd, EVIOCGBIT(EV_KEY, KEY_MAX), keys) < 0)
             return;
-        qDebug() << "results: " << test_bit(KEY_Q, keys) << test_bit(KEY_W, keys);
 
         if (test_bit(KEY_Q, keys) && test_bit(KEY_W, keys) &&
             test_bit(KEY_R, keys) && test_bit(KEY_T, keys) &&
@@ -88,10 +86,15 @@ void KbSliderPlugin::readKeyboardPresence()
             kbPresent = QVariant(false);
         close(keypadFd);
     }
+}
+
+/// Emits the subscribeFinished or subscribeFailed signal for KEY_KB_PRESENT.
+void KbSliderPlugin::emitFinishedKbPresent()
+{
     if (kbPresent.isNull())
         emit subscribeFailed(KEY_KB_PRESENT, QString("Cannot read ") + KEYPAD_FILE);
     else
-        emit subscribeFinished(KEY_KB_PRESENT);
+        emit subscribeFinished(KEY_KB_PRESENT, kbPresent);
 }
 
 void KbSliderPlugin::readSliderStatus()
@@ -122,11 +125,10 @@ void KbSliderPlugin::onSliderEvent()
 /// Implementation of the IPropertyProvider::subscribe.
 void KbSliderPlugin::subscribe(QSet<QString> keys)
 {
-    qDebug() << "subscribe" << keys;
     if (keys.contains(KEY_KB_PRESENT)) {
-        // Only a one-time effort needed to subscribe to this key. This will
-        // also emit subscribeFinished / subscribeFailed.
-        QMetaObject::invokeMethod(this, "readKeyboardPresence", Qt::QueuedConnection);
+        // Only a one-time effort needed to subscribe to this key.
+        QMetaObject::invokeMethod(this, "readKbPresent", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "emitFinishedKbPresent", Qt::QueuedConnection);
     }
     if (keys.contains(KEY_KB_OPEN)) {
         // Start polling the event file

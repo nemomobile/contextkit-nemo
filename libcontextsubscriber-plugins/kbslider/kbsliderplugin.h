@@ -58,7 +58,8 @@ public:
 private Q_SLOTS:
     void onSliderEvent();
     void readSliderStatus();
-    void readKeyboardPresence();
+    void readKbPresent();
+    void emitFinishedKbPresent();
 
 private:
     QVariant kbOpen; // current value of the "keyboard open" key
