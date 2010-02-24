@@ -15,13 +15,11 @@
 
 QT_MOCS = $(QT_TOMOC:%.h=moc_%_h.cpp)
 
+# mocs.cpp depends on Makefile so that it is also regenerated when an
+# entry is removed from QT_MOCS.
+
 mocs.cpp: $(QT_MOCS) Makefile
-	rm -f mocs.cpp
-	for i in $(QT_MOCS); do \
-		$(MAKE) "$$i"; \
-		cat "$$i" >>mocs.cpp; \
-		rm -f "$$i"; \
-	done
+	cat $(QT_MOCS) >mocs.cpp
 
 moc_%_h.cpp: %.h
 	$(MOC) -o "$@" "$<"

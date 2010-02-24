@@ -23,8 +23,10 @@
 #include "sconnect.h"
 
 #include "logging.h"
-
+// This is for getting rid of synchronous D-Bus introspection calls Qt does.
 #include <asyncdbusinterface.h>
+
+#include <QDBusServiceWatcher>
 
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -42,64 +44,91 @@ const QString BluezPlugin::managerInterface = "org.bluez.Manager";
 const QString BluezPlugin::adapterInterface = "org.bluez.Adapter";
 QDBusConnection BluezPlugin::busConnection = QDBusConnection::systemBus();
 
-/// Constructor. Try to connect to Bluez right away.
-BluezPlugin::BluezPlugin() : manager(0), adapter(0)
+BluezPlugin::BluezPlugin() : manager(0), adapter(0), status(NotConnected), serviceWatcher(0)
 {
-    busConnection.connect("org.freedesktop.DBus", "/org/freedesktop/DBus",
-                          "org.freedesktop.DBus", "NameOwnerChanged",
-                          this, SLOT(onNameOwnerChanged(QString, QString, QString)));
     // Create a mapping from Bluez properties to Context Properties
     properties["Powered"] = "Bluetooth.Enabled";
     properties["Discoverable"] = "Bluetooth.Visible";
 
-    connectToBluez();
+    // We're ready to take in subscriptions right away; we'll connect to bluez
+    // when we get subscriptions.
+    QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
 }
 
-/// Called when the nameOwnerChanged signal is received over D-Bus.
-void BluezPlugin::onNameOwnerChanged(QString name, QString /*oldOwner*/, QString newOwner)
+void BluezPlugin::disconnectFromBluez()
 {
-    if (name == serviceName) {
-        if (newOwner != "") {
-            // BlueZ appeared -> connect to it. If successful, ready()
-            // will be emitted when the connection is established.
-            connectToBluez();
-        }
-        else {
-            // BlueZ disappeared
-            emit failed("BlueZ left D-Bus");
-        }
-    }
+    status = NotConnected;
+
+    // Disconnect D-Bus signals
+    busConnection.disconnect(serviceName, managerPath,
+                             managerInterface, "DefaultAdapterChanged",
+                             this, SLOT(onDefaultAdapterChanged(QDBusObjectPath)));
+
+    busConnection.disconnect(serviceName, adapterPath,
+                             adapterInterface, "PropertyChanged",
+                             this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+
+    delete adapter;
+    adapter = 0;
+    delete manager;
+    manager = 0;
+    delete serviceWatcher;
+    serviceWatcher = 0;
 }
 
 /// Try to establish the connection to BlueZ.
 void BluezPlugin::connectToBluez()
 {
-    if (adapter) {
-        busConnection.disconnect(serviceName,
-                                 adapterPath,
-                                 adapterInterface,
-                                 "PropertyChanged",
-                                 this, SLOT(onPropertyChanged(QString, QDBusVariant)));
-        delete adapter;
-        adapter = 0;
-    }
-    if (manager) {
-        delete manager;
-        manager = 0;
-    }
+    disconnectFromBluez();
+    status = Connecting;
 
+    // If this function is executed because Bluez has just appeared on D-Bus,
+    // it might be too early for the default adaptor to exist. It might be
+    // that the DefaultAdapter call fails. To tackle that, we don't treat that
+    // as a real failure, but before calling DefaultAdapter, we subscribe to
+    // the DefaultAdapterChanged signal from Bluez. When Bluez gets the
+    // default adapter set up, we will get our callback called. A drawback: if
+    // the default adapter is never assigned, this plugin won't inform the
+    // upper layer of the error; it will just look as if everything is fine
+    // (properties keep their old values or are unknown).
+
+    busConnection.connect(serviceName, managerPath, managerInterface, "DefaultAdapterChanged",
+                          this, SLOT(onDefaultAdapterChanged(QDBusObjectPath)));
     manager = new AsyncDBusInterface(serviceName, managerPath, managerInterface, busConnection, this);
     manager->callWithCallback("DefaultAdapter", QList<QVariant>(), this,
                               SLOT(replyDefaultAdapter(QDBusObjectPath)),
-                              SLOT(replyDBusError(QDBusError)));
+                              SLOT(replyDefaultAdapterError(QDBusError)));
+
+    // When Bluez disappears from D-Bus, we emit failed to signal that we're
+    // not able to take in subscriptions. And when Bluez reappears, we emit
+    // "ready". Then the upper layer will renew its subscriptions (and we
+    // reconnect to bluez if needed).
+    serviceWatcher = new QDBusServiceWatcher(serviceName, busConnection);
+    connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)), this, SLOT(emitReady()), Qt::QueuedConnection);
+    connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)), this, SLOT(emitFailed()));
+}
+
+/// Called when a D-Bus error occurs when processing our
+/// callWithCallback of DefaultAdapter.
+void BluezPlugin::replyDefaultAdapterError(QDBusError err)
+{
+    // It might be that we're calling DefaultAdapter but there is none
+    // currently; try to get it later. Tell the upper layer that all keys are
+    // now subscribe (they will keep their previous values) and hope that the
+    // DefaultAdapter signal comes at some point.
+    foreach (const QString& key, pendingSubscriptions)
+        emit subscribeFinished(key);
+    pendingSubscriptions.clear();
 }
 
 /// Called when a D-Bus error occurs when processing our
 /// callWithCallback.
 void BluezPlugin::replyDBusError(QDBusError err)
 {
-    contextWarning() << "DBus error occured:" << err.message();
-    emit failed("Cannot connect to BlueZ:" + err.message());
+    emit failed("Cannot connect to BlueZ: " + err.message());
+    foreach (const QString& key, pendingSubscriptions)
+        emit subscribeFailed(key, "Cannot connect to Bluez: " + err.message());
+    pendingSubscriptions.clear();
 }
 
 /// Called when the DefaultAdapter D-Bus call is done.
@@ -109,7 +138,23 @@ void BluezPlugin::replyDefaultAdapter(QDBusObjectPath path)
     adapterPath = path.path();
     adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
     busConnection.connect(serviceName,
-                          path.path(),
+                          adapterPath,
+                          adapterInterface,
+                          "PropertyChanged",
+                          this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+    adapter->callWithCallback("GetProperties", QList<QVariant>(), this,
+                              SLOT(replyGetProperties(QMap<QString, QVariant>)),
+                              SLOT(replyDBusError(QDBusError)));
+}
+
+/// Called when Bluez changes its default adapter.
+void BluezPlugin::onDefaultAdapterChanged(QDBusObjectPath path)
+{
+    adapterPath = path.path();
+    delete adapter;
+    adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
+    busConnection.connect(serviceName,
+                          adapterPath,
                           adapterInterface,
                           "PropertyChanged",
                           this, SLOT(onPropertyChanged(QString, QDBusVariant)));
@@ -135,6 +180,7 @@ void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
 void BluezPlugin::replyGetProperties(QMap<QString, QVariant> map)
 {
     contextDebug();
+    status = Connected;
     foreach(const QString& key, map.keys()) {
         if (properties.contains(key)) {
             contextDebug() << "Prop changed:" << properties[key];
@@ -144,34 +190,65 @@ void BluezPlugin::replyGetProperties(QMap<QString, QVariant> map)
             // value was a different one.
         }
     }
-    emit ready();
+    foreach (const QString& key, pendingSubscriptions) {
+        if (propertyCache.contains(key))
+            emit subscribeFinished(key, propertyCache[key]);
+        else
+            emit subscribeFailed(key, "Unknown key");
+    }
+    pendingSubscriptions.clear();
 }
 
-/// Implementation of the IPropertyProvider::subscribe. We don't need
-/// any extra work for subscribing to keys, thus subscribe is finished
-/// right away.
+/// Implementation of the IPropertyProvider::subscribe. If we're connected to
+/// bluez, no extra work is needed. Otherwise, initiate connecting to bluez.
 void BluezPlugin::subscribe(QSet<QString> keys)
 {
-    contextDebug() << keys;
-
-    foreach(const QString& key, keys) {
-        // Ensure that we give some values for the subscribed properties
-        if (propertyCache.contains(key)) {
-            contextDebug() << "Key" << key << "found in cache";
-            emit subscribeFinished(key, propertyCache[key]);
+    if (status == Connected) {
+        // we're already connected to bluez; so we know values for all the keys
+        foreach(const QString& key, keys) {
+            // Ensure that we give some values for the subscribed properties
+            if (propertyCache.contains(key)) {
+                contextDebug() << "Key" << key << "found in cache";
+                wantedSubscriptions << key;
+                emit subscribeFinished(key, propertyCache[key]);
+            }
+            else {
+                // This shouldn't occur if the plugin and libcontextsubscriber function correctly
+                contextCritical() << "Key not in cache" << key;
+                emit subscribeFailed(key, "Unknown key");
+            }
         }
-        else {
-            // This shouldn't occur if the plugin functions correctly
-            contextCritical() << "Key not in cache" << key;
-            emit failed("Requested properties not supported by BlueZ");
-        }
+    }
+    else {
+        pendingSubscriptions.unite(keys);
+        wantedSubscriptions.unite(keys);
+        if (status == NotConnected)
+            connectToBluez();
     }
 }
 
-/// Implementation of the IPropertyProvider::unsubscribe. We're not
-/// keeping track on subscriptions, so we don't need to do anything.
+/// Implementation of the IPropertyProvider::unsubscribe. If none of the
+/// properties is needed, disconnect from bluez. The next subscriptions will
+/// make us connect again.
 void BluezPlugin::unsubscribe(QSet<QString> keys)
 {
+    wantedSubscriptions.subtract(keys);
+    if (wantedSubscriptions.isEmpty()) {
+        disconnectFromBluez();
+    }
+}
+
+/// For emitting the ready() signal in a delayed way.
+void BluezPlugin::emitReady()
+{
+    emit ready();
+}
+
+/// For emitting the failed() signal in a delayed way.
+void BluezPlugin::emitFailed(QString reason)
+{
+    status = NotConnected;
+    emit failed(reason);
 }
 
 } // end namespace

@@ -33,7 +33,9 @@ extern "C" {
 }
 
 class QDBusPendingCallWatcher;
+class QDBusServiceWatcher;
 class QDBusArgument;
+class AsyncDBusInterface;
 
 struct MyStructure
 {
@@ -67,8 +69,13 @@ public:
 private slots:
     void profileChanged(bool changed, bool active, QString profile, QList<MyStructure> values);
     void getProfileCallFinishedSlot(QDBusPendingCallWatcher *call);
+    void serviceRegisteredSlot(const QString& serviceName);
+    void serviceUnregisteredSlot(const QString& serviceName);
 
 private:
+    AsyncDBusInterface *interface;
+    QDBusPendingCallWatcher *callWatcher;
+    QDBusServiceWatcher *serviceWatcher;
     QString activeProfile;
 };
 }

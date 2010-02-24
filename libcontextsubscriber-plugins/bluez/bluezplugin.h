@@ -27,6 +27,11 @@
 #include <QDBusError>
 #include <QDBusObjectPath>
 #include <QDBusInterface>
+#include <QSet>
+#include <QMap>
+#include <QString>
+
+class QDBusServiceWatcher;
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -57,15 +62,19 @@ public:
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 
-private slots:
+private Q_SLOTS:
     void replyDBusError(QDBusError err);
+    void replyDefaultAdapterError(QDBusError err);
     void replyDefaultAdapter(QDBusObjectPath path);
     void replyGetProperties(QMap<QString, QVariant> map);
     void onPropertyChanged(QString key, QDBusVariant value);
-    void onNameOwnerChanged(QString name, QString oldOwner, QString newOwner);
+    void onDefaultAdapterChanged(QDBusObjectPath path);
+    void emitReady();
+    void emitFailed(QString reason = QString("Bluez left D-Bus"));
 
 private:
     void connectToBluez();
+    void disconnectFromBluez();
     AsyncDBusInterface* manager; ///< Bluez Manager interface
     AsyncDBusInterface* adapter; ///< Bluez Adapter interface
     QString adapterPath; ///< Object path of the Bluez adapter
@@ -75,8 +84,14 @@ private:
     static const QString adapterInterface; ///< Interface name of Bluez adapter
     static QDBusConnection busConnection; ///< QDBusConnection used for talking with Bluez
 
+    enum ConnectionStatus {NotConnected, Connecting, Connected};
+    ConnectionStatus status; ///< Whether we're currently connected to Bluez
+    QDBusServiceWatcher* serviceWatcher; ///< For watching Bluez appear and disappear
+
     QMap<QString, QString> properties; ///< Mapping of Bluez properties to Context FW properties
     QMap<QString, QVariant> propertyCache;
+    QSet<QString> pendingSubscriptions; ///< Keys for which subscribeFinished/Failed hasn't been emitted
+    QSet<QString> wantedSubscriptions; ///< What the upper layer wants us to be subscribed to
 };
 }
 

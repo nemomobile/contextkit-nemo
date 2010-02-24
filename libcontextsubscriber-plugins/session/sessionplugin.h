@@ -65,7 +65,6 @@ public:
     virtual void unsubscribe(QSet<QString> keys);
 
 private slots:
-    void emitReady();
     void emitValueChanged();
     void onXEvent();
 
