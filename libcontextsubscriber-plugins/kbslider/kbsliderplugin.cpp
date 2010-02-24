@@ -24,9 +24,10 @@
 
 #include "logging.h"
 
-#define EVENT_NAME QString("gpio-keys")
-#define EVENT_DIR "/dev/input"
-#define EVENT_ID SW_KEYPAD_SLIDE
+#define GPIO_FILE "/dev/input/gpio-keys"
+#define KEYPAD_FILE "/dev/input/gpio-keys"
+
+#define SLIDE_EVENT_ID SW_KEYPAD_SLIDE
 // Context keys
 #define KEY_KB_PRESENT QString("maemo/InternalKeyboard/Present")
 #define KEY_KB_OPEN QString("/maemo/InternalKeyboard/Open")
@@ -57,65 +58,60 @@ namespace ContextSubscriberKbSlider {
 KbSliderPlugin::KbSliderPlugin():
     sn(0)
 {
-    // Try to find a correct input device for us
-    if (findInputDevice().isEmpty())
-        QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection, Q_ARG(QString, "Cannot find input device"));
-    else
-        QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
-void KbSliderPlugin::readInitialValues()
+/// Reads the KEYPAD_FILE, and checks the events it offers. If it offers the
+/// QWERTY key events, sets kbPresent to true, otherwise, to false.
+void KbSliderPlugin::readKeyboardPresence()
 {
-    qDebug() << "Read initial values";
+    static bool read = false;
+    if (!read) {
+        qDebug() << "reading";
+        read = true;
+        QFile file(KEYPAD_FILE);
+        if (!file.exists()) return;
+        int keypadFd = open(KEYPAD_FILE, O_RDONLY);
+        if (keypadFd < 0) return;
+
+        // Read what key events this input device provides.
+        unsigned long keys[NBITS(KEY_MAX)] = {0};
+        if (ioctl(keypadFd, EVIOCGBIT(EV_KEY, KEY_MAX), keys) < 0)
+            return;
+        qDebug() << "results: " << test_bit(KEY_Q, keys) << test_bit(KEY_W, keys);
+
+        if (test_bit(KEY_Q, keys) && test_bit(KEY_W, keys) &&
+            test_bit(KEY_R, keys) && test_bit(KEY_T, keys) &&
+            test_bit(KEY_Y, keys))
+            kbPresent = QVariant(true);
+        else
+            kbPresent = QVariant(false);
+        close(keypadFd);
+    }
+    if (kbPresent.isNull())
+        emit subscribeFailed(KEY_KB_PRESENT, QString("Cannot read ") + KEYPAD_FILE);
+    else
+        emit subscribeFinished(KEY_KB_PRESENT);
+}
+
+void KbSliderPlugin::readSliderStatus()
+{
     unsigned long bits[NBITS(KEY_MAX)] = {0};
 
     if (ioctl(eventFd, EVIOCGSW(KEY_MAX), bits) > 0)
-        kbOpen = QVariant(test_bit(EVENT_ID, bits) ? false : true);
+        kbOpen = QVariant(test_bit(SLIDE_EVENT_ID, bits) ? false : true);
 
-    if (pendingSubscriptions.contains(KEY_KB_OPEN))
-        emit subscribeFinished(KEY_KB_OPEN, kbOpen);
-    pendingSubscriptions.clear();
+    emit subscribeFinished(KEY_KB_OPEN, kbOpen);
 }
 
-/// Searches the /dev/input/event0... files, queries the names, and stops when
-/// it finds the name EVENT_NAME
-QString KbSliderPlugin::findInputDevice()
-{
-    static bool checked = false; // Whether we've tried to find the device
-    static QString foundDevice = ""; // The device name we've found (empty if none)
-
-    if (!checked) {
-        checked = true;
-        QDir dir(EVENT_DIR);
-        // Loop through the files in that directory, read the input name from each
-        char inputName[256];
-        foreach (const QString& fileName,
-                 dir.entryList(QStringList() << "event*", QDir::System)) {
-            QString filePath = dir.filePath(fileName);
-            int fd = open(filePath.toLocal8Bit().constData(), O_RDONLY);
-            if (fd < 0) continue;
-            ioctl(fd, EVIOCGNAME(sizeof(inputName)), inputName);
-            close(fd);
-            if (QString(inputName) == EVENT_NAME) {
-                foundDevice = filePath;
-                break;
-            }
-        }
-    }
-    // Now we have tried to find the device file, but haven't necessarily
-    // succeeded
-    return foundDevice;
-}
-
-void KbSliderPlugin::onKbEvent()
+void KbSliderPlugin::onSliderEvent()
 {
     // Something happened in the input file; read the events, decide whether
     // they're interesting, and update the context properties.
-    qDebug() << "on kb event";
     struct input_event events[64];
     size_t rd = read(eventFd, events, sizeof(struct input_event)*64);
     for (size_t i = 0; i < rd/sizeof(struct input_event); ++i) {
-        if (events[i].type == EV_SW && events[i].code == EVENT_ID)
+        if (events[i].type == EV_SW && events[i].code == SLIDE_EVENT_ID)
             kbOpen = (events[i].value == 0);
     }
     emit valueChanged(KEY_KB_OPEN, kbOpen);
@@ -126,35 +122,32 @@ void KbSliderPlugin::onKbEvent()
 /// Implementation of the IPropertyProvider::subscribe.
 void KbSliderPlugin::subscribe(QSet<QString> keys)
 {
-    if (!wantedSubscriptions.isEmpty()) {
-        // We're already up to date
-        foreach (const QString& key, keys)
-            emit subscribeFinished(key);
+    qDebug() << "subscribe" << keys;
+    if (keys.contains(KEY_KB_PRESENT)) {
+        // Only a one-time effort needed to subscribe to this key. This will
+        // also emit subscribeFinished / subscribeFailed.
+        QMetaObject::invokeMethod(this, "readKeyboardPresence", Qt::QueuedConnection);
     }
-    else {
-        pendingSubscriptions.unite(keys);
+    if (keys.contains(KEY_KB_OPEN)) {
         // Start polling the event file
-        eventFd = open(findInputDevice().toAscii().constData(), O_RDONLY);
+        eventFd = open(GPIO_FILE, O_RDONLY);
         if (eventFd < 0) {
-            foreach (const QString& key, keys)
-                emit subscribeFailed(key, "Cannot open event file");
-            emit failed("Cannot open event file");
-            return;
+            emit subscribeFailed(KEY_KB_OPEN, "Cannot open event file");
         }
         sn = new QSocketNotifier(eventFd, QSocketNotifier::Read);
         sconnect(sn, SIGNAL(activated(int)), this, SLOT(onKbEvent()));
 
-        QMetaObject::invokeMethod(this, "readInitialValues", Qt::QueuedConnection);
+        // Read the initial status. This will also emit subscribeFinished /
+        // subscribeFailed.
+        QMetaObject::invokeMethod(this, "readSliderStatus", Qt::QueuedConnection);
     }
-    wantedSubscriptions.unite(keys);
 }
 
 /// Implementation of the IPropertyProvider::unsubscribe.
 void KbSliderPlugin::unsubscribe(QSet<QString> keys)
 {
-    wantedSubscriptions.subtract(keys);
-    if (wantedSubscriptions.isEmpty()) {
-        // stop all our activities
+    if (keys.contains(KEY_KB_OPEN)) {
+        // stop the listening activities
         delete sn;
         sn = 0;
         close(eventFd);

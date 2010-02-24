@@ -56,14 +56,13 @@ public:
     virtual void unsubscribe(QSet<QString> keys);
 
 private Q_SLOTS:
-    void onKbEvent();
-    void readInitialValues();
+    void onSliderEvent();
+    void readSliderStatus();
+    void readKeyboardPresence();
 
 private:
-    QString findInputDevice();
-    QSet<QString> pendingSubscriptions;
-    QSet<QString> wantedSubscriptions;
     QVariant kbOpen; // current value of the "keyboard open" key
+    QVariant kbPresent; // current value of the "keyboard present" key
     QSocketNotifier* sn;
     int eventFd;
 };
