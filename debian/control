@@ -163,3 +163,23 @@ Description: A libcontextsubscriber plugin providing the battery properties.
  applications.
  .
  This package contains the debug symbols for the battery libcontextsubscriber plugin.
+
+Package: context-keyboard
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A libcontextsubscriber plugin providing keyboard-related properties.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the keyboard plugin for libcontextsubscriber.
+
+Package: context-keyboard-dbg
+Priority: extra
+Architecture: any
+Depends: context-keyboard (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing keyboard-related properties.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the debug symbols for the libcontextsubscriber keyboard plugin.
+

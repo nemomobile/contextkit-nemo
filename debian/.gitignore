@@ -16,6 +16,10 @@ context-session-tests/
 context-profile/
 context-profile-dbg/
 context-profile-tests/
+context-keyboard/
+context-keyboard-dbg/
+context-battery/
+context-battery-dbg/
 files
 *.postinst.debhelper
 *.postrm.debhelper
