@@ -56,7 +56,7 @@ namespace ContextSubscriberKbSlider {
 #define OFF(x)  ((x)%BITS_PER_LONG)
 
 KbSliderPlugin::KbSliderPlugin():
-    sn(0)
+    sn(0), eventFd(-1)
 {
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
@@ -104,6 +104,13 @@ void KbSliderPlugin::readSliderStatus()
     if (ioctl(eventFd, EVIOCGSW(KEY_MAX), bits) > 0)
         kbOpen = QVariant(test_bit(SLIDE_EVENT_ID, bits) ? false : true);
 
+    if (!kbPresent.isNull() && kbPresent == false) {
+        // But if the keyboard is not present, it cannot be open. Also stop
+        // watching the open/closed status.
+        kbOpen = QVariant();
+        unsubscribe(QSet<QString>() << KEY_KB_OPEN);
+    }
+
     emit subscribeFinished(KEY_KB_OPEN, kbOpen);
 }
 
@@ -125,9 +132,11 @@ void KbSliderPlugin::onSliderEvent()
 /// Implementation of the IPropertyProvider::subscribe.
 void KbSliderPlugin::subscribe(QSet<QString> keys)
 {
+    // Always read the "keyboard present" info, we need that for both provided
+    // context properties.
+    QMetaObject::invokeMethod(this, "readKbPresent", Qt::QueuedConnection);
+
     if (keys.contains(KEY_KB_PRESENT)) {
-        // Only a one-time effort needed to subscribe to this key.
-        QMetaObject::invokeMethod(this, "readKbPresent", Qt::QueuedConnection);
         QMetaObject::invokeMethod(this, "emitFinishedKbPresent", Qt::QueuedConnection);
     }
     if (keys.contains(KEY_KB_OPEN)) {
@@ -152,7 +161,8 @@ void KbSliderPlugin::unsubscribe(QSet<QString> keys)
         // stop the listening activities
         delete sn;
         sn = 0;
-        close(eventFd);
+        if (eventFd >= 0) close(eventFd);
+        eventFd = -1;
     }
 }
 
