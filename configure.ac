@@ -45,9 +45,12 @@ AX_DISABLE_FEATURE_ON_PROG([GCov coverage recording tool], [COVERAGE], [GCOV], [
 AX_DISABLE_FEATURE_ON_PROG([LCov coverage visualization tool], [COVERAGE], [LCOV], [lcov])
 AM_CONDITIONAL([CONTEXTKIT_COVERAGE], [test "$missing_deps_COVERAGE" = ""])
 
+# contextd
+AX_FEATURE_ENABLEABLE([contextd], [CONTEXTD], [enable contextd])
+AM_CONDITIONAL([CONTEXTKIT_CONTEXTD], [test "$enabled_CONTEXTD" = ", enabled by user"])
+
+AM_COND_IF([CONTEXTKIT_CONTEXTD],
 AC_CONFIG_FILES([
-	Makefile
-        common/Makefile
 	contextd/Makefile
 	contextd/org.maemo.contextd.service
 	contextd/src/Makefile
@@ -57,6 +60,11 @@ AC_CONFIG_FILES([
 	contextd/unit-tests/boolsysfspooler/Makefile
 	contextd/unit-tests/lowmemprovider/Makefile
 	contextd/doc/Makefile
+]))
+
+AC_CONFIG_FILES([
+	Makefile
+        common/Makefile
 	libcontextsubscriber-plugins/Makefile
 	libcontextsubscriber-plugins/bluez/Makefile
 	libcontextsubscriber-plugins/session/Makefile
