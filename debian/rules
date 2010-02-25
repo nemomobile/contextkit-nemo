@@ -86,7 +86,7 @@ binary-arch: build install
 	dh_strip -p context-bluetooth --dbg-package="context-bluetooth-dbg"
 	dh_strip -p context-session --dbg-package="context-session-dbg"
 	dh_strip -p context-profile --dbg-package="context-profile-dbg"
-	dh_strip -p context-profile --dbg-package="context-battery-dbg"
+	dh_strip -p context-battery --dbg-package="context-battery-dbg"
 	dh_strip -p context-bluetooth-tests
 	dh_strip -p context-session-tests
 	dh_strip -p context-profile-tests
