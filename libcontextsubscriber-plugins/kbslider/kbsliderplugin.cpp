@@ -137,7 +137,7 @@ void KbSliderPlugin::subscribe(QSet<QString> keys)
             emit subscribeFailed(KEY_KB_OPEN, "Cannot open event file");
         }
         sn = new QSocketNotifier(eventFd, QSocketNotifier::Read);
-        sconnect(sn, SIGNAL(activated(int)), this, SLOT(onKbEvent()));
+        sconnect(sn, SIGNAL(activated(int)), this, SLOT(onSliderEvent()));
 
         // Read the initial status. This will also emit subscribeFinished /
         // subscribeFailed.
