@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/kbslider-1" constructionString="kbslider">
+  <key name="/maemo/InternalKeyboard/Present">
+    <type>bool</type>
+  </key>
+  <key name="/maemo/InternalKeyboard/Open">
+    <type>bool</type>
+  </key>
+</provider>
