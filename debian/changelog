@@ -1,8 +1,10 @@
-contextkit-maemo (0.7.7~unreleased) unstable; urgency=low
+contextkit-maemo (0.7.7) unstable; urgency=low
 
-  * 
+  * Added internal keyboard and slider status properties plugin
 
- -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Thu, 25 Feb 2010 18:11:03 +0200
+  Implemented: SWP#CntFr-426, SWP#CntFr-460
+
+ -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Fri, 26 Feb 2010 12:51:18 +0200
 
 contextkit-maemo (0.7.6) unstable; urgency=low
 
