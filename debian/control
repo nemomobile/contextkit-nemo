@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 5),
                libtool,
                python-central,
                libcontextprovider-dev (>= 0.3),
-               libcontextsubscriber-dev (> 0.4),
+               libcontextsubscriber-dev (>> 0.4),
                libqt4-dev,
 	       libx11-dev,
 	       libbmeipc-dev,
@@ -104,7 +104,7 @@ Description: A libcontextsubscriber plugin providing the profile property.
 Package: context-profile-tests
 Section: devel
 Architecture: any
-Depends: ${shlibs:Depends}, contextkit-utils, python-contextkit, context-profile, ci-testing
+Depends: ${shlibs:Depends}, contextkit-utils, python-contextkit, context-profile, ci-testing, python2.5-dbus
 Recommends: python2.5, python (>= 2.5)
 XB-Maemo-CI-Packages: context-profile
 XB-Maemo-CI-Stage: acceptance, validation
