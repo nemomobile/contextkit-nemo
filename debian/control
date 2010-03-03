@@ -41,8 +41,6 @@ Section: devel
 Architecture: any
 Depends: python-contextkit, contextkit-utils, contextd
 Recommends: python2.5, python (>= 2.5)
-XB-Maemo-CI-Packages: contextd
-XB-Maemo-CI-Stage: acceptance, validation
 XB-Python-Version: ${python:Versions}
 Description: contextd automated customer tests
  .

@@ -1,8 +1,8 @@
-contextkit-maemo (0.7.9~unreleased) unstable; urgency=low
+contextkit-maemo (0.7.9) unstable; urgency=low
 
-  * 
+  * Reverted commit so that contextd packages are built
 
- -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Tue, 02 Mar 2010 10:13:53 +0200
+ -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Wed, 03 Mar 2010 12:42:07 +0200
 
 contextkit-maemo (0.7.8) unstable; urgency=low
 
