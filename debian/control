@@ -16,6 +16,38 @@ Build-Depends: debhelper (>= 5),
 XS-Python-Version: all
 Standards-Version: 3.8.0
 
+Package: contextd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: contextkit
+Description: daemon that implements some context properties
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package provides the session-activated D-Bus daemon.
+
+Package: contextd-dbg
+Priority: extra
+Architecture: any
+Depends: contextd (= ${binary:Version})
+Description: daemon that implements some context properties
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the debug symbols for the daemon.
+
+Package: contextd-tests
+Section: devel
+Architecture: any
+Depends: python-contextkit, contextkit-utils, contextd
+Recommends: python2.5, python (>= 2.5)
+XB-Maemo-CI-Packages: contextd
+XB-Maemo-CI-Stage: acceptance, validation
+XB-Python-Version: ${python:Versions}
+Description: contextd automated customer tests
+ .
+ This package contains an automated customer testsuite of the contextd daemon.
+
 Package: context-bluetooth
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}

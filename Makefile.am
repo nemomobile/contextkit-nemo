@@ -1,8 +1,4 @@
-SUBDIRS = common libcontextsubscriber-plugins
-
-if CONTEXTKIT_CONTEXTD
-SUBDIRS += contextd
-endif
+SUBDIRS = contextd common libcontextsubscriber-plugins
 
 ACLOCAL_AMFLAGS = -I m4
 

@@ -22,22 +22,6 @@ then
 fi
 ])
 
-dnl Creates a command line parameter --enable-OPTIONNAME, which if
-dnl specified by the user adds a fake dependency to
-dnl missing_deps_CONDITIONALFEATURE.
-dnl
-dnl Usage: AX_FEATURE_ENABLEABLE([$1=option name], [$2=conditional feature], [$3=description])
-AC_DEFUN([AX_FEATURE_ENABLEABLE], [
-AC_ARG_ENABLE([$1],
-     AS_HELP_STRING([--enable-$1],
-                    [$3 [[default=no]]]),,
-     [enable_$1=undef])
-if test x$enable_$1 = xyes
-then
-	enabled_$2=", enabled by user"
-fi
-])
-
 dnl Check the existence (and optionally version) of a program and
 dnl record information about this missing dependency on failure to
 dnl the variable named missing_deps_CONDITIONALFEATURE.
