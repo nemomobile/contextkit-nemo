@@ -62,6 +62,7 @@ private Q_SLOTS:
     void emitFinishedKbPresent();
 
 private:
+    QString findKeypadDevice();
     QVariant kbOpen; // current value of the "keyboard open" key
     QVariant kbPresent; // current value of the "keyboard present" key
     QSocketNotifier* sn;
