@@ -38,8 +38,6 @@ extern "C" {
 #define GPIO_FILE "/dev/input/gpio-keys"
 
 static const QString KeypadFile("/dev/input/keypad");
-static const QString InputDir("/dev/input/");
-static const QString ClassEventFile("class/input/");
 
 // Context keys
 static const QString KEY_KB_PRESENT("/maemo/InternalKeyboard/Present");
@@ -77,8 +75,8 @@ QString KbSliderPlugin::findKeypadDevice()
     return eventFile.replace("/dev", "class");
 }
 
-/// Reads the KEYPAD_FILE, and checks the events it offers. If it offers the
-/// QWERTY key events, sets kbPresent to true, otherwise, to false.
+/// Checks which key events the keypad offers. If it offers the QWERTY key
+/// events, sets kbPresent to true, otherwise, to false.
 void KbSliderPlugin::readKbPresent()
 {
     static bool read = false;
@@ -91,9 +89,12 @@ void KbSliderPlugin::readKbPresent()
         return;
     }
 
-    QString devicePath = QString("%1/%2").arg(udev_get_sys_path(udev)).arg(findKeypadDevice());
+    QString sysPath = QString("%1/%2")
+        .arg(udev_get_sys_path(udev)).arg(findKeypadDevice());
 
-    struct udev_device* dev = udev_device_new_from_syspath(udev, devicePath.toAscii().constData());
+    struct udev_device* originalDev = udev_device_new_from_syspath(udev,
+                                                           sysPath.toAscii().constData());
+    struct udev_device* dev = originalDev;
 
     const char* capabilities = 0;
     QStringList split;
@@ -139,7 +140,7 @@ void KbSliderPlugin::readKbPresent()
         test_bit(KEY_T, lowBits) && test_bit(KEY_Y, lowBits);
 
 out_device:
-    udev_device_unref(dev);
+    udev_device_unref(originalDev);
 out_udev:
     udev_unref(udev);
 }
@@ -176,10 +177,10 @@ void KbSliderPlugin::onSliderEvent()
     // they're interesting, and update the context properties.
     struct input_event event;
     size_t rd = read(eventFd, &event, sizeof(event));
-    if (event.type == EV_SW && event.code == SW_KEYPAD_SLIDE) {
+    if (rd == sizeof(event) && event.type == EV_SW && event.code == SW_KEYPAD_SLIDE) {
         kbOpen = (event.value == 0);
+        emit valueChanged(KEY_KB_OPEN, kbOpen);
     }
-    emit valueChanged(KEY_KB_OPEN, kbOpen);
 }
 
 /// Implementation of the IPropertyProvider::subscribe.
