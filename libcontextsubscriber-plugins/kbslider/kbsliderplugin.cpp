@@ -72,7 +72,6 @@ QString KbSliderPlugin::findKeypadDevice()
 {
     // KEYPAD_FILE is a symlink to /dev/input/eventX, check what X is.
     QString eventFile = QFile::symLinkTarget(KeypadFile);
-    qDebug() << "event file is" << eventFile;
     if (!eventFile.startsWith("/dev"))
         return "";
     return eventFile.replace("/dev", "class");
@@ -83,31 +82,27 @@ QString KbSliderPlugin::findKeypadDevice()
 void KbSliderPlugin::readKbPresent()
 {
     static bool read = false;
-
     if (read)
         return;
     read = true;
 
     struct udev* udev = udev_new();
     if (udev == NULL) {
-        qDebug() << "udev is null";
         return;
     }
 
     QString devicePath = QString("%1/%2").arg(udev_get_sys_path(udev)).arg(findKeypadDevice());
-    qDebug() << "dev path is" << devicePath;
 
     struct udev_device* dev = udev_device_new_from_syspath(udev, devicePath.toAscii().constData());
 
     const char* capabilities = 0;
     QStringList split;
-    long lowBits[1] = {0};
+    unsigned long lowBits[1] = {0};
+    bool ok = false;
 
     if (dev == NULL) {
         goto out_udev;
     }
-
-    qDebug() << "dev path is also" << udev_device_get_devpath(dev);
 
     // Walk to the parent until we get a device with "capabilities/key". E.g.,
     // this device is /devices/platform/something/input/inputX/eventX but we
@@ -125,7 +120,7 @@ void KbSliderPlugin::readKbPresent()
     // Get the key bitmask. The returned string contains hexadecimal numbers
     // separated by spaces. The actual key bitmask is these numbers in reverse
     // order. We're only interested in the low bits, so we check only the last
-    // entry.
+    // number.
     capabilities = udev_device_get_sysattr_value(dev, "capabilities/key");
     if (capabilities == 0)
         goto out_device;
@@ -134,7 +129,9 @@ void KbSliderPlugin::readKbPresent()
     if (split.isEmpty())
         goto out_device;
 
-    lowBits[0] = split.last().toLong(0, 16);
+    lowBits[0] = split.last().toULong(&ok, 16);
+    if (!ok)
+        goto out_device;
 
     // Check the bits KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T and KEY_Y.
     kbPresent = test_bit(KEY_Q, lowBits) && test_bit(KEY_W, lowBits) &&
