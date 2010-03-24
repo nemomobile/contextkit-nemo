@@ -12,7 +12,8 @@ Build-Depends: debhelper (>= 5),
                libqt4-dev,
 	       libx11-dev,
 	       libbmeipc-dev,
-               doxygen
+               doxygen,
+               libudev-dev
 XS-Python-Version: all
 Standards-Version: 3.8.0
 
