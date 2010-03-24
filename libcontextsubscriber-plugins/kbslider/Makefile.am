@@ -3,7 +3,7 @@ plugin_LTLIBRARIES = kbslider-1.la
 kbslider_1_la_SOURCES = kbsliderplugin.cpp kbsliderplugin.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
-	      $(CTXTSUBS_CFLAGS)					\
+	      $(CTXTSUBS_CFLAGS) $(udev_CFLAGS)				\
 	      '-DCONTEXT_LOG_MODULE_NAME="kbsliderplugin"'
 
 # module: Libtool shouldn't complain about not having "lib" prefix
@@ -13,7 +13,7 @@ kbslider_1_la_LDFLAGS = -avoid-version -module
 $(top_builddir)/common/libcommon.la: FORCE
 	$(MAKE) -C $(top_builddir)/common libcommon.la
 
-LIBS += $(QtCore_LIBS) $(QtDBus_LIBS)
+LIBS += $(QtCore_LIBS) $(QtDBus_LIBS) $(udev_LIBS)
 kbslider_1_la_LIBADD=$(top_builddir)/common/libcommon.la
 
 .PHONY: FORCE

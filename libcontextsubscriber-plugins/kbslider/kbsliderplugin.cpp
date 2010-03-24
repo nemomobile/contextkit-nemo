@@ -24,14 +24,20 @@
 
 #include "logging.h"
 
+#include <QFile>
 #include <QSocketNotifier>
 
 #include <linux/input.h>
 #include <stdio.h>
 #include <fcntl.h>
 
+extern "C" {
+#include <libudev.h>
+}
+
 #define GPIO_FILE "/dev/input/gpio-keys"
-#define KEYPAD_FILE "/dev/input/keypad"
+
+static const QString KeypadFile("/dev/input/keypad");
 
 // Context keys
 static const QString KEY_KB_PRESENT("/maemo/InternalKeyboard/Present");
@@ -57,38 +63,93 @@ KbSliderPlugin::KbSliderPlugin():
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
-/// Reads the KEYPAD_FILE, and checks the events it offers. If it offers the
-/// QWERTY key events, sets kbPresent to true, otherwise, to false.
+/// Finds the device, corresponding to keypad, under /sys.  E.g., if
+/// KEYPAD_FILE is a symlink to /dev/input/eventX, this will return
+/// class/input/eventX
+QString KbSliderPlugin::findKeypadDevice()
+{
+    // KEYPAD_FILE is a symlink to /dev/input/eventX, check what X is.
+    QString eventFile = QFile::symLinkTarget(KeypadFile);
+    if (!eventFile.startsWith("/dev"))
+        return "";
+    return eventFile.replace("/dev", "class");
+}
+
+/// Checks which key events the keypad offers. If it offers the QWERTY key
+/// events, sets kbPresent to true, otherwise, to false.
 void KbSliderPlugin::readKbPresent()
 {
     static bool read = false;
-    unsigned long keys[NBITS(KEY_MAX)] = {0};
-
     if (read)
         return;
     read = true;
 
-    int keypadFd = open(KEYPAD_FILE, O_RDONLY);
-    if (keypadFd < 0)
-        goto out;
+    struct udev* udev = udev_new();
+    if (udev == NULL) {
+        return;
+    }
 
-    // Read what key events this input device provides.
-    if (ioctl(keypadFd, EVIOCGBIT(EV_KEY, KEY_MAX), keys) < 0)
-        goto out;
+    QString sysPath = QString("%1/%2")
+        .arg(udev_get_sys_path(udev)).arg(findKeypadDevice());
 
-    // cunning.
-    kbPresent = test_bit(KEY_Q, keys) && test_bit(KEY_W, keys) &&
-        test_bit(KEY_E, keys) && test_bit(KEY_R, keys) &&
-        test_bit(KEY_T, keys) && test_bit(KEY_Y, keys);
-out:
-    close(keypadFd);
+    struct udev_device* originalDev = udev_device_new_from_syspath(udev,
+                                                           sysPath.toAscii().constData());
+    struct udev_device* dev = originalDev;
+
+    const char* capabilities = 0;
+    QStringList split;
+    unsigned long lowBits[1] = {0};
+    bool ok = false;
+
+    if (dev == NULL) {
+        goto out_udev;
+    }
+
+    // Walk to the parent until we get a device with "capabilities/key". E.g.,
+    // this device is /devices/platform/something/input/inputX/eventX but we
+    // need to go to the parent /devices/platform/something/input/inputX
+    while (dev != NULL && udev_device_get_sysattr_value(dev, "capabilities/key") == NULL) {
+        dev = udev_device_get_parent_with_subsystem_devtype(dev, "input", NULL);
+        // We don't need to decrement the ref count, since the returned device
+        // is not referenced, and will be cleaned up when the child device is
+        // cleaned up.
+    }
+
+    // We can assume that the input device in question has events of type
+    // KEY. The only thing to check is which key events are supported.
+
+    // Get the key bitmask. The returned string contains hexadecimal numbers
+    // separated by spaces. The actual key bitmask is these numbers in reverse
+    // order. We're only interested in the low bits, so we check only the last
+    // number.
+    capabilities = udev_device_get_sysattr_value(dev, "capabilities/key");
+    if (capabilities == 0)
+        goto out_device;
+
+    split = QString(capabilities).split(' ', QString::SkipEmptyParts);
+    if (split.isEmpty())
+        goto out_device;
+
+    lowBits[0] = split.last().toULong(&ok, 16);
+    if (!ok)
+        goto out_device;
+
+    // Check the bits KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T and KEY_Y.
+    kbPresent = test_bit(KEY_Q, lowBits) && test_bit(KEY_W, lowBits) &&
+        test_bit(KEY_E, lowBits) && test_bit(KEY_R, lowBits) &&
+        test_bit(KEY_T, lowBits) && test_bit(KEY_Y, lowBits);
+
+out_device:
+    udev_device_unref(originalDev);
+out_udev:
+    udev_unref(udev);
 }
 
 /// Emits the subscribeFinished or subscribeFailed signal for KEY_KB_PRESENT.
 void KbSliderPlugin::emitFinishedKbPresent()
 {
     if (kbPresent.isNull())
-        emit subscribeFailed(KEY_KB_PRESENT, QString("Cannot read " KEYPAD_FILE));
+        emit subscribeFailed(KEY_KB_PRESENT, QString("Cannot read keypad information"));
     else
         emit subscribeFinished(KEY_KB_PRESENT, kbPresent);
 }
@@ -116,10 +177,10 @@ void KbSliderPlugin::onSliderEvent()
     // they're interesting, and update the context properties.
     struct input_event event;
     size_t rd = read(eventFd, &event, sizeof(event));
-    if (event.type == EV_SW && event.code == SW_KEYPAD_SLIDE) {
+    if (rd == sizeof(event) && event.type == EV_SW && event.code == SW_KEYPAD_SLIDE) {
         kbOpen = (event.value == 0);
+        emit valueChanged(KEY_KB_OPEN, kbOpen);
     }
-    emit valueChanged(KEY_KB_OPEN, kbOpen);
 }
 
 /// Implementation of the IPropertyProvider::subscribe.
