@@ -38,10 +38,6 @@ install: build
 	# install testsets under /usr/share
 	mkdir -p debian/tmp/usr/share
 
-	# contextd-tests
-	cp -f contextd/customer-tests/*.py debian/tmp/usr/share/contextd-tests
-	chown -R root:root debian/tmp/usr/share/contextd-tests
-
 	# context-bluetooth-tests
 	mkdir -p debian/tmp/usr/share/context-bluetooth-tests
 
@@ -71,10 +67,6 @@ install: build
 	cp libcontextsubscriber-plugins/customer-tests/waitforsilence debian/tmp/usr/share/context-profile-tests
 	chown -R root:root debian/tmp/usr/share/context-profile-tests
 
-
-	# set the executable flag on to all files that have a shebang line
-	grep -rl '^#!' debian/tmp/usr/share/contextd-tests | xargs chmod +x
-
 	dh_install --sourcedir=`pwd`/debian/tmp/
 
 binary-indep:
@@ -97,7 +89,6 @@ binary-arch: build install
 	dh_strip -p context-bluetooth-tests
 	dh_strip -p context-session-tests
 	dh_strip -p context-profile-tests
-	dh_pycentral -pcontextd-tests
 	dh_link -a
 	dh_compress -a
 	dh_fixperms -a

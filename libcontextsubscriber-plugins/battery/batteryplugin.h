@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Nokia Corporation.
+ * Copyright (C) 2010 Nokia Corporation.
  *
  * Contact: Marius Vollmer <marius.vollmer@nokia.com>
  *

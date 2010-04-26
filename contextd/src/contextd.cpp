@@ -22,10 +22,6 @@
 #include <QCoreApplication>
 #include <ContextProvider>
 
-#include "halprovider.h"
-#include "lowmemprovider.h"
-
-using namespace ContextD;
 using namespace ContextProvider;
 
 int main(int argc, char **argv)
@@ -34,9 +30,6 @@ int main(int argc, char **argv)
 
     Service service(QDBusConnection::SessionBus, "org.maemo.contextd");
     service.setAsDefault();
-
-    HalProvider halProvider;
-    LowMemProvider lowMemProvider;
 
     service.start();
     return app.exec();
