@@ -58,6 +58,7 @@ AC_CONFIG_FILES([
 	libcontextsubscriber-plugins/profile/Makefile
 	libcontextsubscriber-plugins/kbslider/Makefile
 	libcontextsubscriber-plugins/battery/Makefile
+	libcontextsubscriber-plugins/displaystate/Makefile
 	libcontextsubscriber-plugins/battery/sandbox/Makefile
 	libcontextsubscriber-plugins/customer-tests/Makefile
 	libcontextsubscriber-plugins/customer-tests/dbusnamewatcher/Makefile

@@ -182,3 +182,22 @@ Description: A libcontextsubscriber plugin providing keyboard-related properties
  .
  This package contains the debug symbols for the libcontextsubscriber keyboard plugin.
 
+Package: context-displaystate
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A libcontextsubscriber plugin providing the display state property.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the display state plugin for libcontextsubscriber.
+
+Package: context-displaystate-dbg
+Priority: extra
+Architecture: any
+Depends: context-keyboard (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing the display state property.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the display state plugin for libcontextsubscriber.
+
