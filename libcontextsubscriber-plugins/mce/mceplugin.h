@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef DISPLAYSTATEPLUGIN_H
-#define DISPLAYSTATEPLUGIN_H
+#ifndef MCEPLUGIN_H
+#define MCEPLUGIN_H
 
 #include <iproviderplugin.h> // For IProviderPlugin definition
 
@@ -39,51 +39,44 @@ extern "C" {
 
 class AsyncDBusInterface; // From libcontextsubscriber-dev
 
-namespace ContextSubscriberDisplayState
+namespace ContextSubscriberMCE
 {
 
 /*!
-  \class DisplayStatePlugin
+  \class MCEPlugin
 
   \brief A libcontextsubscriber plugin for communicating with MCE
-  over D-Bus. Provides the context property Screen.Blanked.
+  over D-Bus. Provides the context properties Screen.Blanked and Device.PowerSaveMode.
 
  */
 
-class DisplayStatePlugin : public IProviderPlugin
+class MCEPlugin : public IProviderPlugin
 {
     Q_OBJECT
 
 public:
-    explicit DisplayStatePlugin();
+    explicit MCEPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 
 private Q_SLOTS:
     void replyGetError(QDBusError err);
-    void replyGet(QString state);
+    void replyGetDisplayState(QString state);
+    void replyGetPowerSave(bool on);
     void onDisplayStateChanged(QString state);
+    void onPowerSaveChanged(bool on);
     void emitFailed(QString reason = QString("MCE left D-Bus"));
 
 private:
     void connectToMce();
     void disconnectFromMce();
     AsyncDBusInterface* mce;
-    // Specification of the D-Bus signal we listen to
     static const QString blankedKey;
-    static const QString serviceName;
-    static const QString signalObjectPath;
-    static const QString signalInterface;
-    static const QString signal;
-    static const QString getObjectPath;
-    static const QString getInterface;
-    static const QString getFunction;
+    static const QString powerSaveKey;
     static QDBusConnection busConnection;
 
-    enum ConnectionStatus {NotConnected, Connecting, Connected};
-    ConnectionStatus status; ///< Whether we're currently connected to MCE
     QDBusServiceWatcher* serviceWatcher; ///< For watching MCE appear and disappear
-
+    int subscribeCount;
 };
 }
 

@@ -20,8 +20,8 @@ context-keyboard/
 context-keyboard-dbg/
 context-battery/
 context-battery-dbg/
-context-displaystate/
-context-displaystate-dbg/
+context-mce/
+context-mce-dbg/
 files
 *.postinst.debhelper
 *.postrm.debhelper

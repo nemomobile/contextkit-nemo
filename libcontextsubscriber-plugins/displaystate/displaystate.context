@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/displaystate-1" constructionString="displaystate">
-  <key name="Screen.Blanked"/>
-</provider>

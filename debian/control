@@ -13,7 +13,8 @@ Build-Depends: debhelper (>= 5),
 	       libx11-dev,
 	       libbmeipc-dev,
                doxygen,
-               libudev-dev
+               libudev-dev,
+               mce-dev
 XS-Python-Version: all
 Standards-Version: 3.8.0
 
@@ -182,22 +183,22 @@ Description: A libcontextsubscriber plugin providing keyboard-related properties
  .
  This package contains the debug symbols for the libcontextsubscriber keyboard plugin.
 
-Package: context-displaystate
+Package: context-mce
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: A libcontextsubscriber plugin providing the display state property.
+Description: A libcontextsubscriber plugin providing properties originating from MCE.
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
- This package contains the display state plugin for libcontextsubscriber.
+ This package contains the mce for libcontextsubscriber.
 
-Package: context-displaystate-dbg
+Package: context-mce-dbg
 Priority: extra
 Architecture: any
-Depends: context-keyboard (= ${binary:Version})
-Description: A libcontextsubscriber plugin providing the display state property.
+Depends: context-mce (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing properties originating from MCE.
  ContextKit is a system for providing real-time context awareness to
  applications.
  .
- This package contains the display state plugin for libcontextsubscriber.
+ This package contains the mce plugin for libcontextsubscriber.
 

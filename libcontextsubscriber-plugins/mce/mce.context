@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/mce-1" constructionString="displaystate">
+  <key name="Screen.Blanked"/>
+  <key name="System.PowerSaveMode"/>
+</provider>
