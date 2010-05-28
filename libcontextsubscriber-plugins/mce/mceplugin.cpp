@@ -53,14 +53,6 @@ MCEPlugin::MCEPlugin() : mce(0), serviceWatcher(0), subscribeCount(0)
 
 void MCEPlugin::disconnectFromMce()
 {
-    // Signal connection is also done on key-by-key basis when doing unsubscribe; this takes care of
-    // the situations when we disconnectFromMce because of errors.
-    busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
-                             MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
-                             this, SLOT(onDisplayStateChanged(QString)));
-    busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
-                             MCE_SIGNAL_IF, MCE_PSM_MODE_SIG,
-                             this, SLOT(onPowerSaveChanged(QString)));
     delete mce;
     mce = 0;
     delete serviceWatcher;
@@ -163,10 +155,20 @@ void MCEPlugin::unsubscribe(QSet<QString> keys)
         disconnectFromMce();
 }
 
-/// For emitting the failed() signal in a delayed way.
+/// For emitting the failed() signal in a delayed way.  When the plugin has emitted failed(), it's
+/// supposed to be in the "nothing subscribed" state.
 void MCEPlugin::emitFailed(QString reason)
 {
-    disconnectFromMce();
+    // Don't disconnectFromMce here; that would kill the D-Bus name watcher and we wouldn't notice
+    // when MCE comes back.
+
+    busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+                             MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
+                             this, SLOT(onDisplayStateChanged(QString)));
+    busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+                             MCE_SIGNAL_IF, MCE_PSM_MODE_SIG,
+                             this, SLOT(onPowerSaveChanged(QString)));
+
     subscribeCount = 0;
     emit failed(reason);
 }
