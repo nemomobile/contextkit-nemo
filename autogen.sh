@@ -1,3 +1,3 @@
-#! /bin/sh
+#! /bin/sh -e
 
-autoreconf -i -f
+/usr/bin/autoreconf -i -f -v

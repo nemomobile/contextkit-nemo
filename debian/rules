@@ -5,8 +5,12 @@
 
 # Sanitize build environment when running inside Scratchbox 1
 ifneq (,$(wildcard /targets))
-   export SBOX_REDIRECT_TO_DIRS=
-   export PATH=/scratchbox/compilers/bin:/bin:/usr/bin:/scratchbox/tools/bin
+	export SBOX_REDIRECT_IGNORE=/usr/bin/automake:/usr/bin/autoreconf:/usr/bin/aclocal:/usr/bin/autoconf:/usr/bin/autom4te:/usr/bin/m4:/usr/bin/libtoolize:/usr/bin/autoreconf
+	export AUTOMAKE=/usr/bin/automake
+	export ACLOCAL=/usr/bin/aclocal
+	export AUTOCONF=/usr/bin/autoconf
+	export AUTORECONF=/usr/bin/autoreconf
+	export LIBTOOLIZE=/usr/bin/libtoolize
 endif
 
 configure:
