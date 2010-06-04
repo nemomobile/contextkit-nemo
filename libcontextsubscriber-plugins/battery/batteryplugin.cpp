@@ -96,11 +96,6 @@ void BatteryPlugin::unsubscribe(QSet<QString> keys)
 /// Start to watch the provider source BMEIPC_EVENT on first subscription or when the source has been deleted or moved
 bool BatteryPlugin::initProviderSource()
 {
-    if (!QFile::exists(BMEIPC_EVENT) && bmeipc_epush(0) < 0) {
-            QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection,
-                                      Q_ARG(QString, "Battery plugin failed to create file BMEIPC_EVENT"));
-            return false;
-    }
     bmeevt_watch = inotify_add_watch(inotifyFd, BMEIPC_EVENT, (IN_CLOSE_WRITE | IN_DELETE_SELF | IN_MOVE_SELF));
     if (bmeevt_watch < 0) {
         QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection,
