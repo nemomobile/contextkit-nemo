@@ -42,7 +42,7 @@ Package: contextd-tests
 Section: devel
 Architecture: any
 Depends: python-contextkit, contextkit-utils, contextd
-Recommends: python2.5, python (>= 2.5)
+Recommends: python2.5
 XB-Python-Version: ${python:Versions}
 Description: contextd automated customer tests
  .
@@ -73,7 +73,7 @@ Package: context-bluetooth-tests
 Section: devel
 Architecture: any
 Depends: ${shlibs:Depends}, contextkit-utils, python-contextkit, context-bluetooth, ci-testing
-Recommends: python2.5, python (>= 2.5)
+Recommends: python2.5
 XB-Maemo-CI-Packages: context-bluetooth
 XB-Maemo-CI-Stage: acceptance, validation
 XB-Python-Version: ${python:Versions}
@@ -106,7 +106,7 @@ Package: context-session-tests
 Section: devel
 Architecture: any
 Depends: ${shlibs:Depends}, contextkit-utils, python-contextkit, context-session, ci-testing
-Recommends: python2.5, python (>= 2.5)
+Recommends: python2.5
 XB-Maemo-CI-Packages: context-session
 XB-Maemo-CI-Stage: acceptance, validation
 XB-Python-Version: ${python:Versions}
@@ -137,7 +137,7 @@ Package: context-profile-tests
 Section: devel
 Architecture: any
 Depends: ${shlibs:Depends}, contextkit-utils, python-contextkit, context-profile, ci-testing, python2.5-dbus
-Recommends: python2.5, python (>= 2.5)
+Recommends: python2.5
 XB-Maemo-CI-Packages: context-profile
 XB-Maemo-CI-Stage: acceptance, validation
 XB-Python-Version: ${python:Versions}
