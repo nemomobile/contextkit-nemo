@@ -131,12 +131,15 @@ bool BatteryPlugin::readBatteryValues()
         return false;
     }
 
-    propertyCache[IS_CHARGING] = (st[CHARGING_STATE] == CHARGING_STATE_STARTED);
+    propertyCache[IS_CHARGING] = (st[CHARGING_STATE] == CHARGING_STATE_STARTED &&
+                                  st[BATTERY_STATE] != BATTERY_STATE_FULL);
+
     propertyCache[ON_BATTERY] =  (st[CHARGER_STATE] != CHARGER_STATE_CONNECTED);
     propertyCache[LOW_BATTERY] = (st[BATTERY_STATE] == BATTERY_STATE_LOW);
 
-    if (st[BATTERY_CAPA_MAX] != 0)
-        propertyCache[CHARGE_PERCENT] = st[BATTERY_CAPA_NOW] * 100 / st[BATTERY_CAPA_MAX];
+    if (st[BATTERY_LEVEL_MAX] != 0)
+        propertyCache[CHARGE_PERCENT] = st[BATTERY_LEVEL_NOW] * 100 / st[BATTERY_LEVEL_MAX];
+        //propertyCache[CHARGE_PERCENT] = st[BATTERY_CAPA_NOW] * 100 / st[BATTERY_CAPA_MAX];
     else
         propertyCache[CHARGE_PERCENT] = QVariant();
 
