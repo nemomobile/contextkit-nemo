@@ -40,6 +40,7 @@ Q_DECLARE_METATYPE(QSet<QString>);
 #define ON_BATTERY       "Battery.OnBattery"
 #define LOW_BATTERY      "Battery.LowBattery"
 #define CHARGE_PERCENT   "Battery.ChargePercentage"
+#define CHARGE_BARS      "Battery.ChargeBars"
 #define TIME_UNTIL_LOW   "Battery.TimeUntilLow"
 #define TIME_UNTIL_FULL  "Battery.TimeUntilFull"
 #define IS_CHARGING      "Battery.IsCharging"
@@ -137,11 +138,14 @@ bool BatteryPlugin::readBatteryValues()
     propertyCache[ON_BATTERY] =  (st[CHARGER_STATE] != CHARGER_STATE_CONNECTED);
     propertyCache[LOW_BATTERY] = (st[BATTERY_STATE] == BATTERY_STATE_LOW);
 
-    if (st[BATTERY_LEVEL_MAX] != 0)
-        propertyCache[CHARGE_PERCENT] = st[BATTERY_LEVEL_NOW] * 100 / st[BATTERY_LEVEL_MAX];
-        //propertyCache[CHARGE_PERCENT] = st[BATTERY_CAPA_NOW] * 100 / st[BATTERY_CAPA_MAX];
+    propertyCache[CHARGE_PERCENT] = st[BATTERY_LEVEL_PCT];
+
+    if (st[BATTERY_LEVEL_MAX] != 0) {
+        QList<QVariant> list;
+        list << QVariant(st[BATTERY_LEVEL_NOW]) << QVariant(st[BATTERY_LEVEL_MAX]);
+        propertyCache[CHARGE_BARS] = list;
     else
-        propertyCache[CHARGE_PERCENT] = QVariant();
+        propertyCache[CHARGE_BARS] = QVariant();
 
     propertyCache[TIME_UNTIL_FULL] = (quint64)st[CHARGING_TIME] * NANOSECS_PER_MIN;
     propertyCache[TIME_UNTIL_LOW] = (quint64)st[BATTERY_TIME_LEFT] * NANOSECS_PER_MIN;
