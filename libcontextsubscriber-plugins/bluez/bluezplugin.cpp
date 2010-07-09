@@ -20,6 +20,7 @@
  */
 
 #include "bluezplugin.h"
+#include <bluezdevice.h>
 #include "sconnect.h"
 
 #include "logging.h"
@@ -44,6 +45,7 @@ const QString BluezPlugin::serviceName = "org.bluez";
 const QString BluezPlugin::managerPath = "/";
 const QString BluezPlugin::managerInterface = "org.bluez.Manager";
 const QString BluezPlugin::adapterInterface = "org.bluez.Adapter";
+const QString BluezPlugin::deviceInterface = "org.bluez.Device";
 
 #define BLUEZ_PLUGIN_BUS QDBusConnection::systemBus()
 
@@ -54,6 +56,8 @@ BluezPlugin::BluezPlugin()
     // Create a mapping from Bluez properties to Context Properties
     properties["Powered"] = "Bluetooth.Enabled";
     properties["Discoverable"] = "Bluetooth.Visible";
+    properties["Connected"] = "Bluetooth.Connected";
+    propertyCache[properties["Connected"]] = false;
 
     // We're ready to take in subscriptions right away; we'll connect to bluez
     // when we get subscriptions.
@@ -72,6 +76,18 @@ void BluezPlugin::disconnectFromBluez()
     BLUEZ_PLUGIN_BUS.disconnect(serviceName, adapterPath,
                              adapterInterface, "PropertyChanged",
                              this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+
+    BLUEZ_PLUGIN_BUS.disconnect(serviceName, adapterPath,
+                          adapterInterface, "DeviceCreated",
+                          this, SLOT(onDeviceCreated(QDBusObjectPath)));
+
+    BLUEZ_PLUGIN_BUS.disconnect(serviceName, adapterPath,
+                          adapterInterface, "DeviceRemoved",
+                          this, SLOT(onDeviceRemoved(QDBusObjectPath)));
+
+    Q_FOREACH (const QDBusObjectPath& path, devicesList.keys()) {
+        onDeviceRemoved(path);
+    }
 
     delete adapter;
     adapter = 0;
@@ -116,9 +132,54 @@ void BluezPlugin::connectToBluez()
     // "ready". Then the upper layer will renew its subscriptions (and we
     // reconnect to bluez if needed).
     serviceWatcher = new QDBusServiceWatcher(serviceName, BLUEZ_PLUGIN_BUS);
-    connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)),
+    sconnect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)),
             this, SIGNAL(ready()), Qt::QueuedConnection);
-    connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)), this, SLOT(emitFailed()));
+    sconnect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)), this, SLOT(emitFailed()));
+}
+
+void BluezPlugin::evalConnected() {
+
+    bool connectedProp = false;
+    Q_FOREACH (BluezDevice* device, devicesList) {
+	if (device->isConnected()) {
+	    connectedProp = true;
+	    break;
+	}
+    }
+    if (connectedProp)
+	propertyCache[properties["Connected"]] = true;
+    else
+	propertyCache[properties["Connected"]] = false;
+
+    Q_EMIT valueChanged(properties["Connected"], propertyCache[properties["Connected"]]);
+}
+
+void BluezPlugin::onConnectionStateChanged(QDBusObjectPath path, bool status)
+{
+    if (propertyCache[properties["Connected"]].toBool() == false) {
+	if (status) {
+	    propertyCache[properties["Connected"]] = status;
+	    Q_EMIT valueChanged(properties["Connected"], propertyCache[properties["Connected"]]);
+	}
+    }
+    else
+	evalConnected();
+}
+
+void BluezPlugin::onDeviceCreated(QDBusObjectPath devicePath)
+{
+    devicesList[devicePath] = new BluezDevice(devicePath.path());
+    sconnect(devicesList[devicePath], SIGNAL(connectionStateChanged(QDBusObjectPath, bool)),
+						     this,  SLOT(onConnectionStateChanged(QDBusObjectPath, bool)));
+}
+
+void BluezPlugin::onDeviceRemoved(QDBusObjectPath devicePath)
+{
+    disconnect(devicesList[devicePath], SIGNAL(connectionStateChanged(QDBusObjectPath, bool)),
+							this,  SLOT(onConnectionStateChanged(QDBusObjectPath, bool)));
+
+    delete devicesList[devicePath];
+    devicesList.remove(devicePath);
 }
 
 /// Initates the async GetProperties D-Bus call.  Overwrites
@@ -160,11 +221,18 @@ void BluezPlugin::defaultAdapterFinished(QDBusPendingCallWatcher* pcw)
             adapter = new AsyncDBusInterface(serviceName, adapterPath,
                                              adapterInterface, BLUEZ_PLUGIN_BUS,
                                              this);
-            BLUEZ_PLUGIN_BUS.connect(serviceName,
-                                  adapterPath,
-                          adapterInterface,
-                          "PropertyChanged",
+
+            BLUEZ_PLUGIN_BUS.connect(serviceName, adapterPath,
+                          adapterInterface, "PropertyChanged",
                           this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+
+            BLUEZ_PLUGIN_BUS.connect(serviceName, adapterPath,
+                          adapterInterface, "DeviceCreated",
+                          this, SLOT(onDeviceCreated(QDBusObjectPath)));
+
+            BLUEZ_PLUGIN_BUS.connect(serviceName, adapterPath,
+                          adapterInterface, "DeviceRemoved",
+                          this, SLOT(onDeviceRemoved(QDBusObjectPath)));
 
             callGetProperties();
     }
@@ -183,12 +251,22 @@ void BluezPlugin::getPropertiesFinished(QDBusPendingCallWatcher* pcw)
     QMap<QString, QVariant> map = reply.argumentAt<0>();
     Q_FOREACH (const QString& key, map.keys()) {
         if (properties.contains(key)) {
+            contextDebug() << "Prop changed:" << properties[key];
             propertyCache[properties[key]] = map[key];
             Q_EMIT valueChanged(properties[key], map[key]);
             // Note: the upper layer is responsible for checking if the
             // value was a different one.
         }
+
+	if (key == "Devices") {
+	    QList<QDBusObjectPath> devicePaths = qdbus_cast<QList<QDBusObjectPath> >(map[key]);
+	    Q_FOREACH(const QDBusObjectPath& path, devicePaths)
+		onDeviceCreated(path);
+
+	    evalConnected();
+	}
     }
+
     Q_FOREACH (const QString& key, pendingSubscriptions) {
         if (propertyCache.contains(key))
             Q_EMIT subscribeFinished(key, propertyCache[key]);
@@ -209,11 +287,17 @@ void BluezPlugin::onDefaultAdapterChanged(QDBusObjectPath path)
     adapterPath = path.path();
     delete adapter;
     adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, BLUEZ_PLUGIN_BUS, this);
-    BLUEZ_PLUGIN_BUS.connect(serviceName,
-                          adapterPath,
-                          adapterInterface,
-                          "PropertyChanged",
+    BLUEZ_PLUGIN_BUS.connect(serviceName, adapterPath,
+                          adapterInterface, "PropertyChanged",
                           this, SLOT(onPropertyChanged(QString, QDBusVariant)));
+
+    BLUEZ_PLUGIN_BUS.connect(serviceName, adapterPath,
+                          adapterInterface, "DeviceCreated",
+                          this, SLOT(onDeviceCreated(QDBusObjectPath)));
+
+    BLUEZ_PLUGIN_BUS.connect(serviceName, adapterPath,
+                          adapterInterface, "DeviceRemoved",
+                          this, SLOT(onDeviceRemoved(QDBusObjectPath)));
 
     // It is possible that a previous GetProperties call is still ongoing.  Here
     // we start another one, and overwrite getPropertiesWatcher.  The
@@ -228,6 +312,7 @@ void BluezPlugin::onDefaultAdapterChanged(QDBusObjectPath path)
 void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
 {
     if (properties.contains(key)) {
+        contextDebug() << "Prop changed:" << properties[key];
         propertyCache[properties[key]] = value.variant();
         Q_EMIT valueChanged(properties[key], value.variant());
     }
@@ -237,11 +322,13 @@ void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
 /// bluez, no extra work is needed. Otherwise, initiate connecting to bluez.
 void BluezPlugin::subscribe(QSet<QString> keys)
 {
+    contextDebug() << "Status connection to bluez " << status;
     if (status == Connected) {
         // we're already connected to bluez; so we know values for all the keys
         Q_FOREACH (const QString& key, keys) {
             // Ensure that we give some values for the subscribed properties
             if (propertyCache.contains(key)) {
+                contextDebug() << "Key" << key << "found in cache";
                 wantedSubscriptions << key;
                 Q_EMIT subscribeFinished(key, propertyCache[key]);
             }
@@ -253,6 +340,7 @@ void BluezPlugin::subscribe(QSet<QString> keys)
         }
     }
     else {
+	contextDebug() << "pendingSubscription";
         pendingSubscriptions.unite(keys);
         wantedSubscriptions.unite(keys);
         if (status == NotConnected)
@@ -293,4 +381,3 @@ void BluezPlugin::emitFailed(QString reason)
 }
 
 } // end namespace
-

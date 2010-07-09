@@ -13,8 +13,8 @@ CXXFLAGS="$CXXFLAGS -Wall"
 AC_PROG_LIBTOOL
 AM_PATH_PYTHON
 
-AC_CHECK_FILE([/usr/include/bme/bmeipc.h], [],
-              AC_MSG_ERROR([please install libbmeipc-dev]))
+#AC_CHECK_FILE([/usr/include/bme/bmeipc.h], [],
+#              AC_MSG_ERROR([please install libbmeipc-dev]))
 
 # check for libraries
 PKG_CHECK_MODULES_SUBST([DBUS], [dbus-1])

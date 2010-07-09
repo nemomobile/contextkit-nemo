@@ -23,6 +23,7 @@
 #define BLUEZPLUGIN_H
 
 #include <iproviderplugin.h> // For IProviderPlugin definition
+#include <bluezdevice.h>
 
 #include <QDBusError>
 #include <QDBusObjectPath>
@@ -67,8 +68,11 @@ public:
 
 private Q_SLOTS:
     void onPropertyChanged(QString key, QDBusVariant value);
+    void onConnectionStateChanged(QDBusObjectPath path, bool status);
     void onDefaultAdapterChanged(QDBusObjectPath path);
     void emitFailed(QString reason = QString("Provider not present: bluez"));
+    void onDeviceRemoved(QDBusObjectPath path);
+    void onDeviceCreated(QDBusObjectPath path);
     void defaultAdapterFinished(QDBusPendingCallWatcher* pcw);
     void getPropertiesFinished(QDBusPendingCallWatcher* pcw);
 
@@ -76,6 +80,7 @@ private:
     void connectToBluez();
     void disconnectFromBluez();
     void callGetProperties();
+    void evalConnected();
     AsyncDBusInterface* manager; ///< Bluez Manager interface
     AsyncDBusInterface* adapter; ///< Bluez Adapter interface
     QString adapterPath; ///< Object path of the Bluez adapter
@@ -83,6 +88,7 @@ private:
     static const QString managerPath; ///< Object path of Bluez Manager
     static const QString managerInterface; ///< Interface name of Bluez manager
     static const QString adapterInterface; ///< Interface name of Bluez adapter
+    static const QString deviceInterface; ///< Interface name of Bluez device
 
     enum ConnectionStatus {NotConnected, Connecting, Connected};
     ConnectionStatus status; ///< Whether we're currently connected to Bluez
@@ -90,6 +96,7 @@ private:
     QDBusPendingCallWatcher* defaultAdapterWatcher; ///< For watching the DefaultAdatpter D-Bus call
     QDBusPendingCallWatcher* getPropertiesWatcher; ///< For watching the DefaultAdatpter D-Bus call
 
+    QMap<QDBusObjectPath, BluezDevice*> devicesList;
     QMap<QString, QString> properties; ///< Mapping of Bluez properties to Context FW properties
     QMap<QString, QVariant> propertyCache;
     QSet<QString> pendingSubscriptions; ///< Keys for which subscribeFinished/Failed hasn't been emitted
