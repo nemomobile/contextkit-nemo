@@ -1,3 +1,10 @@
+contextkit-maemo (0.7.14) unstable; urgency=low
+
+  * Fixes: NB#177486 stop animating status area battery indication 
+    once battery is full
+
+ -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Mon, 12 Jul 2010 08:06:14 +0300
+
 contextkit-maemo (0.7.13) unstable; urgency=low
 
   * Fixes: NB#177228 context-bluetooth-tests and context-profile-tests 
