@@ -144,6 +144,7 @@ bool BatteryPlugin::readBatteryValues()
         QList<QVariant> list;
         list << QVariant(st[BATTERY_LEVEL_NOW]) << QVariant(st[BATTERY_LEVEL_MAX]);
         propertyCache[CHARGE_BARS] = list;
+    }
     else
         propertyCache[CHARGE_BARS] = QVariant();
 
