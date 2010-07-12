@@ -1,3 +1,9 @@
+contextkit-maemo (0.7.15~unreleased) unstable; urgency=low
+
+  * 
+
+ -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Mon, 12 Jul 2010 08:09:46 +0300
+
 contextkit-maemo (0.7.14) unstable; urgency=low
 
   * Fixes: NB#177486 stop animating status area battery indication 
