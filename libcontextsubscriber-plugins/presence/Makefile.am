@@ -1,19 +1,19 @@
 plugindir = $(libdir)/contextkit/subscriber-plugins/
 plugin_LTLIBRARIES = presence-1.la
-session_1_la_SOURCES = presenceplugin.cpp presenceplugin.h loggingfeatures.h
+presence_1_la_SOURCES = presenceplugin.cpp presenceplugin.h loggingfeatures.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
-	      $(CTXTSUBS_CFLAGS) $(x11_CFLAGS)					\
+	      $(CTXTSUBS_CFLAGS) $(presence0_CFLAGS) $(TelepathyQt4_CFLAGS)
 	      '-DCONTEXT_LOG_MODULE_NAME="presenceplugin"'
 
 # module: Libtool shouldn't complain about not having "lib" prefix
 # avoid-version: Don't add version numbers after .so
-session_1_la_LDFLAGS = -avoid-version -module
+presence_1_la_LDFLAGS = -avoid-version -module
 
 $(top_builddir)/common/libcommon.la:
 	$(MAKE) -C $(top_builddir)/common libcommon.la
 
-LIBS += $(QtCore_LIBS) $(x11_LIBS)
+LIBS += $(QtCore_LIBS)
 presence_1_la_LIBADD=$(top_builddir)/common/libcommon.la
 
 .PHONY: FORCE

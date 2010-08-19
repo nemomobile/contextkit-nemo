@@ -43,21 +43,21 @@ namespace ContextSubscriberPresence
 
  */
 
-class PresencePlugin : public IProviderPlugin
+class PresenceStatePlugin : public IProviderPlugin
 {
     Q_OBJECT
 
 public:
-    explicit PresencePlugin();
+    explicit PresenceStatePlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
 
 private Q_SLOTS:
     void emitValueChanged();
-};
 
 private:
     QString presenceStateKey;
+};
 }
 #endif
 

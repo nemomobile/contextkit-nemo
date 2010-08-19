@@ -23,23 +23,24 @@
 #include "presenceplugin.h"
 #include "logging.h"
 #include "sconnect.h"
-#include "presence-ui/globalaccount.h"
 
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 {
-    return new ContextSubscriberPresence::PresencePlugin();
+    return new ContextSubscriberPresence::PresenceStatePlugin();
 }
 
 namespace ContextSubscriberPresence {
 
-PresencePlugin::PresencePlugin(): presenceStateKey("Presence.State")
+PresenceStatePlugin::PresenceStatePlugin(): presenceStateKey("Presence.State")
 {
     // Connect to the global account change
-    sconnect(&globalaccount, SIGNAL(globalAvailabilityChanged()), this, SLOT(emitValueChanged()));
+
+    //TODO replace that line with right signal  
+   // sconnect(&globalaccount, SIGNAL(globalAvailabilityChanged()), this, SLOT(emitValueChanged()));
 
 }
 
-void PresencePlugin::subscribe(QSet<QString> keys)
+void PresenceStatePlugin::subscribe(QSet<QString> keys)
 {
 
     // Check for invalid keys
@@ -53,9 +54,11 @@ void PresencePlugin::subscribe(QSet<QString> keys)
 
         // Now the value is there; signal that the subscription is done.
         emit subscribeFinished(presenceStateKey);
+    }
 }
 
-void PresencePlugin::unsubscribe(QSet<QString> keys)
+
+void PresenceStatePlugin::unsubscribe(QSet<QString> keys)
 {
 }
 
