@@ -14,7 +14,8 @@ Build-Depends: debhelper (>= 5),
 	       libbmeipc-dev,
                doxygen,
                libudev-dev,
-               mce-dev
+               mce-dev,
+	       libpresence0-dev
 XS-Python-Version: all
 Standards-Version: 3.8.0
 
@@ -202,3 +203,21 @@ Description: A libcontextsubscriber plugin providing properties originating from
  .
  This package contains the mce plugin for libcontextsubscriber.
 
+Package: context-presence
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A libcontextsubscriber plugin providing the Presence.State property.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the Presence.State plugin for libcontextsubscriber.
+
+Package: context-presence-dbg
+Priority: extra
+Architecture: any
+Depends: context-presence (= ${binary:Version})
+Description: A libcontextsubscriber plugin providing the Presence.State property.
+ ContextKit is a system for providing real-time context awareness to
+ applications.
+ .
+ This package contains the Presence.State plugin for libcontextsubscriber.
