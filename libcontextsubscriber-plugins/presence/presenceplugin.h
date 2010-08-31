@@ -23,8 +23,11 @@
 #define PRESENCEPLUGIN_H
 
 #include <iproviderplugin.h> // For IProviderPlugin definition
+#include "presence-ui/globalpresenceindicator.h"
 
-#include <QStringList>
+#define CONTEXT_PRESENCE_OFFLINE "Offline"
+#define CONTEXT_PRESENCE_BUSY "Away"
+#define CONTEXT_PRESENCE_ONLINE "Available"
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -53,10 +56,11 @@ public:
     virtual void unsubscribe(QSet<QString> keys);
 
 private Q_SLOTS:
-    void emitValueChanged();
+    void emitValueChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE presence);
 
 private:
     QString presenceStateKey;
+    QString mapPresence(GlobalPresenceIndicator::GLOBAL_PRESENCE presenceState);
 };
 }
 #endif

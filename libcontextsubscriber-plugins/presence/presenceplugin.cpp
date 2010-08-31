@@ -34,42 +34,63 @@ namespace ContextSubscriberPresence {
 PresenceStatePlugin::PresenceStatePlugin(): presenceStateKey("Presence.State")
 {
     // Connect to the global account change
+    sconnect(GlobalPresenceIndicator::instance(),
+	     SIGNAL(globalPresenceChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE)),
+	     this, SLOT(emitValueChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE)));
+    // Emitting ready() is not allowed inside the constructor. Thus,
+    // queue it.
+    QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 
-    //TODO replace that line with right signal  
-   // sconnect(&globalaccount, SIGNAL(globalAvailabilityChanged()), this, SLOT(emitValueChanged()));
+}
+
+QString PresenceStatePlugin::mapPresence(GlobalPresenceIndicator::GLOBAL_PRESENCE presence)
+{
+    switch (presence) {
+        case GlobalPresenceIndicator::GLOBAL_PRESENCE_OFFLINE:
+	    return CONTEXT_PRESENCE_OFFLINE;
+        case GlobalPresenceIndicator::GLOBAL_PRESENCE_ONLINE:
+	    return CONTEXT_PRESENCE_ONLINE;
+        case GlobalPresenceIndicator::GLOBAL_PRESENCE_BUSY:
+	    return CONTEXT_PRESENCE_BUSY;
+        default:
+	    return "";
+    }
 
 }
 
 void PresenceStatePlugin::subscribe(QSet<QString> keys)
 {
-
     // Check for invalid keys
     foreach (const QString& key, keys) {
         if (key != presenceStateKey) {
             emit subscribeFailed(key, "Invalid key");
+
         }
     }
 
     if (keys.contains(presenceStateKey)) {
-
         // Now the value is there; signal that the subscription is done.
         emit subscribeFinished(presenceStateKey);
     }
-}
 
+    QString presence = mapPresence(GlobalPresenceIndicator::instance()->globalPresence());
+    // The valueChanged is emitted in a delayed way, since this
+    // function is called from subscribe, and emitting valueChanged
+    // there makes libcontextsubscriber block.
+    QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
+			      Q_ARG(QString, presenceStateKey),
+			      Q_ARG(QVariant, presence));
+}
 
 void PresenceStatePlugin::unsubscribe(QSet<QString> keys)
 {
+    GlobalPresenceIndicator::killInstance();
 }
 
 /// Check the current status of the Session.State property and emit
 /// the valueChanged signal.
-void PresenceStatePlugin::emitValueChanged()
+void PresenceStatePlugin::emitValueChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE presence)
 {
-    // TODO
-    // Is it as simple as reading the globalAvailabilityChanged value and forwarded to context fw ?
-    emit valueChanged(presenceStateKey, "Available");
+    emit valueChanged(presenceStateKey, mapPresence(presence));
 }
-
-
 }  // end namespace

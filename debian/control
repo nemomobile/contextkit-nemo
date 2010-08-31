@@ -15,7 +15,8 @@ Build-Depends: debhelper (>= 5),
                doxygen,
                libudev-dev,
                mce-dev,
-	       libpresence0-dev
+	       libpresence0-dev,
+               libmeegotouch-dev 
 XS-Python-Version: all
 Standards-Version: 3.8.0
 

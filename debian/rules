@@ -90,6 +90,7 @@ binary-arch: build install
 	dh_strip -p context-profile --dbg-package="context-profile-dbg"
 	dh_strip -p context-battery --dbg-package="context-battery-dbg"
 	dh_strip -p context-keyboard --dbg-package="context-keyboard-dbg"
+	dh_strip -p context-presence --dbg-package="context-presence-dbg"
 	dh_strip -p context-bluetooth-tests
 	dh_strip -p context-session-tests
 	dh_strip -p context-profile-tests

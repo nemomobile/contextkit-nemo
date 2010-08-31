@@ -1,4 +1,4 @@
-xml version="1.0"?>
+<?xml version="1.0"?>
 <provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/presence-1" constructionString="Presence.State">
   <key name="Presence.State"/>
 </provider>
