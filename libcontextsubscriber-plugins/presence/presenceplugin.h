@@ -25,9 +25,9 @@
 #include <iproviderplugin.h> // For IProviderPlugin definition
 #include "presence-ui/globalpresenceindicator.h"
 
-#define CONTEXT_PRESENCE_OFFLINE "Offline"
-#define CONTEXT_PRESENCE_BUSY "Away"
-#define CONTEXT_PRESENCE_ONLINE "Available"
+#define CONTEXT_PRESENCE_OFFLINE "offline"
+#define CONTEXT_PRESENCE_BUSY "away"
+#define CONTEXT_PRESENCE_ONLINE "available"
 
 using ContextSubscriber::IProviderPlugin;
 
