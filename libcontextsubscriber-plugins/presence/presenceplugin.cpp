@@ -53,7 +53,7 @@ QString PresenceStatePlugin::mapPresence(GlobalPresenceIndicator::GLOBAL_PRESENC
         case GlobalPresenceIndicator::GLOBAL_PRESENCE_BUSY:
 	    return CONTEXT_PRESENCE_BUSY;
         default:
-	    return "";
+	    return QString();
     }
 
 }
