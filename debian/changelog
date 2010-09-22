@@ -1,8 +1,8 @@
-contextkit-maemo (0.7.17~unreleased) unstable; urgency=low
+contextkit-maemo (0.7.17) unstable; urgency=low
 
-  * 
+  * Fixed Battery.ChargeBars property declaration
 
- -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Fri, 17 Sep 2010 07:03:49 +0300
+ -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Wed, 22 Sep 2010 18:02:10 +0300
 
 contextkit-maemo (0.7.16) unstable; urgency=low
 
