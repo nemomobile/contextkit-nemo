@@ -1,6 +1,6 @@
 contextkit-maemo (0.7.19~unreleased) unstable; urgency=low
 
-  *
+  * Fixes: NB#196075
 
  -- Marja Hassinen <marja.hassinen@nokia.com>  Thu, 30 Sep 2010 14:25:00 +0300
 

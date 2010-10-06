@@ -13,7 +13,7 @@ bluez_1_la_LDFLAGS = -avoid-version -module
 $(top_builddir)/common/libcommon.la: FORCE
 	$(MAKE) -C $(top_builddir)/common libcommon.la
 
-LIBS += $(QtCore_LIBS) $(QtDBus_LIBS)
+LIBS += $(QtCore_LIBS) $(QtDBus_LIBS) $(CTXTSUBS_LIBS)
 bluez_1_la_LIBADD=$(top_builddir)/common/libcommon.la
 
 .PHONY: FORCE

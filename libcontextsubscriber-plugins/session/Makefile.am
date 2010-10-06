@@ -13,7 +13,7 @@ session_1_la_LDFLAGS = -avoid-version -module
 $(top_builddir)/common/libcommon.la:
 	$(MAKE) -C $(top_builddir)/common libcommon.la
 
-LIBS += $(QtCore_LIBS) $(x11_LIBS)
+LIBS += $(QtCore_LIBS) $(x11_LIBS) $(CTXTSUBS_LIBS)
 session_1_la_LIBADD=$(top_builddir)/common/libcommon.la
 
 .PHONY: FORCE
