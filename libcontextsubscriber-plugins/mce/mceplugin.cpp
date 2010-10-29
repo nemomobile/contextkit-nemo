@@ -21,12 +21,12 @@
 
 #include "mceplugin.h"
 #include "sconnect.h"
-
 #include "logging.h"
 // This is for getting rid of synchronous D-Bus introspection calls Qt does.
 #include <asyncdbusinterface.h>
 
 #include <mce/dbus-names.h> // from mce-dev
+#include <mce/mode-names.h> // from mce-dev
 
 #include <QDBusServiceWatcher>
 
@@ -41,6 +41,7 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 namespace ContextSubscriberMCE {
 const QString MCEPlugin::blankedKey = "Screen.Blanked";
 const QString MCEPlugin::powerSaveKey = "System.PowerSaveMode";
+const QString MCEPlugin::offlineModeKey = "System.OfflineMode";
 
 QDBusConnection MCEPlugin::busConnection = QDBusConnection::systemBus();
 
@@ -98,6 +99,13 @@ void MCEPlugin::replyGetPowerSave(bool on)
     emit subscribeFinished(powerSaveKey, QVariant(on));
 }
 
+/// Callback for "get offline mode status"
+void MCEPlugin::replyGetOfflineMode(uint state)
+{
+    bool offline = (state & MCE_RADIO_STATE_CELLULAR);
+    emit subscribeFinished(offlineModeKey, QVariant(offline));
+}
+
 /// Connected to the D-Bus signal from MCE.
 void MCEPlugin::onDisplayStateChanged(QString state)
 {
@@ -109,6 +117,13 @@ void MCEPlugin::onDisplayStateChanged(QString state)
 void MCEPlugin::onPowerSaveChanged(bool on)
 {
     emit valueChanged(powerSaveKey, QVariant(on));
+}
+
+/// Connected to the D-Bus signal from MCE.
+void MCEPlugin::onOfflineModeChanged(uint state)
+{
+    bool offline = (state & MCE_RADIO_STATE_CELLULAR);
+    emit valueChanged(offlineModeKey, QVariant(offline));
 }
 
 /// Implementation of the IPropertyProvider::subscribe.
@@ -126,7 +141,7 @@ void MCEPlugin::subscribe(QSet<QString> keys)
         ++subscribeCount;
     }
     if (keys.contains(powerSaveKey)) {
-        busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH, MCE_SIGNAL_IF, MCE_PSM_MODE_SIG,
+	busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH, MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
                               this, SLOT(onPowerSaveChanged(bool)));
 
         // this will emit subscribeFinished when done
@@ -134,6 +149,17 @@ void MCEPlugin::subscribe(QSet<QString> keys)
                               this, SLOT(replyGetPowerSave(bool)), SLOT(replyGetError(QDBusError)));
         ++subscribeCount;
     }
+
+    if (keys.contains(offlineModeKey)) {
+	busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH, MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
+			      this, SLOT(onOfflineModeChanged(uint)));
+
+        // this will emit subscribeFinished when done
+        mce->callWithCallback(MCE_RADIO_STATES_GET, QList<QVariant>(),
+                              this, SLOT(replyGetOfflineMode(uint)), SLOT(replyGetError(QDBusError)));
+        ++subscribeCount;
+    }
+
 }
 
 /// Implementation of the IPropertyProvider::unsubscribe.
@@ -147,10 +173,18 @@ void MCEPlugin::unsubscribe(QSet<QString> keys)
     }
     if (keys.contains(powerSaveKey)) {
         busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
-                                 MCE_SIGNAL_IF, MCE_PSM_MODE_SIG,
-                                 this, SLOT(onPowerSaveChanged(QString)));
+                                 MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
+                                 this, SLOT(onPowerSaveChanged(bool)));
         --subscribeCount;
     }
+
+    if (keys.contains(offlineModeKey)) {
+        busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+                                 MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
+                                 this, SLOT(onOfflineModeChanged(uint)));
+        --subscribeCount;
+    }
+
     if (subscribeCount == 0)
         disconnectFromMce();
 }
@@ -161,13 +195,15 @@ void MCEPlugin::emitFailed(QString reason)
 {
     // Don't disconnectFromMce here; that would kill the D-Bus name watcher and we wouldn't notice
     // when MCE comes back.
-
     busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                              MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
                              this, SLOT(onDisplayStateChanged(QString)));
     busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
-                             MCE_SIGNAL_IF, MCE_PSM_MODE_SIG,
-                             this, SLOT(onPowerSaveChanged(QString)));
+                             MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
+                             this, SLOT(onPowerSaveChanged(bool)));
+    busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+                             MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
+                             this, SLOT(onOfflineModeChanged(uint)));
 
     subscribeCount = 0;
     emit failed(reason);

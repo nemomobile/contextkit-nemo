@@ -63,8 +63,10 @@ private Q_SLOTS:
     void replyGetError(QDBusError err);
     void replyGetDisplayState(QString state);
     void replyGetPowerSave(bool on);
+    void replyGetOfflineMode(uint state);
     void onDisplayStateChanged(QString state);
     void onPowerSaveChanged(bool on);
+    void onOfflineModeChanged(uint state);
     void emitFailed(QString reason = QString("MCE left D-Bus"));
 
 private:
@@ -73,6 +75,7 @@ private:
     AsyncDBusInterface* mce;
     static const QString blankedKey;
     static const QString powerSaveKey;
+    static const QString offlineModeKey;
     static QDBusConnection busConnection;
 
     QDBusServiceWatcher* serviceWatcher; ///< For watching MCE appear and disappear
