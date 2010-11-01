@@ -1,8 +1,9 @@
-contextkit-maemo (0.7.20~unreleased) unstable; urgency=low
+contextkit-maemo (0.7.20) unstable; urgency=low
 
-  *
+  * Fixes: NB#193829 - CellularNetwork context property doesn't differentiate 
+    offline-mode and missing network
 
- -- Marja Hassinen <marja.hassinen@nokia.com>  Wed, 06 Oct 2010 14:08:07 +0300
+ -- Jean-Luc Lamadon <jean-luc.lamadon@nokia.com>  Mon, 01 Nov 2010 10:13:36 +0200
 
 contextkit-maemo (0.7.19) unstable; urgency=low
 
