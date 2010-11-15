@@ -122,7 +122,7 @@ void MCEPlugin::onPowerSaveChanged(bool on)
 /// Connected to the D-Bus signal from MCE.
 void MCEPlugin::onOfflineModeChanged(uint state)
 {
-    bool offline = (state & MCE_RADIO_STATE_CELLULAR);
+    bool offline = not (state & MCE_RADIO_STATE_CELLULAR);
     emit valueChanged(offlineModeKey, QVariant(offline));
 }
 
