@@ -138,20 +138,20 @@ void MCEPlugin::getOfflineModeFinished(QDBusPendingCallWatcher* pcw)
 void MCEPlugin::onDisplayStateChanged(QString state)
 {
     bool blanked = (state == "off");
-    emit valueChanged(blankedKey, QVariant(blanked));
+    Q_EMIT valueChanged(blankedKey, QVariant(blanked));
 }
 
 /// Connected to the D-Bus signal from MCE.
 void MCEPlugin::onPowerSaveChanged(bool on)
 {
-    emit valueChanged(powerSaveKey, QVariant(on));
+    Q_EMIT valueChanged(powerSaveKey, QVariant(on));
 }
 
 /// Connected to the D-Bus signal from MCE.
 void MCEPlugin::onOfflineModeChanged(uint state)
 {
     bool offline = !(state & MCE_RADIO_STATE_CELLULAR);
-    emit valueChanged(offlineModeKey, QVariant(offline));
+    Q_EMIT valueChanged(offlineModeKey, QVariant(offline));
 }
 
 /// Implementation of the IPropertyProvider::subscribe.
@@ -266,7 +266,7 @@ void MCEPlugin::emitFailed(QString reason)
                              this, SLOT(onOfflineModeChanged(uint)));
 
     subscribeCount = 0;
-    emit failed(reason);
+    Q_EMIT failed(reason);
 }
 
 } // end namespace
