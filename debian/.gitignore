@@ -22,6 +22,8 @@ context-battery/
 context-battery-dbg/
 context-mce/
 context-mce-dbg/
+context-presence/
+context-presence-dbg/
 files
 *.postinst.debhelper
 *.postrm.debhelper
