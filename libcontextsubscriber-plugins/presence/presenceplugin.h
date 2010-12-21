@@ -54,6 +54,8 @@ public:
     explicit PresenceStatePlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
+    virtual void blockUntilReady();
+    virtual void blockUntilSubscribed(const QString& key);
 
 private Q_SLOTS:
     void emitValueChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE presence);

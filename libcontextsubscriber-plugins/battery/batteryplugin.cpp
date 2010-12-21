@@ -94,6 +94,17 @@ void BatteryPlugin::unsubscribe(QSet<QString> keys)
         cleanProviderSource();
 }
 
+void BatteryPlugin::blockUntilReady()
+{
+    // TODO
+    Q_EMIT ready();
+}
+
+void BatteryPlugin::blockUntilSubscribed(const QString& key)
+{
+    // TODO
+}
+
 /// Start to watch the provider source BMEIPC_EVENT on first subscription or when the source has been deleted or moved
 bool BatteryPlugin::initProviderSource()
 {

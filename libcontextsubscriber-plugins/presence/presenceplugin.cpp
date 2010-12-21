@@ -87,6 +87,17 @@ void PresenceStatePlugin::unsubscribe(QSet<QString> keys)
     GlobalPresenceIndicator::killInstance();
 }
 
+void PresenceStatePlugin::blockUntilReady()
+{
+    // TODO
+    Q_EMIT ready();
+}
+
+void PresenceStatePlugin::blockUntilSubscribed(const QString& key)
+{
+    // TODO
+}
+
 /// Check the current status of the Session.State property and emit
 /// the valueChanged signal.
 void PresenceStatePlugin::emitValueChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE presence)

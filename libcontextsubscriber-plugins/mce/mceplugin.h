@@ -38,6 +38,7 @@ extern "C" {
 }
 
 class AsyncDBusInterface; // From libcontextsubscriber-dev
+class QDBusPendingCallWatcher;
 
 namespace ContextSubscriberMCE
 {
@@ -58,12 +59,13 @@ public:
     explicit MCEPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
+    virtual void blockUntilReady();
+    virtual void blockUntilSubscribed(const QString& key);
 
 private Q_SLOTS:
-    void replyGetError(QDBusError err);
-    void replyGetDisplayState(QString state);
-    void replyGetPowerSave(bool on);
-    void replyGetOfflineMode(uint state);
+    void getDisplayStatusFinished(QDBusPendingCallWatcher* pcw);
+    void getPowerSaveFinished(QDBusPendingCallWatcher* pcw);
+    void getOfflineModeFinished(QDBusPendingCallWatcher* pcw);
     void onDisplayStateChanged(QString state);
     void onPowerSaveChanged(bool on);
     void onOfflineModeChanged(uint state);
@@ -80,6 +82,7 @@ private:
 
     QDBusServiceWatcher* serviceWatcher; ///< For watching MCE appear and disappear
     int subscribeCount;
+    QHash<QString, QDBusPendingCallWatcher*> pendingCallWatchers;
 };
 }
 

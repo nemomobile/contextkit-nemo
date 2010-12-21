@@ -143,6 +143,17 @@ void ProfilePlugin::unsubscribe(QSet<QString> keys)
     activeProfile = "";
 }
 
+void ProfilePlugin::blockUntilReady()
+{
+    // TODO
+    Q_EMIT ready();
+}
+
+void ProfilePlugin::blockUntilSubscribed(const QString& key)
+{
+    // TODO
+}
+
 void ProfilePlugin::serviceRegisteredSlot(const QString& /*serviceName*/)
 {
     emit ready();

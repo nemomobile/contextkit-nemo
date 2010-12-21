@@ -57,6 +57,8 @@ public:
     explicit BatteryPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
+    virtual void blockUntilReady();
+    virtual void blockUntilSubscribed(const QString& key);
 
 private slots:
     void onBMEEvent();

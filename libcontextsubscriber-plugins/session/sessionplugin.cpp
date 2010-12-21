@@ -285,6 +285,17 @@ void SessionStatePlugin::unsubscribe(QSet<QString> keys)
     }
 }
 
+void SessionStatePlugin::blockUntilReady()
+{
+    // TODO
+    Q_EMIT ready();
+}
+
+void SessionStatePlugin::blockUntilSubscribed(const QString& key)
+{
+    // TODO
+}
+
 /// Check the current status of the Session.State property and emit
 /// the valueChanged signal.
 void SessionStatePlugin::emitValueChanged()

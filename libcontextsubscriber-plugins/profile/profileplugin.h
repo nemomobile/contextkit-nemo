@@ -65,6 +65,8 @@ public:
     explicit ProfilePlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
+    virtual void blockUntilReady();
+    virtual void blockUntilSubscribed(const QString& key);
 
 private slots:
     void profileChanged(bool changed, bool active, QString profile, QList<MyStructure> values);

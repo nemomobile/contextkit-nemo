@@ -238,6 +238,17 @@ void BluezPlugin::unsubscribe(QSet<QString> keys)
     }
 }
 
+void BluezPlugin::blockUntilReady()
+{
+    // TODO
+    Q_EMIT ready();
+}
+
+void BluezPlugin::blockUntilSubscribed(const QString& key)
+{
+    // TODO
+}
+
 /// For emitting the ready() signal in a delayed way.
 void BluezPlugin::emitReady()
 {

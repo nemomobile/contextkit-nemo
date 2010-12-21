@@ -221,5 +221,17 @@ void KbSliderPlugin::unsubscribe(QSet<QString> keys)
     }
 }
 
+void KbSliderPlugin::blockUntilReady()
+{
+    // TODO
+    Q_EMIT ready();
+}
+
+void KbSliderPlugin::blockUntilSubscribed(const QString& key)
+{
+    // TODO
+}
+
+
 } // end namespace
 

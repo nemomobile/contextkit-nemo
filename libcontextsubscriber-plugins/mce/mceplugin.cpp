@@ -29,6 +29,9 @@
 #include <mce/mode-names.h> // from mce-dev
 
 #include <QDBusServiceWatcher>
+#include <QDBusPendingReply>
+#include <QDBusPendingCallWatcher>
+#include <QDBusPendingCall>
 
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -71,39 +74,55 @@ void MCEPlugin::connectToMce()
     // "ready". Then the upper layer will renew its subscriptions (and we
     // reconnect if needed).
     serviceWatcher = new QDBusServiceWatcher(MCE_SERVICE, busConnection);
-    connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)), this, SIGNAL(ready()), Qt::QueuedConnection);
-    connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)), this, SLOT(emitFailed()));
-}
-
-/// Called when a D-Bus error occurs when processing our
-/// callWithCallback.
-void MCEPlugin::replyGetError(QDBusError err)
-{
-    // This will also emit subscribeFailed for all our keys. Note: no recovery; the plugin will stay
-    // at failed state forever.
-    disconnectFromMce();
-    subscribeCount = 0;
-    emit failed("Cannot connect to MCE: " + err.message());
+    connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)),
+            this, SIGNAL(ready()), Qt::QueuedConnection);
+    connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)),
+            this, SLOT(emitFailed()));
 }
 
 /// Callback for "get display status"
-void MCEPlugin::replyGetDisplayState(QString state)
+void MCEPlugin::getDisplayStatusFinished(QDBusPendingCallWatcher* pcw)
 {
-    bool blanked = (state == "off");
-    emit subscribeFinished(blankedKey, QVariant(blanked));
+    QDBusPendingReply<QString> reply = *pcw;
+    if (reply.isError()) {
+        Q_EMIT subscribeFailed(blankedKey, reply.error().message());
+    }
+    else {
+        bool blanked = (reply.argumentAt<0>() == "off");
+        Q_EMIT subscribeFinished(blankedKey, QVariant(blanked));
+    }
+    pendingCallWatchers.remove(blankedKey);
+    pcw->deleteLater();
 }
 
 /// Callback for "get powersave status"
-void MCEPlugin::replyGetPowerSave(bool on)
+void MCEPlugin::getPowerSaveFinished(QDBusPendingCallWatcher* pcw)
 {
-    emit subscribeFinished(powerSaveKey, QVariant(on));
+    QDBusPendingReply<bool> reply = *pcw;
+    if (reply.isError()) {
+        Q_EMIT subscribeFailed(powerSaveKey, reply.error().message());
+    }
+    else {
+        bool on = reply.argumentAt<0>();
+        Q_EMIT subscribeFinished(powerSaveKey, QVariant(on));
+    }
+    pendingCallWatchers.remove(powerSaveKey);
+    pcw->deleteLater();
 }
 
 /// Callback for "get offline mode status"
-void MCEPlugin::replyGetOfflineMode(uint state)
+void MCEPlugin::getOfflineModeFinished(QDBusPendingCallWatcher* pcw)
 {
-    bool offline = !(state & MCE_RADIO_STATE_CELLULAR);
-    emit subscribeFinished(offlineModeKey, QVariant(offline));
+    QDBusPendingReply<uint> reply = *pcw;
+    if (reply.isError()) {
+        Q_EMIT subscribeFailed(offlineModeKey, reply.error().message());
+    }
+    else {
+        bool offline = !(reply.argumentAt<0>() & MCE_RADIO_STATE_CELLULAR);
+        Q_EMIT subscribeFinished(offlineModeKey, QVariant(offline));
+    }
+    pendingCallWatchers.remove(offlineModeKey);
+    pcw->deleteLater();
 }
 
 /// Connected to the D-Bus signal from MCE.
@@ -133,30 +152,45 @@ void MCEPlugin::subscribe(QSet<QString> keys)
     connectToMce();
 
     if (keys.contains(blankedKey)) {
-        busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH, MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
+        busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
+                              MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
                               this, SLOT(onDisplayStateChanged(QString)));
         // this will emit subscribeFinished when done
-        mce->callWithCallback(MCE_DISPLAY_STATUS_GET, QList<QVariant>(),
-                              this, SLOT(replyGetDisplayState(QString)), SLOT(replyGetError(QDBusError)));
+        QDBusPendingCallWatcher* pcw = new QDBusPendingCallWatcher(
+            mce->asyncCall(MCE_DISPLAY_STATUS_GET));
+        sconnect(pcw, SIGNAL(finished(QDBusPendingCallWatcher*)),
+                 this, SLOT(getDisplayStatusFinished(QDBusPendingCallWatcher*)));
+        pendingCallWatchers.insert(blankedKey, pcw);
+
         ++subscribeCount;
     }
     if (keys.contains(powerSaveKey)) {
-	busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH, MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
+        busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
+                              MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
                               this, SLOT(onPowerSaveChanged(bool)));
 
         // this will emit subscribeFinished when done
-        mce->callWithCallback(MCE_PSM_MODE_GET, QList<QVariant>(),
-                              this, SLOT(replyGetPowerSave(bool)), SLOT(replyGetError(QDBusError)));
+        QDBusPendingCallWatcher* pcw = new QDBusPendingCallWatcher(
+            mce->asyncCall(MCE_PSM_MODE_GET));
+        sconnect(pcw, SIGNAL(finished(QDBusPendingCallWatcher*)),
+                 this, SLOT(getPowerSaveFinished(QDBusPendingCallWatcher*)));
+        pendingCallWatchers.insert(powerSaveKey, pcw);
+
         ++subscribeCount;
     }
 
     if (keys.contains(offlineModeKey)) {
-	busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH, MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
-			      this, SLOT(onOfflineModeChanged(uint)));
+        busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
+                              MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
+                              this, SLOT(onOfflineModeChanged(uint)));
 
         // this will emit subscribeFinished when done
-        mce->callWithCallback(MCE_RADIO_STATES_GET, QList<QVariant>(),
-                              this, SLOT(replyGetOfflineMode(uint)), SLOT(replyGetError(QDBusError)));
+        QDBusPendingCallWatcher* pcw = new QDBusPendingCallWatcher(
+            mce->asyncCall(MCE_RADIO_STATES_GET));
+        sconnect(pcw, SIGNAL(finished(QDBusPendingCallWatcher*)),
+                 this, SLOT(getOfflineModeFinished(QDBusPendingCallWatcher*)));
+        pendingCallWatchers.insert(offlineModeKey, pcw);
+
         ++subscribeCount;
     }
 
@@ -165,6 +199,8 @@ void MCEPlugin::subscribe(QSet<QString> keys)
 /// Implementation of the IPropertyProvider::unsubscribe.
 void MCEPlugin::unsubscribe(QSet<QString> keys)
 {
+    // The Subscribe call can still be in progress.  In that case we'll emit
+    // subscribeFinished later, and the upper layer should just deal with it.
     if (keys.contains(blankedKey)) {
         busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                                  MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
@@ -187,6 +223,21 @@ void MCEPlugin::unsubscribe(QSet<QString> keys)
 
     if (subscribeCount == 0)
         disconnectFromMce();
+}
+
+void MCEPlugin::blockUntilReady()
+{
+    // This plugin is optimistic, it's ready even if we don't know whether MCE
+    // is running.
+    Q_EMIT ready();
+}
+
+void MCEPlugin::blockUntilSubscribed(const QString& key)
+{
+    if (pendingCallWatchers.contains(key)) {
+        QDBusPendingCallWatcher* pcw = pendingCallWatchers.value(key);
+        pcw->waitForFinished();
+    }
 }
 
 /// For emitting the failed() signal in a delayed way.  When the plugin has emitted failed(), it's
