@@ -89,7 +89,10 @@ void MCEPlugin::getDisplayStatusFinished(QDBusPendingCallWatcher* pcw)
     }
     else {
         bool blanked = (reply.argumentAt<0>() == "off");
-        Q_EMIT subscribeFinished(blankedKey, QVariant(blanked));
+        // emitting valueChanged is needed since subscribeFinished is queued,
+        // and we might need a value immediately (if we blockUntilSubscribed).
+        Q_EMIT valueChanged(blankedKey, QVariant(blanked));
+        Q_EMIT subscribeFinished(blankedKey);
     }
     pendingCallWatchers.remove(blankedKey);
     pcw->deleteLater();
@@ -104,7 +107,10 @@ void MCEPlugin::getPowerSaveFinished(QDBusPendingCallWatcher* pcw)
     }
     else {
         bool on = reply.argumentAt<0>();
-        Q_EMIT subscribeFinished(powerSaveKey, QVariant(on));
+        // emitting valueChanged is needed since subscribeFinished is queued,
+        // and we might need a value immediately (if we blockUntilSubscribed).
+        Q_EMIT valueChanged(powerSaveKey, QVariant(on));
+        Q_EMIT subscribeFinished(powerSaveKey);
     }
     pendingCallWatchers.remove(powerSaveKey);
     pcw->deleteLater();
@@ -119,7 +125,10 @@ void MCEPlugin::getOfflineModeFinished(QDBusPendingCallWatcher* pcw)
     }
     else {
         bool offline = !(reply.argumentAt<0>() & MCE_RADIO_STATE_CELLULAR);
-        Q_EMIT subscribeFinished(offlineModeKey, QVariant(offline));
+        // emitting valueChanged is needed since subscribeFinished is queued,
+        // and we might need a value immediately (if we blockUntilSubscribed).
+        Q_EMIT valueChanged(offlineModeKey, QVariant(offline));
+        Q_EMIT subscribeFinished(offlineModeKey);
     }
     pendingCallWatchers.remove(offlineModeKey);
     pcw->deleteLater();
