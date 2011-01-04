@@ -27,6 +27,8 @@
 #include <asyncdbusinterface.h>
 
 #include <QDBusServiceWatcher>
+#include <QDBusPendingReply>
+#include <QDBusPendingCallWatcher>
 
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -44,7 +46,9 @@ const QString BluezPlugin::managerInterface = "org.bluez.Manager";
 const QString BluezPlugin::adapterInterface = "org.bluez.Adapter";
 QDBusConnection BluezPlugin::busConnection = QDBusConnection::systemBus();
 
-BluezPlugin::BluezPlugin() : manager(0), adapter(0), status(NotConnected), serviceWatcher(0)
+BluezPlugin::BluezPlugin()
+    : manager(0), adapter(0), status(NotConnected), serviceWatcher(0),
+      defaultAdapterWatcher(0), getPropertiesWatcher(0)
 {
     // Create a mapping from Bluez properties to Context Properties
     properties["Powered"] = "Bluetooth.Enabled";
@@ -52,7 +56,7 @@ BluezPlugin::BluezPlugin() : manager(0), adapter(0), status(NotConnected), servi
 
     // We're ready to take in subscriptions right away; we'll connect to bluez
     // when we get subscriptions.
-    QMetaObject::invokeMethod(this, "emitReady", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
 void BluezPlugin::disconnectFromBluez()
@@ -74,6 +78,11 @@ void BluezPlugin::disconnectFromBluez()
     manager = 0;
     delete serviceWatcher;
     serviceWatcher = 0;
+
+    delete defaultAdapterWatcher;
+    defaultAdapterWatcher = 0;
+    delete getPropertiesWatcher;
+    getPropertiesWatcher = 0;
 }
 
 /// Try to establish the connection to BlueZ.
@@ -95,56 +104,96 @@ void BluezPlugin::connectToBluez()
     busConnection.connect(serviceName, managerPath, managerInterface, "DefaultAdapterChanged",
                           this, SLOT(onDefaultAdapterChanged(QDBusObjectPath)));
     manager = new AsyncDBusInterface(serviceName, managerPath, managerInterface, busConnection, this);
-    manager->callWithCallback("DefaultAdapter", QList<QVariant>(), this,
-                              SLOT(replyDefaultAdapter(QDBusObjectPath)),
-                              SLOT(replyDefaultAdapterError(QDBusError)));
+
+    defaultAdapterWatcher =
+        new QDBusPendingCallWatcher(manager->asyncCall("DefaultAdapter"));
+    sconnect(defaultAdapterWatcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
+             this, SLOT(defaultAdapterFinished(QDBusPendingCallWatcher*)));
 
     // When Bluez disappears from D-Bus, we emit failed to signal that we're
     // not able to take in subscriptions. And when Bluez reappears, we emit
     // "ready". Then the upper layer will renew its subscriptions (and we
     // reconnect to bluez if needed).
     serviceWatcher = new QDBusServiceWatcher(serviceName, busConnection);
-    connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)), this, SLOT(emitReady()), Qt::QueuedConnection);
+    connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)),
+            this, SIGNAL(ready()), Qt::QueuedConnection);
     connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)), this, SLOT(emitFailed()));
 }
 
-/// Called when a D-Bus error occurs when processing our
-/// callWithCallback of DefaultAdapter.
-void BluezPlugin::replyDefaultAdapterError(QDBusError err)
+/// Initates the async GetProperties D-Bus call.  Overwrites
+/// getPropertiesWatcher, so the watcher of the old call is no longer pointed to
+/// by BluezPlugin.
+void BluezPlugin::callGetProperties()
 {
-    // It might be that we're calling DefaultAdapter but there is none
-    // currently; try to get it later. Tell the upper layer that all keys are
-    // now subscribe (they will keep their previous values) and hope that the
-    // DefaultAdapter signal comes at some point.
-    foreach (const QString& key, pendingSubscriptions)
-        emit subscribeFinished(key);
-    pendingSubscriptions.clear();
+    getPropertiesWatcher = new QDBusPendingCallWatcher(
+        adapter->asyncCall("GetProperties"));
+    sconnect(getPropertiesWatcher,
+             SIGNAL(finished(QDBusPendingCallWatcher*)),
+             this,
+             SLOT(getPropertiesFinished(QDBusPendingCallWatcher*)));
 }
 
-/// Called when a D-Bus error occurs when processing our
-/// callWithCallback.
-void BluezPlugin::replyDBusError(QDBusError err)
+/// Called when the DefaultAdapter D-Bus call finishes
+void BluezPlugin::defaultAdapterFinished(QDBusPendingCallWatcher* pcw)
 {
-    emit failed("Cannot connect to BlueZ: " + err.message());
-    foreach (const QString& key, pendingSubscriptions)
-        emit subscribeFailed(key, "Cannot connect to Bluez: " + err.message());
-    pendingSubscriptions.clear();
-}
-
-/// Called when the DefaultAdapter D-Bus call is done.
-void BluezPlugin::replyDefaultAdapter(QDBusObjectPath path)
-{
-    contextDebug();
-    adapterPath = path.path();
-    adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
-    busConnection.connect(serviceName,
-                          adapterPath,
+    QDBusPendingReply<QDBusObjectPath> reply = *pcw;
+    if (reply.isError()) {
+        // It might be that we're calling DefaultAdapter but there is none
+        // currently; try to get it later. Tell the upper layer that all keys
+        // are now subscribed (they will keep their previous values) and hope
+        // that the DefaultAdapter signal comes at some point.
+        Q_FOREACH (const QString& key, pendingSubscriptions)
+            Q_EMIT subscribeFinished(key);
+        pendingSubscriptions.clear();
+    }
+    else {
+            adapterPath = reply.argumentAt<0>().path();
+            adapter = new AsyncDBusInterface(serviceName, adapterPath,
+                                             adapterInterface, busConnection,
+                                             this);
+            busConnection.connect(serviceName,
+                                  adapterPath,
                           adapterInterface,
                           "PropertyChanged",
                           this, SLOT(onPropertyChanged(QString, QDBusVariant)));
-    adapter->callWithCallback("GetProperties", QList<QVariant>(), this,
-                              SLOT(replyGetProperties(QMap<QString, QVariant>)),
-                              SLOT(replyDBusError(QDBusError)));
+
+            callGetProperties();
+    }
+
+    if (defaultAdapterWatcher == pcw) {
+        defaultAdapterWatcher = 0;
+    }
+    pcw->deleteLater();
+}
+
+/// Called when the GetProperties D-Bus call is done.
+void BluezPlugin::getPropertiesFinished(QDBusPendingCallWatcher* pcw)
+{
+    contextDebug();
+    status = Connected;
+    QDBusPendingReply<QMap<QString, QVariant> > reply = *pcw;
+    QMap<QString, QVariant> map = reply.argumentAt<0>();
+    Q_FOREACH (const QString& key, map.keys()) {
+        if (properties.contains(key)) {
+            contextDebug() << "Prop changed:" << properties[key];
+            propertyCache[properties[key]] = map[key];
+            Q_EMIT valueChanged(properties[key], map[key]);
+            // Note: the upper layer is responsible for checking if the
+            // value was a different one.
+        }
+    }
+    Q_FOREACH (const QString& key, pendingSubscriptions) {
+        if (propertyCache.contains(key))
+            Q_EMIT subscribeFinished(key, propertyCache[key]);
+        else
+            Q_EMIT subscribeFailed(key, "Unknown key");
+    }
+    pendingSubscriptions.clear();
+
+    if (getPropertiesWatcher == pcw) {
+        getPropertiesWatcher = 0;
+    }
+    pcw->deleteLater();
 }
 
 /// Called when Bluez changes its default adapter.
@@ -158,9 +207,12 @@ void BluezPlugin::onDefaultAdapterChanged(QDBusObjectPath path)
                           adapterInterface,
                           "PropertyChanged",
                           this, SLOT(onPropertyChanged(QString, QDBusVariant)));
-    adapter->callWithCallback("GetProperties", QList<QVariant>(), this,
-                              SLOT(replyGetProperties(QMap<QString, QVariant>)),
-                              SLOT(replyDBusError(QDBusError)));
+
+    // It is possible that a previous GetProperties call is still ongoing.  Here
+    // we start another one, and overwrite getPropertiesWatcher.  The
+    // QDBusPendingCallWatcher of the old call will be deleted when the call
+    // finishes.
+    callGetProperties();
 }
 
 /// Connected to the D-Bus signal PropertyChanged from BlueZ /
@@ -172,31 +224,8 @@ void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
     if (properties.contains(key)) {
         contextDebug() << "Prop changed:" << properties[key];
         propertyCache[properties[key]] = value.variant();
-        emit valueChanged(properties[key], value.variant());
+        Q_EMIT valueChanged(properties[key], value.variant());
     }
-}
-
-/// Called when the GetProperties D-Bus call is done.
-void BluezPlugin::replyGetProperties(QMap<QString, QVariant> map)
-{
-    contextDebug();
-    status = Connected;
-    foreach(const QString& key, map.keys()) {
-        if (properties.contains(key)) {
-            contextDebug() << "Prop changed:" << properties[key];
-            propertyCache[properties[key]] = map[key];
-            emit valueChanged(properties[key], map[key]);
-            // Note: the upper layer is responsible for checking if the
-            // value was a different one.
-        }
-    }
-    foreach (const QString& key, pendingSubscriptions) {
-        if (propertyCache.contains(key))
-            emit subscribeFinished(key, propertyCache[key]);
-        else
-            emit subscribeFailed(key, "Unknown key");
-    }
-    pendingSubscriptions.clear();
 }
 
 /// Implementation of the IPropertyProvider::subscribe. If we're connected to
@@ -205,17 +234,17 @@ void BluezPlugin::subscribe(QSet<QString> keys)
 {
     if (status == Connected) {
         // we're already connected to bluez; so we know values for all the keys
-        foreach(const QString& key, keys) {
+        Q_FOREACH (const QString& key, keys) {
             // Ensure that we give some values for the subscribed properties
             if (propertyCache.contains(key)) {
                 contextDebug() << "Key" << key << "found in cache";
                 wantedSubscriptions << key;
-                emit subscribeFinished(key, propertyCache[key]);
+                Q_EMIT subscribeFinished(key, propertyCache[key]);
             }
             else {
                 // This shouldn't occur if the plugin and libcontextsubscriber function correctly
                 contextCritical() << "Key not in cache" << key;
-                emit subscribeFailed(key, "Unknown key");
+                Q_EMIT subscribeFailed(key, "Unknown key");
             }
         }
     }
@@ -240,26 +269,23 @@ void BluezPlugin::unsubscribe(QSet<QString> keys)
 
 void BluezPlugin::blockUntilReady()
 {
-    // TODO
+    // This plugin is ready immediately
     Q_EMIT ready();
 }
 
 void BluezPlugin::blockUntilSubscribed(const QString& key)
 {
-    // TODO
-}
-
-/// For emitting the ready() signal in a delayed way.
-void BluezPlugin::emitReady()
-{
-    emit ready();
+    if (defaultAdapterWatcher)
+        defaultAdapterWatcher->waitForFinished();
+    if (getPropertiesWatcher)
+        getPropertiesWatcher->waitForFinished();
 }
 
 /// For emitting the failed() signal in a delayed way.
 void BluezPlugin::emitFailed(QString reason)
 {
     status = NotConnected;
-    emit failed(reason);
+    Q_EMIT failed(reason);
 }
 
 } // end namespace

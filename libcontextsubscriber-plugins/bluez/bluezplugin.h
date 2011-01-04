@@ -32,6 +32,7 @@
 #include <QString>
 
 class QDBusServiceWatcher;
+class QDBusPendingCallWatcher;
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -65,18 +66,16 @@ public:
     virtual void blockUntilSubscribed(const QString& key);
 
 private Q_SLOTS:
-    void replyDBusError(QDBusError err);
-    void replyDefaultAdapterError(QDBusError err);
-    void replyDefaultAdapter(QDBusObjectPath path);
-    void replyGetProperties(QMap<QString, QVariant> map);
     void onPropertyChanged(QString key, QDBusVariant value);
     void onDefaultAdapterChanged(QDBusObjectPath path);
-    void emitReady();
     void emitFailed(QString reason = QString("Bluez left D-Bus"));
+    void defaultAdapterFinished(QDBusPendingCallWatcher* pcw);
+    void getPropertiesFinished(QDBusPendingCallWatcher* pcw);
 
 private:
     void connectToBluez();
     void disconnectFromBluez();
+    void callGetProperties();
     AsyncDBusInterface* manager; ///< Bluez Manager interface
     AsyncDBusInterface* adapter; ///< Bluez Adapter interface
     QString adapterPath; ///< Object path of the Bluez adapter
@@ -89,6 +88,8 @@ private:
     enum ConnectionStatus {NotConnected, Connecting, Connected};
     ConnectionStatus status; ///< Whether we're currently connected to Bluez
     QDBusServiceWatcher* serviceWatcher; ///< For watching Bluez appear and disappear
+    QDBusPendingCallWatcher* defaultAdapterWatcher; ///< For watching the DefaultAdatpter D-Bus call
+    QDBusPendingCallWatcher* getPropertiesWatcher; ///< For watching the DefaultAdatpter D-Bus call
 
     QMap<QString, QString> properties; ///< Mapping of Bluez properties to Context FW properties
     QMap<QString, QVariant> propertyCache;
