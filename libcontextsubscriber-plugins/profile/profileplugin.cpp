@@ -74,10 +74,10 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
     QDBusPendingReply<QString> reply = *call;
     if (reply.isError()) {
         qDebug() << Q_FUNC_INFO << "error reply:" << reply.error().name();
-        emit failed("Can not connect to profiled.");
+        Q_EMIT failed("Can not connect to profiled.");
     } else {
         activeProfile = reply.argumentAt<0>();
-        emit subscribeFinished(PROPERTY_PROFILE_NAME, QVariant(activeProfile));
+        Q_EMIT subscribeFinished(PROPERTY_PROFILE_NAME, QVariant(activeProfile));
     }
     delete interface;
     interface = 0;
@@ -89,7 +89,7 @@ void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, Q
 {
     if (changed && active) {
         activeProfile = profile;
-        emit valueChanged(PROPERTY_PROFILE_NAME, activeProfile);
+        Q_EMIT valueChanged(PROPERTY_PROFILE_NAME, activeProfile);
     }
 }
 
@@ -108,7 +108,7 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
                                                           PROFILED_CHANGED, QString("bbsa(sss)"), this,
                                                           SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)));
         if (!succ) {
-            emit failed("Can not connect to dbus.");
+            Q_EMIT failed("Can not connect to dbus.");
             return;
         }
 
@@ -156,12 +156,12 @@ void ProfilePlugin::blockUntilSubscribed(const QString& key)
 
 void ProfilePlugin::serviceRegisteredSlot(const QString& /*serviceName*/)
 {
-    emit ready();
+    Q_EMIT ready();
 }
 
 void ProfilePlugin::serviceUnregisteredSlot(const QString& /*serviceName*/)
 {
-    emit failed("ProfileD unregistered from DBus.");
+    Q_EMIT failed("ProfileD unregistered from DBus.");
     // We are still connected to the "service registered" signal, so we'll
     // notice if profiled comes back. We also keep the connection to the
     // profile changed signal. When profiled comes back, we emit ready and the
