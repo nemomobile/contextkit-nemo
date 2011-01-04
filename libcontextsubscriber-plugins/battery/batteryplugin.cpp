@@ -187,7 +187,7 @@ void BatteryPlugin::onBMEEvent()
         readBatteryValues();
         foreach(const QString& key, subscribedProperties) {
             contextDebug() << "emit ValueChanged" << key << "," << propertyCache[key];
-            emit valueChanged(key, propertyCache[key]);
+            Q_EMIT valueChanged(key, propertyCache[key]);
         }
     }
 }
@@ -196,7 +196,7 @@ void BatteryPlugin::onBMEEvent()
 void BatteryPlugin::emitSubscribeFinished(QSet<QString> keys)
 {
     foreach(const QString& key, keys) {
-        emit subscribeFinished(key, propertyCache[key]);
+        Q_EMIT subscribeFinished(key, propertyCache[key]);
     }
 }
 
