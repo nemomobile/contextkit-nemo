@@ -70,6 +70,11 @@ BatteryPlugin::BatteryPlugin():
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
+BatteryPlugin::~BatteryPlugin()
+{
+    delete sn;
+}
+
 /// The provider source of the battery properties is initialised only on the
 /// first subscription. Initialisation means adding watcher to BMEIPC_EVENT
 void BatteryPlugin::subscribe(QSet<QString> keys)
@@ -77,10 +82,9 @@ void BatteryPlugin::subscribe(QSet<QString> keys)
     if (subscribedProperties.isEmpty()) {
         qRegisterMetaType<QSet<QString> >("QSet<QString>");
         initProviderSource();
-        QMetaObject::invokeMethod(this, "readBatteryValues", Qt::QueuedConnection);
+	readBatteryValues();
     }
-    QMetaObject::invokeMethod(this, "emitSubscribeFinished", Qt::QueuedConnection,
-                              Q_ARG(QSet<QString>, keys));
+    Q_EMIT subscribeFinished(keys);
     subscribedProperties.unite(keys);
 }
 
@@ -96,13 +100,11 @@ void BatteryPlugin::unsubscribe(QSet<QString> keys)
 
 void BatteryPlugin::blockUntilReady()
 {
-    // TODO
     Q_EMIT ready();
 }
 
 void BatteryPlugin::blockUntilSubscribed(const QString& key)
 {
-    // TODO
 }
 
 /// Start to watch the provider source BMEIPC_EVENT on first subscription or when the source has been deleted or moved
