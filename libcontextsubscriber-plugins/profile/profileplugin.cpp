@@ -80,9 +80,9 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
         emit subscribeFinished(PROPERTY_PROFILE_NAME, QVariant(activeProfile));
     }
     delete interface;
-    interface = NULL;
+    interface = 0;
     callWatcher->deleteLater();
-    callWatcher = NULL;
+    callWatcher = 0;
 }
 
 void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, QList<MyStructure> /*keyValType*/)
@@ -102,7 +102,7 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
 
     // If would have more than one property, we would have check here if we are already connected to ProfileD.
 
-    if (serviceWatcher == NULL) { // Is first subscribe after construction?
+    if (serviceWatcher == 0) { // Is first subscribe after construction?
         // Connect to profile changed signal
         bool succ = QDBusConnection::sessionBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
                                                           PROFILED_CHANGED, QString("bbsa(sss)"), this,
@@ -134,7 +134,7 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
 void ProfilePlugin::unsubscribe(QSet<QString> keys)
 {
     delete serviceWatcher;
-    serviceWatcher = NULL;
+    serviceWatcher = 0;
     if (!QDBusConnection::sessionBus().disconnect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
                                                   PROFILED_CHANGED, QString("bbsa(sss)"), this,
                                                   SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)))) {
@@ -145,13 +145,13 @@ void ProfilePlugin::unsubscribe(QSet<QString> keys)
 
 void ProfilePlugin::blockUntilReady()
 {
-    // TODO
     Q_EMIT ready();
 }
 
 void ProfilePlugin::blockUntilSubscribed(const QString& key)
 {
-    // TODO
+    if (callWatcher)
+	callWatcher.waitForFinished();
 }
 
 void ProfilePlugin::serviceRegisteredSlot(const QString& /*serviceName*/)
