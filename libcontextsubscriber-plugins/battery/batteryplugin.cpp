@@ -100,13 +100,14 @@ void BatteryPlugin::unsubscribe(QSet<QString> keys)
 
 void BatteryPlugin::blockUntilReady()
 {
-    Q_EMIT ready();
+    if (inotifyFd < 0)
+        Q_EMIT failed("bmeipc_eopen failed");
+    else
+        Q_EMIT ready();
 }
 
 void BatteryPlugin::blockUntilSubscribed(const QString& key)
 {
-    if (sn == 0)
-        Q_EMIT failed("bmeipc_eopen failed, can not create SocketNotifier");
 }
 
 /// Start to watch the provider source BMEIPC_EVENT on first subscription or when the source has been deleted or moved
