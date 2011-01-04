@@ -151,7 +151,7 @@ void ProfilePlugin::blockUntilReady()
 void ProfilePlugin::blockUntilSubscribed(const QString& key)
 {
     if (callWatcher)
-	callWatcher.waitForFinished();
+	callWatcher->waitForFinished();
 }
 
 void ProfilePlugin::serviceRegisteredSlot(const QString& /*serviceName*/)

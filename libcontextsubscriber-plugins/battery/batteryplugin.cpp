@@ -84,7 +84,7 @@ void BatteryPlugin::subscribe(QSet<QString> keys)
         initProviderSource();
 	readBatteryValues();
     }
-    Q_EMIT subscribeFinished(keys);
+    emitSubscribeFinished(keys);
     subscribedProperties.unite(keys);
 }
 
