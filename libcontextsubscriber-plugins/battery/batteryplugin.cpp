@@ -44,7 +44,7 @@ Q_DECLARE_METATYPE(QSet<QString>);
 #define TIME_UNTIL_LOW   "Battery.TimeUntilLow"
 #define TIME_UNTIL_FULL  "Battery.TimeUntilFull"
 #define IS_CHARGING      "Battery.IsCharging"
-#define BMEIPC_EVENT	 "/tmp/.bmeevt"
+#define BMEIPC_EVENT     "/tmp/.bmeevt"
 #define NANOSECS_PER_MIN (60 * 1000 * 1000LL)
 
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -55,7 +55,7 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 namespace ContextSubscriberBattery {
 
 BatteryPlugin::BatteryPlugin():
-    bmeevt_watch(-1), sn(NULL)
+    bmeevt_watch(-1), sn(0)
 {
     inotifyFd = bmeipc_eopen(-1);
     if (inotifyFd < 0) {
@@ -82,7 +82,7 @@ void BatteryPlugin::subscribe(QSet<QString> keys)
     if (subscribedProperties.isEmpty()) {
         qRegisterMetaType<QSet<QString> >("QSet<QString>");
         initProviderSource();
-	readBatteryValues();
+        readBatteryValues();
     }
     emitSubscribeFinished(keys);
     subscribedProperties.unite(keys);
@@ -105,6 +105,8 @@ void BatteryPlugin::blockUntilReady()
 
 void BatteryPlugin::blockUntilSubscribed(const QString& key)
 {
+    if (sn == 0)
+        Q_EMIT failed("bmeipc_eopen failed, can not create SocketNotifier");
 }
 
 /// Start to watch the provider source BMEIPC_EVENT on first subscription or when the source has been deleted or moved
