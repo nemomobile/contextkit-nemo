@@ -60,7 +60,7 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 namespace ContextSubscriberProfile {
 
 ProfilePlugin::ProfilePlugin()
-    : activeProfile(""), interface(0), callWatcher(0), serviceWatcher(0)
+    : interface(0), callWatcher(0), serviceWatcher(0)
 {
     qDBusRegisterMetaType<MyStructure>();
     qDBusRegisterMetaType<QList<MyStructure > >();
@@ -79,10 +79,9 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
         activeProfile = reply.argumentAt<0>();
         Q_EMIT subscribeFinished(PROPERTY_PROFILE_NAME, QVariant(activeProfile));
     }
-    delete interface;
-    interface = 0;
-    callWatcher->deleteLater();
-    callWatcher = 0;
+    if (call == callWatcher)
+        callWatcher = 0;
+    call->deleteLater();
 }
 
 void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, QList<MyStructure> /*keyValType*/)
@@ -100,9 +99,10 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
 {
     contextDebug() << "subscribed keys:" << keys;
 
-    // If would have more than one property, we would have check here if we are already connected to ProfileD.
+    // If this plugin had more than one property, we would have check here if we
+    // are already connected to ProfileD.
 
-    if (serviceWatcher == 0) { // Is first subscribe after construction?
+    if (serviceWatcher == 0) { // Is first subscribe after construction (or unsubscribe)?
         // Connect to profile changed signal
         bool succ = QDBusConnection::sessionBus().connect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
                                                           PROFILED_CHANGED, QString("bbsa(sss)"), this,
@@ -117,11 +117,18 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
                 this, SLOT(serviceRegisteredSlot(const QString&)));
         connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)),
                 this, SLOT(serviceUnregisteredSlot(const QString&)));
-    }
 
-    // Get current profile from ProfileD
-    interface = new AsyncDBusInterface(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
-                                       QDBusConnection::sessionBus(), this);
+        interface = new AsyncDBusInterface(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
+                                           QDBusConnection::sessionBus(), this);
+    }
+    // The empty else-branch is executed when the following happens:
+    // The provider goes away
+    // The provider comes back and the plugin emits ready
+    // The upper layer resubscribes
+
+    // Get current profile from ProfileD.  It is possible that there was a
+    // previous call ongoing, here we override a pointer to it (callWatcher).
+    // But the slot will delete it nicely.
     QDBusPendingCall async = interface->asyncCall(PROFILED_GET_PROFILE);
     callWatcher = new QDBusPendingCallWatcher(async, this);
 
@@ -135,10 +142,12 @@ void ProfilePlugin::unsubscribe(QSet<QString> keys)
 {
     delete serviceWatcher;
     serviceWatcher = 0;
+    delete interface;
+    interface = 0;
     if (!QDBusConnection::sessionBus().disconnect(PROFILED_SERVICE, PROFILED_PATH, PROFILED_INTERFACE,
                                                   PROFILED_CHANGED, QString("bbsa(sss)"), this,
                                                   SLOT(profileChanged(bool, bool, QString, QList<MyStructure>)))) {
-       qDebug() << "profileplugin: cannot disconnect from dbus.";
+        contextWarning() << "profileplugin: cannot disconnect from dbus.";
     }
     activeProfile = "";
 }
@@ -150,6 +159,7 @@ void ProfilePlugin::blockUntilReady()
 
 void ProfilePlugin::blockUntilSubscribed(const QString& key)
 {
+    // If there is a pending GetProfile call ongoing, wait until it finishes.
     if (callWatcher)
         callWatcher->waitForFinished();
 }
