@@ -54,6 +54,8 @@ public:
     explicit KbSliderPlugin();
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
+    virtual void blockUntilReady();
+    virtual void blockUntilSubscribed(const QString& key);
 
 private Q_SLOTS:
     void onSliderEvent();

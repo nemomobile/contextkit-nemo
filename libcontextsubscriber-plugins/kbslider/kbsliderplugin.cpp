@@ -150,8 +150,10 @@ void KbSliderPlugin::emitFinishedKbPresent()
 {
     if (kbPresent.isNull())
         emit subscribeFailed(KEY_KB_PRESENT, QString("Cannot read keypad information"));
-    else
-        emit subscribeFinished(KEY_KB_PRESENT, kbPresent);
+    else {
+        emit valueChanged(KEY_KB_PRESENT, kbPresent);
+        emit subscribeFinished(KEY_KB_PRESENT);
+    }
 }
 
 void KbSliderPlugin::readSliderStatus()
@@ -168,7 +170,8 @@ void KbSliderPlugin::readSliderStatus()
         unsubscribe(QSet<QString>() << KEY_KB_OPEN);
     }
 
-    emit subscribeFinished(KEY_KB_OPEN, kbOpen);
+    emit valueChanged(KEY_KB_OPEN, kbOpen);
+    emit subscribeFinished(KEY_KB_OPEN);
 }
 
 void KbSliderPlugin::onSliderEvent()
@@ -220,6 +223,24 @@ void KbSliderPlugin::unsubscribe(QSet<QString> keys)
         eventFd = -1;
     }
 }
+
+void KbSliderPlugin::blockUntilReady()
+{
+    // This plugin is immediately ready
+    Q_EMIT ready();
+}
+
+void KbSliderPlugin::blockUntilSubscribed(const QString& key)
+{
+    readKbPresent(); // this won't read if it's done already
+    if (key == KEY_KB_PRESENT) {
+        emitFinishedKbPresent();
+    }
+    else if (key == KEY_KB_OPEN) {
+        readSliderStatus(); // this will emit valueChanged and subscribeFinished
+    }
+}
+
 
 } // end namespace
 

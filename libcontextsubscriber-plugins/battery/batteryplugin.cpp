@@ -44,7 +44,7 @@ Q_DECLARE_METATYPE(QSet<QString>);
 #define TIME_UNTIL_LOW   "Battery.TimeUntilLow"
 #define TIME_UNTIL_FULL  "Battery.TimeUntilFull"
 #define IS_CHARGING      "Battery.IsCharging"
-#define BMEIPC_EVENT	 "/tmp/.bmeevt"
+#define BMEIPC_EVENT     "/tmp/.bmeevt"
 #define NANOSECS_PER_MIN (60 * 1000 * 1000LL)
 
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -55,7 +55,7 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 namespace ContextSubscriberBattery {
 
 BatteryPlugin::BatteryPlugin():
-    bmeevt_watch(-1), sn(NULL)
+    bmeevt_watch(-1), sn(0)
 {
     inotifyFd = bmeipc_eopen(-1);
     if (inotifyFd < 0) {
@@ -70,6 +70,11 @@ BatteryPlugin::BatteryPlugin():
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
+BatteryPlugin::~BatteryPlugin()
+{
+    delete sn;
+}
+
 /// The provider source of the battery properties is initialised only on the
 /// first subscription. Initialisation means adding watcher to BMEIPC_EVENT
 void BatteryPlugin::subscribe(QSet<QString> keys)
@@ -77,10 +82,9 @@ void BatteryPlugin::subscribe(QSet<QString> keys)
     if (subscribedProperties.isEmpty()) {
         qRegisterMetaType<QSet<QString> >("QSet<QString>");
         initProviderSource();
-        QMetaObject::invokeMethod(this, "readBatteryValues", Qt::QueuedConnection);
+        readBatteryValues();
     }
-    QMetaObject::invokeMethod(this, "emitSubscribeFinished", Qt::QueuedConnection,
-                              Q_ARG(QSet<QString>, keys));
+    emitSubscribeFinished(keys);
     subscribedProperties.unite(keys);
 }
 
@@ -92,6 +96,18 @@ void BatteryPlugin::unsubscribe(QSet<QString> keys)
     subscribedProperties.subtract(keys);
     if (subscribedProperties.isEmpty())
         cleanProviderSource();
+}
+
+void BatteryPlugin::blockUntilReady()
+{
+    if (inotifyFd < 0)
+        Q_EMIT failed("bmeipc_eopen failed");
+    else
+        Q_EMIT ready();
+}
+
+void BatteryPlugin::blockUntilSubscribed(const QString& key)
+{
 }
 
 /// Start to watch the provider source BMEIPC_EVENT on first subscription or when the source has been deleted or moved
@@ -174,7 +190,7 @@ void BatteryPlugin::onBMEEvent()
         readBatteryValues();
         foreach(const QString& key, subscribedProperties) {
             contextDebug() << "emit ValueChanged" << key << "," << propertyCache[key];
-            emit valueChanged(key, propertyCache[key]);
+            Q_EMIT valueChanged(key, propertyCache[key]);
         }
     }
 }
@@ -183,7 +199,7 @@ void BatteryPlugin::onBMEEvent()
 void BatteryPlugin::emitSubscribeFinished(QSet<QString> keys)
 {
     foreach(const QString& key, keys) {
-        emit subscribeFinished(key, propertyCache[key]);
+        Q_EMIT subscribeFinished(key, propertyCache[key]);
     }
 }
 

@@ -252,7 +252,7 @@ void SessionStatePlugin::subscribe(QSet<QString> keys)
 
     if (keys.contains(sessionStateKey)) {
 
-        checkFullScreen(); // This also signals valueChanged
+        checkFullScreen(); // This also queues the valueChanged signal
 
         // Now the value is there; signal that the subscription is done.
         emit subscribeFinished(sessionStateKey);
@@ -283,6 +283,23 @@ void SessionStatePlugin::unsubscribe(QSet<QString> keys)
         // Stop listening to the screen blanking status
         screenBlanked.unsubscribe();
     }
+}
+
+void SessionStatePlugin::blockUntilReady()
+{
+    // This plugin is ready immediately... unless it has failed.
+    if (dpy == 0)
+        Q_EMIT failed("Cannot open display");
+    else
+        Q_EMIT ready();
+}
+
+void SessionStatePlugin::blockUntilSubscribed(const QString& key)
+{
+    // subscribe() has called checkFullScreen (which has queued
+    // emitValueChanged) and it has also emitted subscribeFinished().
+    screenBlanked.waitForSubscription(true);
+    emitValueChanged();
 }
 
 /// Check the current status of the Session.State property and emit
