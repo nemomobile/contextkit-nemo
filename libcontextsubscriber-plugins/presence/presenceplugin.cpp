@@ -68,17 +68,10 @@ void PresenceStatePlugin::subscribe(QSet<QString> keys)
     }
 
     if (keys.contains(presenceStateKey)) {
+        QString presence = mapPresence(GlobalPresenceIndicator::instance()->globalPresence());
         // Now the value is there; signal that the subscription is done.
-        Q_EMIT subscribeFinished(presenceStateKey);
+        Q_EMIT subscribeFinished(presenceStateKey, QVariant(presence));
     }
-
-    QString presence = mapPresence(GlobalPresenceIndicator::instance()->globalPresence());
-    // The valueChanged is emitted in a delayed way, since this
-    // function is called from subscribe, and emitting valueChanged
-    // there makes libcontextsubscriber block.
-    QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
-                              Q_ARG(QString, presenceStateKey),
-                              Q_ARG(QVariant, presence));
 }
 
 void PresenceStatePlugin::unsubscribe(QSet<QString> keys)
@@ -88,13 +81,13 @@ void PresenceStatePlugin::unsubscribe(QSet<QString> keys)
 
 void PresenceStatePlugin::blockUntilReady()
 {
-    // TODO
+    // This plugin is immediately ready
     Q_EMIT ready();
 }
 
 void PresenceStatePlugin::blockUntilSubscribed(const QString& key)
 {
-    // TODO
+    // subscribe() has already set the value, no need to do anything.
 }
 
 /// Check the current status of the Session.State property and emit
