@@ -180,7 +180,7 @@ void MCEPlugin::subscribe(QSet<QString> keys)
 
         // this will emit subscribeFinished when done
         QDBusPendingCallWatcher* pcw = new QDBusPendingCallWatcher(
-            mce->asyncCall(MCE_PSM_MODE_GET));
+            mce->asyncCall(MCE_PSM_STATE_GET));
         sconnect(pcw, SIGNAL(finished(QDBusPendingCallWatcher*)),
                  this, SLOT(getPowerSaveFinished(QDBusPendingCallWatcher*)));
         pendingCallWatchers.insert(powerSaveKey, pcw);
