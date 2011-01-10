@@ -33,11 +33,6 @@ namespace ContextSubscriberPresence {
 
 PresenceStatePlugin::PresenceStatePlugin(): presenceStateKey("Presence.State")
 {
-    // Connect to the global account change
-    sconnect(GlobalPresenceIndicator::instance(),
-             SIGNAL(globalPresenceChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE)),
-             this,
-             SLOT(emitValueChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE)));
     // Emitting signals inside ctor doesn't make sense.  Thus, queue it.
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
@@ -68,6 +63,12 @@ void PresenceStatePlugin::subscribe(QSet<QString> keys)
     }
 
     if (keys.contains(presenceStateKey)) {
+        // Connect to the global account change
+        sconnect(GlobalPresenceIndicator::instance(),
+                 SIGNAL(globalPresenceChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE)),
+                 this,
+                 SLOT(emitValueChanged(GlobalPresenceIndicator::GLOBAL_PRESENCE)));
+
         QString presence = mapPresence(GlobalPresenceIndicator::instance()->globalPresence());
         // Now the value is there; signal that the subscription is done.
         Q_EMIT subscribeFinished(presenceStateKey, QVariant(presence));
