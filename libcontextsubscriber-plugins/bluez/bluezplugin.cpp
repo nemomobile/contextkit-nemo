@@ -44,7 +44,8 @@ const QString BluezPlugin::serviceName = "org.bluez";
 const QString BluezPlugin::managerPath = "/";
 const QString BluezPlugin::managerInterface = "org.bluez.Manager";
 const QString BluezPlugin::adapterInterface = "org.bluez.Adapter";
-QDBusConnection BluezPlugin::busConnection = QDBusConnection::systemBus();
+
+#define BLUEZ_PLUGIN_BUS QDBusConnection::systemBus()
 
 BluezPlugin::BluezPlugin()
     : manager(0), adapter(0), status(NotConnected), serviceWatcher(0),
@@ -64,11 +65,11 @@ void BluezPlugin::disconnectFromBluez()
     status = NotConnected;
 
     // Disconnect D-Bus signals
-    busConnection.disconnect(serviceName, managerPath,
+    BLUEZ_PLUGIN_BUS.disconnect(serviceName, managerPath,
                              managerInterface, "DefaultAdapterChanged",
                              this, SLOT(onDefaultAdapterChanged(QDBusObjectPath)));
 
-    busConnection.disconnect(serviceName, adapterPath,
+    BLUEZ_PLUGIN_BUS.disconnect(serviceName, adapterPath,
                              adapterInterface, "PropertyChanged",
                              this, SLOT(onPropertyChanged(QString, QDBusVariant)));
 
@@ -101,9 +102,9 @@ void BluezPlugin::connectToBluez()
     // upper layer of the error; it will just look as if everything is fine
     // (properties keep their old values or are unknown).
 
-    busConnection.connect(serviceName, managerPath, managerInterface, "DefaultAdapterChanged",
+    BLUEZ_PLUGIN_BUS.connect(serviceName, managerPath, managerInterface, "DefaultAdapterChanged",
                           this, SLOT(onDefaultAdapterChanged(QDBusObjectPath)));
-    manager = new AsyncDBusInterface(serviceName, managerPath, managerInterface, busConnection, this);
+    manager = new AsyncDBusInterface(serviceName, managerPath, managerInterface, BLUEZ_PLUGIN_BUS, this);
 
     defaultAdapterWatcher =
         new QDBusPendingCallWatcher(manager->asyncCall("DefaultAdapter"));
@@ -114,7 +115,7 @@ void BluezPlugin::connectToBluez()
     // not able to take in subscriptions. And when Bluez reappears, we emit
     // "ready". Then the upper layer will renew its subscriptions (and we
     // reconnect to bluez if needed).
-    serviceWatcher = new QDBusServiceWatcher(serviceName, busConnection);
+    serviceWatcher = new QDBusServiceWatcher(serviceName, BLUEZ_PLUGIN_BUS);
     connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)),
             this, SIGNAL(ready()), Qt::QueuedConnection);
     connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)), this, SLOT(emitFailed()));
@@ -149,9 +150,9 @@ void BluezPlugin::defaultAdapterFinished(QDBusPendingCallWatcher* pcw)
     else {
             adapterPath = reply.argumentAt<0>().path();
             adapter = new AsyncDBusInterface(serviceName, adapterPath,
-                                             adapterInterface, busConnection,
+                                             adapterInterface, BLUEZ_PLUGIN_BUS,
                                              this);
-            busConnection.connect(serviceName,
+            BLUEZ_PLUGIN_BUS.connect(serviceName,
                                   adapterPath,
                           adapterInterface,
                           "PropertyChanged",
@@ -201,8 +202,8 @@ void BluezPlugin::onDefaultAdapterChanged(QDBusObjectPath path)
 {
     adapterPath = path.path();
     delete adapter;
-    adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, busConnection, this);
-    busConnection.connect(serviceName,
+    adapter = new AsyncDBusInterface(serviceName, adapterPath, adapterInterface, BLUEZ_PLUGIN_BUS, this);
+    BLUEZ_PLUGIN_BUS.connect(serviceName,
                           adapterPath,
                           adapterInterface,
                           "PropertyChanged",

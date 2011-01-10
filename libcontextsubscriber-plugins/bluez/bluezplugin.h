@@ -83,7 +83,6 @@ private:
     static const QString managerPath; ///< Object path of Bluez Manager
     static const QString managerInterface; ///< Interface name of Bluez manager
     static const QString adapterInterface; ///< Interface name of Bluez adapter
-    static QDBusConnection busConnection; ///< QDBusConnection used for talking with Bluez
 
     enum ConnectionStatus {NotConnected, Connecting, Connected};
     ConnectionStatus status; ///< Whether we're currently connected to Bluez

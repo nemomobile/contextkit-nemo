@@ -46,7 +46,7 @@ const QString MCEPlugin::blankedKey = "Screen.Blanked";
 const QString MCEPlugin::powerSaveKey = "System.PowerSaveMode";
 const QString MCEPlugin::offlineModeKey = "System.OfflineMode";
 
-QDBusConnection MCEPlugin::busConnection = QDBusConnection::systemBus();
+#define MCE_PLUGIN_BUS QDBusConnection::systemBus()
 
 MCEPlugin::MCEPlugin() : mce(0), serviceWatcher(0), subscribeCount(0)
 {
@@ -68,12 +68,12 @@ void MCEPlugin::connectToMce()
 {
     if (mce) // already connected
         return;
-    mce = new AsyncDBusInterface(MCE_SERVICE, MCE_REQUEST_PATH, MCE_REQUEST_IF, busConnection, this);
+    mce = new AsyncDBusInterface(MCE_SERVICE, MCE_REQUEST_PATH, MCE_REQUEST_IF, MCE_PLUGIN_BUS, this);
     // When MCE disappears from D-Bus, we emit failed to signal that we're
     // not able to take in subscriptions. And when MCE reappears, we emit
     // "ready". Then the upper layer will renew its subscriptions (and we
     // reconnect if needed).
-    serviceWatcher = new QDBusServiceWatcher(MCE_SERVICE, busConnection);
+    serviceWatcher = new QDBusServiceWatcher(MCE_SERVICE, MCE_PLUGIN_BUS);
     connect(serviceWatcher, SIGNAL(serviceRegistered(const QString&)),
             this, SIGNAL(ready()), Qt::QueuedConnection);
     connect(serviceWatcher, SIGNAL(serviceUnregistered(const QString&)),
@@ -161,7 +161,7 @@ void MCEPlugin::subscribe(QSet<QString> keys)
     connectToMce();
 
     if (keys.contains(blankedKey)) {
-        busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
+        MCE_PLUGIN_BUS.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
                               MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
                               this, SLOT(onDisplayStateChanged(QString)));
         // this will emit subscribeFinished when done
@@ -174,7 +174,7 @@ void MCEPlugin::subscribe(QSet<QString> keys)
         ++subscribeCount;
     }
     if (keys.contains(powerSaveKey)) {
-        busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
+        MCE_PLUGIN_BUS.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
                               MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
                               this, SLOT(onPowerSaveChanged(bool)));
 
@@ -189,7 +189,7 @@ void MCEPlugin::subscribe(QSet<QString> keys)
     }
 
     if (keys.contains(offlineModeKey)) {
-        busConnection.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
+        MCE_PLUGIN_BUS.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
                               MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
                               this, SLOT(onOfflineModeChanged(uint)));
 
@@ -211,20 +211,20 @@ void MCEPlugin::unsubscribe(QSet<QString> keys)
     // The Subscribe call can still be in progress.  In that case we'll emit
     // subscribeFinished later, and the upper layer should just deal with it.
     if (keys.contains(blankedKey)) {
-        busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+        MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                                  MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
                                  this, SLOT(onDisplayStateChanged(QString)));
         --subscribeCount;
     }
     if (keys.contains(powerSaveKey)) {
-        busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+        MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                                  MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
                                  this, SLOT(onPowerSaveChanged(bool)));
         --subscribeCount;
     }
 
     if (keys.contains(offlineModeKey)) {
-        busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+        MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                                  MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
                                  this, SLOT(onOfflineModeChanged(uint)));
         --subscribeCount;
@@ -255,13 +255,13 @@ void MCEPlugin::emitFailed(QString reason)
 {
     // Don't disconnectFromMce here; that would kill the D-Bus name watcher and we wouldn't notice
     // when MCE comes back.
-    busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+    MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                              MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
                              this, SLOT(onDisplayStateChanged(QString)));
-    busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+    MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                              MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
                              this, SLOT(onPowerSaveChanged(bool)));
-    busConnection.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+    MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                              MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
                              this, SLOT(onOfflineModeChanged(uint)));
 

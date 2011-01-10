@@ -78,7 +78,6 @@ private:
     static const QString blankedKey;
     static const QString powerSaveKey;
     static const QString offlineModeKey;
-    static QDBusConnection busConnection;
 
     QDBusServiceWatcher* serviceWatcher; ///< For watching MCE appear and disappear
     int subscribeCount;
