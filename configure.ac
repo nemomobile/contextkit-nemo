@@ -1,5 +1,5 @@
 AC_PREREQ([2.61])
-AC_INIT([ContextKit-Maemo], [0.7.24], [marius.vollmer@nokia.com], ContextKit-Maemo)
+AC_INIT([ContextKit-Maemo], [0.7.25~unreleased], [marius.vollmer@nokia.com], ContextKit-Maemo)
 
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign dist-bzip2 tar-ustar 1.9])
