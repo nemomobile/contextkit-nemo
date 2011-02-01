@@ -85,7 +85,14 @@ void MCEPlugin::getDisplayStatusFinished(QDBusPendingCallWatcher* pcw)
 {
     QDBusPendingReply<QString> reply = *pcw;
     if (reply.isError()) {
-        Q_EMIT subscribeFailed(blankedKey, reply.error().message());
+        if (reply.error().type() == QDBusError::ServiceUnknown) {
+            // We need to fail explicitly so that we can emit ready() when the
+            // provider is started. (We have already emitted ready(), and
+            // emitting ready() 2 times has no effect.)
+            Q_EMIT failed("Provider not present: mce");
+        }
+        else
+            Q_EMIT subscribeFailed(blankedKey, reply.error().message());
     }
     else {
         bool blanked = (reply.argumentAt<0>() == "off");
@@ -103,7 +110,14 @@ void MCEPlugin::getPowerSaveFinished(QDBusPendingCallWatcher* pcw)
 {
     QDBusPendingReply<bool> reply = *pcw;
     if (reply.isError()) {
-        Q_EMIT subscribeFailed(powerSaveKey, reply.error().message());
+        if (reply.error().type() == QDBusError::ServiceUnknown) {
+            // We need to fail explicitly so that we can emit ready() when the
+            // provider is started. (We have already emitted ready(), and
+            // emitting ready() 2 times has no effect.)
+            Q_EMIT failed("Provider not present: mce");
+        }
+        else
+            Q_EMIT subscribeFailed(powerSaveKey, reply.error().message());
     }
     else {
         bool on = reply.argumentAt<0>();
@@ -121,7 +135,14 @@ void MCEPlugin::getOfflineModeFinished(QDBusPendingCallWatcher* pcw)
 {
     QDBusPendingReply<uint> reply = *pcw;
     if (reply.isError()) {
-        Q_EMIT subscribeFailed(offlineModeKey, reply.error().message());
+        if (reply.error().type() == QDBusError::ServiceUnknown) {
+            // We need to fail explicitly so that we can emit ready() when the
+            // provider is started. (We have already emitted ready(), and
+            // emitting ready() 2 times has no effect.)
+            Q_EMIT failed("Provider not present: mce");
+        }
+        else
+            Q_EMIT subscribeFailed(offlineModeKey, reply.error().message());
     }
     else {
         bool offline = !(reply.argumentAt<0>() & MCE_RADIO_STATE_CELLULAR);

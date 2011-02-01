@@ -68,7 +68,7 @@ public:
 private Q_SLOTS:
     void onPropertyChanged(QString key, QDBusVariant value);
     void onDefaultAdapterChanged(QDBusObjectPath path);
-    void emitFailed(QString reason = QString("Bluez left D-Bus"));
+    void emitFailed(QString reason = QString("Provider not present: bluez"));
     void defaultAdapterFinished(QDBusPendingCallWatcher* pcw);
     void getPropertiesFinished(QDBusPendingCallWatcher* pcw);
 

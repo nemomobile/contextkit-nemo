@@ -74,7 +74,15 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
     QDBusPendingReply<QString> reply = *call;
     if (reply.isError()) {
         qDebug() << Q_FUNC_INFO << "error reply:" << reply.error().name();
-        Q_EMIT failed("Can not connect to profiled.");
+        // We need to fail explicitly so that we can emit ready() when the
+        // provider is started. (We have already emitted ready(), and emitting
+        // ready() 2 times has no effect.)
+        if (reply.error().type() == QDBusError::ServiceUnknown) {
+            Q_EMIT failed("Provider not present: profiled");
+        }
+        else {
+            Q_EMIT failed("Error from profiled: " + reply.error().name());
+        }
     } else {
         activeProfile = reply.argumentAt<0>();
         Q_EMIT subscribeFinished(PROPERTY_PROFILE_NAME, QVariant(activeProfile));
@@ -171,7 +179,7 @@ void ProfilePlugin::serviceRegisteredSlot(const QString& /*serviceName*/)
 
 void ProfilePlugin::serviceUnregisteredSlot(const QString& /*serviceName*/)
 {
-    Q_EMIT failed("ProfileD unregistered from DBus.");
+    Q_EMIT failed("Provider not present: profiled");
     // We are still connected to the "service registered" signal, so we'll
     // notice if profiled comes back. We also keep the connection to the
     // profile changed signal. When profiled comes back, we emit ready and the

@@ -139,13 +139,21 @@ void BluezPlugin::defaultAdapterFinished(QDBusPendingCallWatcher* pcw)
 {
     QDBusPendingReply<QDBusObjectPath> reply = *pcw;
     if (reply.isError()) {
-        // It might be that we're calling DefaultAdapter but there is none
-        // currently; try to get it later. Tell the upper layer that all keys
-        // are now subscribed (they will keep their previous values) and hope
-        // that the DefaultAdapter signal comes at some point.
-        Q_FOREACH (const QString& key, pendingSubscriptions)
-            Q_EMIT subscribeFinished(key);
-        pendingSubscriptions.clear();
+        if (reply.error().type() == QDBusError::ServiceUnknown) {
+            // We need to fail explicitly so that we can emit ready() when the
+            // provider is started. (We have already emitted ready(), and
+            // emitting ready() 2 times has no effect.)
+            Q_EMIT failed("Provider not present: bluez");
+        }
+        else {
+            // It might be that we're calling DefaultAdapter but there is none
+            // currently; try to get it later. Tell the upper layer that all
+            // keys are now subscribed (they will keep their previous values)
+            // and hope that the DefaultAdapter signal comes at some point.
+            Q_FOREACH (const QString& key, pendingSubscriptions)
+                Q_EMIT subscribeFinished(key);
+            pendingSubscriptions.clear();
+        }
     }
     else {
             adapterPath = reply.argumentAt<0>().path();

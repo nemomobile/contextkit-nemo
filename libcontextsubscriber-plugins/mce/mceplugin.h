@@ -69,7 +69,7 @@ private Q_SLOTS:
     void onDisplayStateChanged(QString state);
     void onPowerSaveChanged(bool on);
     void onOfflineModeChanged(uint state);
-    void emitFailed(QString reason = QString("MCE left D-Bus"));
+    void emitFailed(QString reason = QString("Provider not present: mce"));
 
 private:
     void connectToMce();
