@@ -4,7 +4,8 @@ profile_1_la_SOURCES = profileplugin.cpp profileplugin.h profile_dbus.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
 	      $(CTXTSUBS_CFLAGS)					\
-	      '-DCONTEXT_LOG_MODULE_NAME="profileplugin"'
+	      '-DCONTEXT_LOG_MODULE_NAME="profileplugin"'		\
+	      '-DCONTEXT_LOG_HIDE_DEBUG'
 
 # module: Libtool shouldn't complain about not having "lib" prefix
 # avoid-version: Don't add version numbers after .so

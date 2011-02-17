@@ -3,8 +3,10 @@ plugin_LTLIBRARIES = bluez-1.la
 bluez_1_la_SOURCES = bluezplugin.cpp bluezplugin.h loggingfeatures.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
-	      $(CTXTSUBS_CFLAGS)													\
-	      '-DCONTEXT_LOG_MODULE_NAME="bluezplugin"'
+	      $(CTXTSUBS_CFLAGS)					\
+	      '-DCONTEXT_LOG_MODULE_NAME="bluezplugin"'			\
+	      '-DCONTEXT_LOG_HIDE_DEBUG'
+
 
 # module: Libtool shouldn't complain about not having "lib" prefix
 # avoid-version: Don't add version numbers after .so

@@ -4,7 +4,8 @@ kbslider_1_la_SOURCES = kbsliderplugin.cpp kbsliderplugin.h
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
 	      $(CTXTSUBS_CFLAGS) $(udev_CFLAGS)				\
-	      '-DCONTEXT_LOG_MODULE_NAME="kbsliderplugin"'
+	      '-DCONTEXT_LOG_MODULE_NAME="kbsliderplugin"'		\
+	      '-DCONTEXT_LOG_HIDE_DEBUG'
 
 # module: Libtool shouldn't complain about not having "lib" prefix
 # avoid-version: Don't add version numbers after .so

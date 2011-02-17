@@ -6,8 +6,9 @@ presence_1_la_SOURCES = presenceplugin.cpp presenceplugin.h loggingfeatures.h
 # a bug in the .pc file of presence0
 
 AM_CXXFLAGS = -I$(top_srcdir)/common $(QtCore_CFLAGS) $(QtDBus_CFLAGS)	\
-	      $(CTXTSUBS_CFLAGS) $(presence0_CFLAGS) $(MT_CFLAGS)
-	      '-DCONTEXT_LOG_MODULE_NAME="presenceplugin"'
+	      $(CTXTSUBS_CFLAGS) $(presence0_CFLAGS) $(MT_CFLAGS)	\
+	      '-DCONTEXT_LOG_MODULE_NAME="presenceplugin"'		\
+	      '-DCONTEXT_LOG_HIDE_DEBUG'
 
 # module: Libtool shouldn't complain about not having "lib" prefix
 # avoid-version: Don't add version numbers after .so
