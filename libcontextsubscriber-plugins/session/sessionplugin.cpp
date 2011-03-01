@@ -125,7 +125,6 @@ void SessionStatePlugin::checkFullScreen()
                                     &actualType, &actualFormat, &numWindows, &bytesLeft, &windowData);
 
     if (result != Success || windowData == None) {
-        contextDebug() << "Cannot get win props for root";
         // Set back the old error handler
         XSync(dpy, False);
         XSetErrorHandler(oldHandler);
@@ -136,8 +135,6 @@ void SessionStatePlugin::checkFullScreen()
     // Start reading the windows from the top
     Window *wins = (Window *)windowData;
     for (long i = numWindows - 1 - FIXED_ON_TOP; i >= 0; --i) {
-        contextDebug() << "Checking window" << i << wins[i];
-
         // TODO: Is it enough to listen to the root window for
         // _NET_CLIENT_LIST_STACKING? Or should we listen to other windows
         // as well?
@@ -213,21 +210,16 @@ void SessionStatePlugin::onXEvent()
 {
     XEvent event;
     int numEvents = XEventsQueued(dpy, QueuedAfterReading);
-    contextDebug() << "Can read from X, no of events" << numEvents;
     if (numEvents <= 0) {
-        contextDebug() << "No events in the queue";
-        return;
+	return;
     }
 
     for (int i=0; i < numEvents; ++i) {
         // This blocks until we get an event, but now there should be one
-        contextDebug() << "Trying to read an event from X (blocking)";
         XNextEvent(dpy, &event);
-        contextDebug() << "Got an event";
 
         if (event.type == PropertyNotify && event.xproperty.window == DefaultRootWindow(dpy)
             && event.xproperty.atom == clientListStackingAtom) {
-            contextDebug() << "Interesting event";
             // We're anyway going to check the full screen status;
             // no need to check the other events we possibly have
             cleanXEventQueue();
@@ -327,7 +319,6 @@ void SessionStatePlugin::emitValueChanged()
 void SessionStatePlugin::cleanXEventQueue()
 {
     int numEvents = XEventsQueued(dpy, QueuedAfterReading);
-    contextDebug() << "Ignoring" << numEvents << "events";
     XEvent event;
     for (int i=0; i<numEvents; ++i) {
         XNextEvent(dpy, &event);

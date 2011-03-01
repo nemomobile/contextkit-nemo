@@ -189,7 +189,6 @@ void BatteryPlugin::onBMEEvent()
     } else if (!(ev.mask & IN_IGNORED)) {
         readBatteryValues();
         foreach(const QString& key, subscribedProperties) {
-            contextDebug() << "emit ValueChanged" << key << "," << propertyCache[key];
             Q_EMIT valueChanged(key, propertyCache[key]);
         }
     }

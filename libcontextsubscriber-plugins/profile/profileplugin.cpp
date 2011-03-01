@@ -73,7 +73,6 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
 {
     QDBusPendingReply<QString> reply = *call;
     if (reply.isError()) {
-        qDebug() << Q_FUNC_INFO << "error reply:" << reply.error().name();
         // We need to fail explicitly so that we can emit ready() when the
         // provider is started. (We have already emitted ready(), and emitting
         // ready() 2 times has no effect.)
@@ -105,7 +104,6 @@ void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, Q
 /// call. subscribeFinished() will be emitted when the call has finished.
 void ProfilePlugin::subscribe(QSet<QString> keys)
 {
-    contextDebug() << "subscribed keys:" << keys;
 
     // If this plugin had more than one property, we would have check here if we
     // are already connected to ProfileD.

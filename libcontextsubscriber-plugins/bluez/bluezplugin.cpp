@@ -178,13 +178,11 @@ void BluezPlugin::defaultAdapterFinished(QDBusPendingCallWatcher* pcw)
 /// Called when the GetProperties D-Bus call is done.
 void BluezPlugin::getPropertiesFinished(QDBusPendingCallWatcher* pcw)
 {
-    contextDebug();
     status = Connected;
     QDBusPendingReply<QMap<QString, QVariant> > reply = *pcw;
     QMap<QString, QVariant> map = reply.argumentAt<0>();
     Q_FOREACH (const QString& key, map.keys()) {
         if (properties.contains(key)) {
-            contextDebug() << "Prop changed:" << properties[key];
             propertyCache[properties[key]] = map[key];
             Q_EMIT valueChanged(properties[key], map[key]);
             // Note: the upper layer is responsible for checking if the
@@ -229,9 +227,7 @@ void BluezPlugin::onDefaultAdapterChanged(QDBusObjectPath path)
 /// value change of the corresponding context property.
 void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
 {
-    contextDebug() << key << value.variant().toString();
     if (properties.contains(key)) {
-        contextDebug() << "Prop changed:" << properties[key];
         propertyCache[properties[key]] = value.variant();
         Q_EMIT valueChanged(properties[key], value.variant());
     }
@@ -246,7 +242,6 @@ void BluezPlugin::subscribe(QSet<QString> keys)
         Q_FOREACH (const QString& key, keys) {
             // Ensure that we give some values for the subscribed properties
             if (propertyCache.contains(key)) {
-                contextDebug() << "Key" << key << "found in cache";
                 wantedSubscriptions << key;
                 Q_EMIT subscribeFinished(key, propertyCache[key]);
             }
