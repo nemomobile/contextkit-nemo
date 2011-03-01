@@ -1,6 +1,7 @@
-contextkit-maemo (0.7.26~unreleased) unstable; urgency=low
+contextkit-maemo (0.7.26) unstable; urgency=low
 
-  *
+  * Fixes: NB#224334 - Contextkit-maemo is logging by default, removed all debug prints
+  * Fixes: NB#203023 - Presence is shown as Away in status area, when account is set Busy in Presence UI
 
  -- Marja Hassinen <marja.hassinen@nokia.com>  Thu, 17 Feb 2011 12:17:57 +0200
 
@@ -9,7 +10,7 @@ contextkit-maemo (0.7.25) unstable; urgency=low
   * Regression fix for plugins (related to NB 220022).
   * Fixes: NB#212480
   * Fixes: NB#224334
-  
+
  -- Marja Hassinen <marja.hassinen@nokia.com>  Mon, 10 Jan 2011 17:40:02 +0200
 
 contextkit-maemo (0.7.24) unstable; urgency=low
