@@ -66,7 +66,7 @@ void BluezDevice::getPropertiesFinished(QDBusPendingCallWatcher* pcw)
     QDBusPendingReply<QMap<QString, QVariant> > reply = *pcw;
     QMap<QString, QVariant> map = reply.argumentAt<0>();
 
-    if (!map.isEmpty() && map.keys().contains("Connected")) {
+    if (map.contains("Connected")) {
         connected = map["Connected"].toBool();
         Q_EMIT connectionStateChanged(connected);
     }
@@ -88,7 +88,7 @@ void BluezDevice::onPropertyChanged(QString key, QDBusVariant value)
     }
 }
 
-bool BluezDevice::isConnected() {
+bool BluezDevice::isConnected() const {
     return connected;
 }
 

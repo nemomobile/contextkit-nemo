@@ -251,7 +251,6 @@ void BluezPlugin::getPropertiesFinished(QDBusPendingCallWatcher* pcw)
     QMap<QString, QVariant> map = reply.argumentAt<0>();
     Q_FOREACH (const QString& key, map.keys()) {
         if (properties.contains(key)) {
-            contextDebug() << "Prop changed:" << properties[key];
             propertyCache[properties[key]] = map[key];
             Q_EMIT valueChanged(properties[key], map[key]);
             // Note: the upper layer is responsible for checking if the
@@ -312,7 +311,6 @@ void BluezPlugin::onDefaultAdapterChanged(QDBusObjectPath path)
 void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
 {
     if (properties.contains(key)) {
-        contextDebug() << "Prop changed:" << properties[key];
         propertyCache[properties[key]] = value.variant();
         Q_EMIT valueChanged(properties[key], value.variant());
     }
@@ -322,13 +320,11 @@ void BluezPlugin::onPropertyChanged(QString key, QDBusVariant value)
 /// bluez, no extra work is needed. Otherwise, initiate connecting to bluez.
 void BluezPlugin::subscribe(QSet<QString> keys)
 {
-    contextDebug() << "Status connection to bluez " << status;
     if (status == Connected) {
         // we're already connected to bluez; so we know values for all the keys
         Q_FOREACH (const QString& key, keys) {
             // Ensure that we give some values for the subscribed properties
             if (propertyCache.contains(key)) {
-                contextDebug() << "Key" << key << "found in cache";
                 wantedSubscriptions << key;
                 Q_EMIT subscribeFinished(key, propertyCache[key]);
             }
@@ -340,7 +336,6 @@ void BluezPlugin::subscribe(QSet<QString> keys)
         }
     }
     else {
-        contextDebug() << "pendingSubscription";
         pendingSubscriptions.unite(keys);
         wantedSubscriptions.unite(keys);
         if (status == NotConnected)

@@ -51,7 +51,7 @@ class BluezDevice : public QObject
 public:
     explicit BluezDevice(const QString& path);
     ~BluezDevice();
-    bool isConnected();
+    bool isConnected() const;
 
 Q_SIGNALS:
     void connectionStateChanged(bool status);
