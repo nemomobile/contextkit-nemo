@@ -68,7 +68,7 @@ public:
 
 private Q_SLOTS:
     void onPropertyChanged(QString key, QDBusVariant value);
-    void onConnectionStateChanged(QDBusObjectPath path, bool status);
+    void onConnectionStateChanged(bool status);
     void onDefaultAdapterChanged(QDBusObjectPath path);
     void emitFailed(QString reason = QString("Provider not present: bluez"));
     void onDeviceRemoved(QDBusObjectPath path);

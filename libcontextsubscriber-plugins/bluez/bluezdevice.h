@@ -29,6 +29,8 @@
 #include <QMap>
 #include <QString>
 
+#define BLUEZ_PLUGIN_BUS QDBusConnection::systemBus()
+
 class QDBusPendingCallWatcher;
 class AsyncDBusInterface; // From libcontextsubscriber-dev
 
@@ -52,7 +54,7 @@ public:
     bool isConnected();
 
 Q_SIGNALS:
-    void connectionStateChanged(QDBusObjectPath devicePath, bool status);
+    void connectionStateChanged(bool status);
 
 private Q_SLOTS:
     void onPropertyChanged(QString key, QDBusVariant value);

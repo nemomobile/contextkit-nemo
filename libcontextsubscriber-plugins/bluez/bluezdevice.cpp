@@ -31,28 +31,27 @@ namespace ContextSubscriberBluez {
 
 const QString BluezDevice::serviceName = "org.bluez";
 const QString BluezDevice::deviceInterface = "org.bluez.Device";
-QDBusConnection BluezDevice::busConnection = QDBusConnection::systemBus();
 
 BluezDevice::BluezDevice(const QString& path)
     : getPropertiesWatcher(0), connected(false), devicePath(path), device(0)
 {
-    busConnection.connect(serviceName, path, deviceInterface, "PropertyChanged",
+    BLUEZ_PLUGIN_BUS.connect(serviceName, path, deviceInterface, "PropertyChanged",
                           this, SLOT(onPropertyChanged(QString, QDBusVariant)));
 
     device = new AsyncDBusInterface(serviceName, path,
-				    deviceInterface, busConnection, this);
+                                    deviceInterface, BLUEZ_PLUGIN_BUS, this);
 
     getPropertiesWatcher = new QDBusPendingCallWatcher(
-	device->asyncCall("GetProperties"));
+        device->asyncCall("GetProperties"));
 
     sconnect(getPropertiesWatcher,
              SIGNAL(finished(QDBusPendingCallWatcher*)),
-	     this,
+             this,
              SLOT(getPropertiesFinished(QDBusPendingCallWatcher*)));
 }
 
 BluezDevice::~BluezDevice() {
-    busConnection.disconnect(serviceName, devicePath.path(),
+    BLUEZ_PLUGIN_BUS.disconnect(serviceName, devicePath.path(),
                           deviceInterface, "PropertyChanged",
                           this, SLOT(onPropertyChanged(QString, QDBusVariant)));
     delete device;
@@ -66,11 +65,10 @@ void BluezDevice::getPropertiesFinished(QDBusPendingCallWatcher* pcw)
 {
     QDBusPendingReply<QMap<QString, QVariant> > reply = *pcw;
     QMap<QString, QVariant> map = reply.argumentAt<0>();
-    Q_FOREACH (const QString& key, map.keys()) {
-        if (key == "Connected") {
-	    connected = map[key].toBool();
-	    Q_EMIT connectionStateChanged(devicePath, connected);
-	}
+
+    if (!map.isEmpty() && map.keys().contains("Connected")) {
+        connected = map["Connected"].toBool();
+        Q_EMIT connectionStateChanged(connected);
     }
 
     if (getPropertiesWatcher == pcw) {
@@ -84,11 +82,9 @@ void BluezDevice::getPropertiesFinished(QDBusPendingCallWatcher* pcw)
 /// that the device is connected.
 void BluezDevice::onPropertyChanged(QString key, QDBusVariant value)
 {
-    contextDebug() << "On Property Changed";
     if (key == "Connected") {
-	connected = value.variant().toBool();
-	Q_EMIT connectionStateChanged(devicePath, connected);
-	contextDebug() << "connection state changed signal emitted: " << connected;
+        connected = value.variant().toBool();
+        Q_EMIT connectionStateChanged(connected);
     }
 }
 
