@@ -330,7 +330,6 @@ void BluezPlugin::subscribe(QSet<QString> keys)
             }
             else {
                 // This shouldn't occur if the plugin and libcontextsubscriber function correctly
-                contextCritical() << "Key not in cache" << key;
                 Q_EMIT subscribeFailed(key, "Unknown key");
             }
         }
