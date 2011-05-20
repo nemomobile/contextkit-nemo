@@ -45,6 +45,8 @@ namespace ContextSubscriberMCE {
 const QString MCEPlugin::blankedKey = "Screen.Blanked";
 const QString MCEPlugin::powerSaveKey = "System.PowerSaveMode";
 const QString MCEPlugin::offlineModeKey = "System.OfflineMode";
+const QString MCEPlugin::internetEnabledKey = "System.InternetEnabled";
+const QString MCEPlugin::wlanEnabledKey = "System.WlanEnabled";
 
 #define MCE_PLUGIN_BUS QDBusConnection::systemBus()
 
@@ -141,17 +143,36 @@ void MCEPlugin::getOfflineModeFinished(QDBusPendingCallWatcher* pcw)
             // emitting ready() 2 times has no effect.)
             Q_EMIT failed("Provider not present: mce");
         }
-        else
+        else {
             Q_EMIT subscribeFailed(offlineModeKey, reply.error().message());
+            Q_EMIT subscribeFailed(internetEnabledKey, reply.error().message());
+	    Q_EMIT subscribeFailed(wlanEnabledKey, reply.error().message());
+	}
     }
     else {
         bool offline = !(reply.argumentAt<0>() & MCE_RADIO_STATE_CELLULAR);
+	bool wlan = (reply.argumentAt<0>() & MCE_RADIO_STATE_WLAN);
+	bool internet = (reply.argumentAt<0>() & MCE_RADIO_STATE_MASTER);
+
         // emitting valueChanged is needed since subscribeFinished is queued,
         // and we might need a value immediately (if we blockUntilSubscribed).
-        Q_EMIT valueChanged(offlineModeKey, QVariant(offline));
-        Q_EMIT subscribeFinished(offlineModeKey);
+	if (pendingCallWatchers.contains(offlineModeKey)) {
+	    Q_EMIT valueChanged(offlineModeKey, QVariant(offline));
+	    Q_EMIT subscribeFinished(offlineModeKey);
+	}
+
+	if (pendingCallWatchers.contains(internetEnabledKey)) {
+	    Q_EMIT valueChanged(internetEnabledKey, QVariant(internet));
+	    Q_EMIT subscribeFinished(internetEnabledKey);
+	}
+
+	if (pendingCallWatchers.contains(wlanEnabledKey)) {
+	    Q_EMIT valueChanged(wlanEnabledKey, QVariant(wlan));
+	    Q_EMIT subscribeFinished(wlanEnabledKey);
+	}
     }
-    pendingCallWatchers.remove(offlineModeKey);
+
+    pendingCallWatchers.remove(pendingCallWatchers.key(pcw));
     pcw->deleteLater();
 }
 
@@ -171,8 +192,19 @@ void MCEPlugin::onPowerSaveChanged(bool on)
 /// Connected to the D-Bus signal from MCE.
 void MCEPlugin::onOfflineModeChanged(uint state)
 {
+
     bool offline = !(state & MCE_RADIO_STATE_CELLULAR);
-    Q_EMIT valueChanged(offlineModeKey, QVariant(offline));
+    bool wlan = state & MCE_RADIO_STATE_WLAN;
+    bool internet = state & MCE_RADIO_STATE_MASTER;
+
+    if (subscribedRadioProperties.contains(offlineModeKey))
+	Q_EMIT valueChanged(offlineModeKey, QVariant(offline));
+
+    if (subscribedRadioProperties.contains(internetEnabledKey))
+	Q_EMIT valueChanged(internetEnabledKey, QVariant(internet));
+
+    if (subscribedRadioProperties.contains(wlanEnabledKey))
+	Q_EMIT valueChanged(wlanEnabledKey, QVariant(wlan));
 }
 
 /// Implementation of the IPropertyProvider::subscribe.
@@ -210,20 +242,39 @@ void MCEPlugin::subscribe(QSet<QString> keys)
     }
 
     if (keys.contains(offlineModeKey)) {
+	initRadioProvider(offlineModeKey);
+	subscribedRadioProperties.insert(offlineModeKey);
+	++subscribeCount;
+    }
+
+    if (keys.contains(internetEnabledKey)) {
+	initRadioProvider(internetEnabledKey);
+	subscribedRadioProperties.insert(internetEnabledKey);
+	++subscribeCount;
+    }
+
+    if (keys.contains(wlanEnabledKey)) {
+	initRadioProvider(wlanEnabledKey);
+	subscribedRadioProperties.insert(wlanEnabledKey);
+	++subscribeCount;
+    }
+}
+
+void MCEPlugin::initRadioProvider(const QString& key)
+{
+    if (subscribedRadioProperties.isEmpty())
         MCE_PLUGIN_BUS.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
                               MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
                               this, SLOT(onOfflineModeChanged(uint)));
 
+    if (!subscribedRadioProperties.contains(key)) {
         // this will emit subscribeFinished when done
         QDBusPendingCallWatcher* pcw = new QDBusPendingCallWatcher(
             mce->asyncCall(MCE_RADIO_STATES_GET));
         sconnect(pcw, SIGNAL(finished(QDBusPendingCallWatcher*)),
                  this, SLOT(getOfflineModeFinished(QDBusPendingCallWatcher*)));
-        pendingCallWatchers.insert(offlineModeKey, pcw);
-
-        ++subscribeCount;
+        pendingCallWatchers.insert(key, pcw);
     }
-
 }
 
 /// Implementation of the IPropertyProvider::unsubscribe.
@@ -245,15 +296,37 @@ void MCEPlugin::unsubscribe(QSet<QString> keys)
     }
 
     if (keys.contains(offlineModeKey)) {
-        MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
-                                 MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
-                                 this, SLOT(onOfflineModeChanged(uint)));
+	subscribedRadioProperties.remove(offlineModeKey);
+        stopRadioProvider();
+        --subscribeCount;
+    }
+
+    if (keys.contains(internetEnabledKey)) {
+	subscribedRadioProperties.remove(internetEnabledKey);
+        stopRadioProvider();
+        --subscribeCount;
+    }
+
+    if (keys.contains(wlanEnabledKey)) {
+	subscribedRadioProperties.remove(wlanEnabledKey);
+        stopRadioProvider();
         --subscribeCount;
     }
 
     if (subscribeCount == 0)
         disconnectFromMce();
 }
+
+void MCEPlugin::stopRadioProvider()
+{
+    if (subscribedRadioProperties.isEmpty()) {
+
+        MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
+                                 MCE_SIGNAL_IF, MCE_RADIO_STATES_SIG,
+                                 this, SLOT(onOfflineModeChanged(uint)));
+    }
+}
+
 
 void MCEPlugin::blockUntilReady()
 {

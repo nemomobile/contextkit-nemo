@@ -3,4 +3,6 @@
   <key name="Screen.Blanked"/>
   <key name="System.PowerSaveMode"/>
   <key name="System.OfflineMode"/>
+  <key name="System.InternetEnabled"/>
+  <key name="System.WlanEnabled"/>
 </provider>

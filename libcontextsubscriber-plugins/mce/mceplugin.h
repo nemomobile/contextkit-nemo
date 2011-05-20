@@ -28,6 +28,7 @@
 #include <QDBusObjectPath>
 #include <QDBusInterface>
 #include <QString>
+#include <QSet>
 
 class QDBusServiceWatcher;
 
@@ -69,18 +70,25 @@ private Q_SLOTS:
     void onDisplayStateChanged(QString state);
     void onPowerSaveChanged(bool on);
     void onOfflineModeChanged(uint state);
+    void onInternetEnabledKeyChanged(uint state);
+    void onWlanEnabledKeyChanged(uint state);
     void emitFailed(QString reason = QString("Provider not present: mce"));
 
 private:
     void connectToMce();
     void disconnectFromMce();
+    void initRadioProvider(const QString& key);
+    void stopRadioProvider();
     AsyncDBusInterface* mce;
     static const QString blankedKey;
     static const QString powerSaveKey;
     static const QString offlineModeKey;
+    static const QString internetEnabledKey;
+    static const QString wlanEnabledKey;
 
     QDBusServiceWatcher* serviceWatcher; ///< For watching MCE appear and disappear
     int subscribeCount;
+    QSet<QString> subscribedRadioProperties;
     QHash<QString, QDBusPendingCallWatcher*> pendingCallWatchers;
 };
 }
