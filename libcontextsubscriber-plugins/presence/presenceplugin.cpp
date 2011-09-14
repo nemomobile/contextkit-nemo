@@ -42,6 +42,8 @@ QString PresenceStatePlugin::mapPresence(GlobalPresenceIndicator::GLOBAL_PRESENC
     switch (presence) {
     case GlobalPresenceIndicator::GLOBAL_PRESENCE_OFFLINE:
         return CONTEXT_PRESENCE_OFFLINE;
+    case GlobalPresenceIndicator::GLOBAL_PRESENCE_CONNECTING:
+        return CONTEXT_PRESENCE_CONNECTING;
     case GlobalPresenceIndicator::GLOBAL_PRESENCE_ONLINE:
         return CONTEXT_PRESENCE_ONLINE;
     case GlobalPresenceIndicator::GLOBAL_PRESENCE_BUSY:
