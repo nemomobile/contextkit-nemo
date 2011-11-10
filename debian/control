@@ -1,7 +1,7 @@
 Source: contextkit-maemo
 Section: misc
 Priority: optional
-Maintainer: Marius Vollmer <marius.vollmer@nokia.com>
+Maintainer: James Thomas <james.thomas@codethink.co.uk>
 Build-Depends: debhelper (>= 5),
                automake (>= 1:1.10),
                autoconf,
