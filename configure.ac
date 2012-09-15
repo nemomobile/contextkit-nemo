@@ -27,8 +27,6 @@ PKG_CHECK_MODULES_SUBST([x11], [x11])
 PKG_CHECK_MODULES_SUBST([udev], [libudev])
 PKG_CHECK_MODULES_SUBST([CTXTPROV], [contextprovider-1.0])
 PKG_CHECK_MODULES_SUBST([CTXTSUBS], [contextsubscriber-1.0])
-PKG_CHECK_MODULES_SUBST([presence0], [presence0])
-PKG_CHECK_MODULES([MT], [meegotouch >= 0.20])
 
 AC_PROG_QT_MOC
 AC_PROG_QT_UIC
