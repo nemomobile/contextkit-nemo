@@ -89,8 +89,8 @@ void KbSliderPlugin::readKbPresent()
         return;
     }
 
-    QString sysPath = QString("%1/%2")
-        .arg(udev_get_sys_path(udev)).arg(findKeypadDevice());
+    QString sysPath = QString("/sys/%1")
+        .arg(findKeypadDevice());
 
     struct udev_device* originalDev = udev_device_new_from_syspath(udev,
                                                            sysPath.toAscii().constData());
