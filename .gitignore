@@ -32,8 +32,8 @@ Makefile.in
 .libs
 common/libcommon.la
 libcontextsubscriber-plugins/bluez/libcontextsubscriberbluez.la
-moc_*_h.cpp
+moc_*.cpp
 mocs.cpp
 coverage/
 Makefile.coverage
-
+*~
