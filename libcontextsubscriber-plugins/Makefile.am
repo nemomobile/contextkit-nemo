@@ -1,4 +1,4 @@
-SUBDIRS = bluez session profile kbslider customer-tests battery
+SUBDIRS = bluez session profile kbslider customer-tests
 
 coverage: covoptioncheck
 	$(MAKE) -C customer-tests coverage
