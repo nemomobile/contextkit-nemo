@@ -1,4 +1,3 @@
-SUBDIRS = sandbox
 
 plugindir = $(libdir)/contextkit/subscriber-plugins/
 plugin_LTLIBRARIES = battery-1.la
