@@ -3,6 +3,9 @@
  *
  * Contact: Marius Vollmer <marius.vollmer@nokia.com>
  *
+ * Copyright (C) 2012 Jolla Ltd.
+ * Contact: Denis Zalevskiy <denis.zalevskiy@jollamobile.com>
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * version 2.1 as published by the Free Software Foundation.
@@ -19,9 +22,7 @@
  *
  */
 
-#include "batteryplugin.h"
-#include "logging.h"
-#include "sconnect.h"
+#include "batteryplugin.hpp"
 #include <fcntl.h>
 #include <sys/inotify.h>
 #include <sys/ioctl.h>
@@ -31,9 +32,7 @@
 #include <QFile>
 #include <QStringList>
 #include <QSet>
-extern "C" {
-#include <bme/bmeipc.h>
-}
+#include <QtDebug>
 
 Q_DECLARE_METATYPE(QSet<QString>);
 
@@ -44,7 +43,6 @@ Q_DECLARE_METATYPE(QSet<QString>);
 #define TIME_UNTIL_LOW   "Battery.TimeUntilLow"
 #define TIME_UNTIL_FULL  "Battery.TimeUntilFull"
 #define IS_CHARGING      "Battery.IsCharging"
-#define BMEIPC_EVENT     "/tmp/.bmeevt"
 #define NANOSECS_PER_MIN (60 * 1000 * 1000LL)
 
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
@@ -54,29 +52,29 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberBattery {
 
-BatteryPlugin::BatteryPlugin():
-    bmeevt_watch(-1), sn(0)
+BatteryPlugin::BatteryPlugin()
 {
-    inotifyFd = bmeipc_eopen(-1);
-    if (inotifyFd < 0) {
+    xchg = bme_xchg_open();
+    if (xchg == BME_XCHG_INVAL) {
         QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection,
-                                  Q_ARG(QString, "bmeipc_eopen failed"));
+                                  Q_ARG(QString, "bme_xchg_open failed"));
         return;
     }
-    fcntl(inotifyFd, F_SETFD, FD_CLOEXEC);
-    sn = new QSocketNotifier(inotifyFd, QSocketNotifier::Read, this);
+    fcntl(bme_xchg_inotify_desc(xchg), F_SETFD, FD_CLOEXEC);
+    sn.reset(new QSocketNotifier(bme_xchg_inotify_desc(xchg),
+                                 QSocketNotifier::Read, this));
     sn->setEnabled(false);
-    connect(sn, SIGNAL(activated(int)), this, SLOT(onBMEEvent()));
+    connect(sn.data(), SIGNAL(activated(int)),
+            this, SLOT(onBMEEvent()));
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
 BatteryPlugin::~BatteryPlugin()
 {
-    delete sn;
 }
 
 /// The provider source of the battery properties is initialised only on the
-/// first subscription. Initialisation means adding watcher to BMEIPC_EVENT
+/// first subscription. Initialisation means adding watcher to BME_EVENT
 void BatteryPlugin::subscribe(QSet<QString> keys)
 {
     if (subscribedProperties.isEmpty()) {
@@ -90,7 +88,8 @@ void BatteryPlugin::subscribe(QSet<QString> keys)
 
 /// Implementation of the IPropertyProvider::unsubscribe.
 /// Properties to unsubscribe are removed from the cache.
-/// The provider source is closed and cleaned up when no properties remain in the cache.
+/// The provider source is closed and cleaned up when no properties
+/// remain in the cache.
 void BatteryPlugin::unsubscribe(QSet<QString> keys)
 {
     subscribedProperties.subtract(keys);
@@ -100,8 +99,8 @@ void BatteryPlugin::unsubscribe(QSet<QString> keys)
 
 void BatteryPlugin::blockUntilReady()
 {
-    if (inotifyFd < 0)
-        Q_EMIT failed("bmeipc_eopen failed");
+    if (xchg < 0)
+        Q_EMIT failed("bme_eopen failed");
     else
         Q_EMIT ready();
 }
@@ -110,64 +109,71 @@ void BatteryPlugin::blockUntilSubscribed(const QString& key)
 {
 }
 
-/// Start to watch the provider source BMEIPC_EVENT on first subscription or when the source has been deleted or moved
+/// Start to watch the provider source BME_EVENT on first
+/// subscription or when the source has been deleted or moved
 bool BatteryPlugin::initProviderSource()
 {
-    bmeevt_watch = inotify_add_watch(inotifyFd, BMEIPC_EVENT, (IN_CLOSE_WRITE | IN_DELETE_SELF | IN_MOVE_SELF));
-    if (bmeevt_watch < 0) {
+    int rc = bme_inotify_watch_add(xchg);
+    if (rc < 0) {
         QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection,
-                                  Q_ARG(QString, "Battery plugin failed to add watcher on BMEIPC_EVENT"));
+                                  Q_ARG(QString, "Battery plugin failed to add"
+                                        " watcher on BME_EVENT"));
         return false;
     }
     sn->setEnabled(true);
     return true;
 }
 
-/// Called when the provicer source BMEIPC_EVENT is deleted, moved or when all
-/// properties have been unsubscribed watcher is removed
+/// Called when the provicer source BME_EVENT is deleted, moved or
+/// when all properties have been unsubscribed watcher is removed
 void BatteryPlugin::cleanProviderSource()
 {
-    inotify_rm_watch(inotifyFd, bmeevt_watch);
-    bmeevt_watch = -1;
+    bme_inotify_watch_rm(xchg);
     sn->setEnabled(false);
 }
 
 /// Called when provider source has been modified and new values are available
 bool BatteryPlugin::readBatteryValues()
 {
-    bmestat_t st;
+    bme_stat_t st;
     int sd = -1;
 
-    if ((sd = bmeipc_open()) < 0) {
-        contextWarning() << "Cannot open socket connected to BME server";
+    if ((sd = bme_open()) < 0) {
+        qDebug() << "Cannot open socket connected to BME server";
         return false;
     }
 
-    if (bmeipc_stat(sd, &st) < 0) {
-        contextWarning() << "Cannot get BME statistics";
+    if (bme_stat_get(sd, &st) < 0) {
+        qDebug() << "Cannot get BME statistics";
         return false;
     }
 
-    propertyCache[IS_CHARGING] = (st[CHARGING_STATE] == CHARGING_STATE_STARTED &&
-                                  st[BATTERY_STATE] != BATTERY_STATE_FULL);
+    propertyCache[IS_CHARGING]
+        = (st[bme_stat_charger_state] == bme_charging_state_started
+           && st[bme_stat_bat_state] != bme_bat_state_full);
 
-    propertyCache[ON_BATTERY] =  (st[CHARGER_STATE] != CHARGER_STATE_CONNECTED);
-    propertyCache[LOW_BATTERY] = (st[BATTERY_STATE] == BATTERY_STATE_LOW);
+    propertyCache[ON_BATTERY]
+        = (st[bme_stat_charger_state] != bme_charger_state_connected);
+    propertyCache[LOW_BATTERY]
+        = (st[bme_stat_bat_state] == bme_bat_state_low);
 
-    propertyCache[CHARGE_PERCENT] = st[BATTERY_LEVEL_PCT];
+    propertyCache[CHARGE_PERCENT] = st[bme_stat_bat_pct_remain];
 
-    if (st[BATTERY_LEVEL_MAX] != 0) {
+    if (st[bme_stat_bat_units_max] != 0) {
         QList<QVariant> list;
-        list << QVariant(st[BATTERY_LEVEL_NOW]) << QVariant(st[BATTERY_LEVEL_MAX]);
+        list << QVariant(st[bme_stat_bat_units_now])
+             << QVariant(st[bme_stat_bat_units_max]);
         propertyCache[CHARGE_BARS] = list;
-    }
-    else
+    } else {
         propertyCache[CHARGE_BARS] = QVariant();
+    }
 
-    propertyCache[TIME_UNTIL_FULL] = (quint64)st[CHARGING_TIME] * NANOSECS_PER_MIN;
-    propertyCache[TIME_UNTIL_LOW] = (quint64)st[BATTERY_TIME_LEFT] * NANOSECS_PER_MIN;
+    propertyCache[TIME_UNTIL_FULL]
+        = (quint64)st[bme_stat_charging_time_left_min] * NANOSECS_PER_MIN;
+    propertyCache[TIME_UNTIL_LOW]
+        = (quint64)st[bme_stat_bat_time_left] * NANOSECS_PER_MIN;
 
-    bmeipc_close(sd);
+    bme_close(sd);
 
     return true;
 
@@ -179,7 +185,12 @@ bool BatteryPlugin::readBatteryValues()
 void BatteryPlugin::onBMEEvent()
 {
     inotify_event ev;
-    read(inotifyFd, &ev, sizeof(ev));
+    int rc;
+    rc = bme_xchg_inotify_read(xchg, &ev);
+    if (rc < 0) {
+        qDebug() << "can't read bmeipc xchg inotify event";
+        return;
+    }
 
     // XXX: should we read the .bmeevt file and only act on relevant events?
 
@@ -203,4 +214,3 @@ void BatteryPlugin::emitSubscribeFinished(QSet<QString> keys)
 }
 
 } // end namespace
-

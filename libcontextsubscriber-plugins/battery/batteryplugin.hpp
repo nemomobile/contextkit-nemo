@@ -22,13 +22,16 @@
 #ifndef BATTERYPLUGIN_H
 #define BATTERYPLUGIN_H
 
-#include <iproviderplugin.h> // For IProviderPlugin definition
+#include "bmeipc.h"
+
+#include <iproviderplugin.h>
 
 #include <QDBusError>
 #include <QDBusObjectPath>
 #include <QDBusInterface>
 #include <QSet>
 #include <QStringList>
+#include <QScopedPointer>
 
 class QSocketNotifier;
 
@@ -70,11 +73,10 @@ private:
     bool initProviderSource();
     void cleanProviderSource();
 
-    int inotifyFd;
-    int bmeevt_watch;
+    bme_xchg_t xchg;
     QMap<QString, QVariant> propertyCache;
     QSet<QString> subscribedProperties;
-    QSocketNotifier *sn;
+    QScopedPointer<QSocketNotifier> sn;
 };
 }
 
