@@ -13,7 +13,7 @@
 ## main.cpp.
 ## Declaring the cpp file in QT_TOMOC is not needed.
 
-QT_MOCS = $(QT_TOMOC:%.h=moc_%_h.cpp)
+QT_MOCS = $(QT_TOMOC:%.h=moc_%_h.cpp) $(QT_TOMOC:%.hpp=moc_%_hpp.cpp)
 
 # mocs.cpp depends on Makefile so that it is also regenerated when an
 # entry is removed from QT_MOCS.
@@ -22,6 +22,9 @@ mocs.cpp: $(QT_MOCS) Makefile
 	cat $(QT_MOCS) >mocs.cpp
 
 moc_%_h.cpp: %.h
+	$(MOC) -o "$@" "$<"
+
+moc_%_hpp.cpp: %.hpp
 	$(MOC) -o "$@" "$<"
 
 %.moc: %.cpp
