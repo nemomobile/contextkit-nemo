@@ -27,7 +27,10 @@ link_directories(
 )
 
 add_subdirectory(common)
+
+if(${PLATFORM} STREQUAL "N9_50")
 add_subdirectory(bluez)
 add_subdirectory(kbslider)
 add_subdirectory(session)
 add_subdirectory(profile)
+endif(${PLATFORM} STREQUAL "N9_50")
