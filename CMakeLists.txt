@@ -27,7 +27,7 @@ link_directories(
 )
 
 add_subdirectory(common)
-add_subdirectory(libcontextsubscriber-plugins/bluez)
-add_subdirectory(libcontextsubscriber-plugins/kbslider)
-add_subdirectory(libcontextsubscriber-plugins/session)
-add_subdirectory(libcontextsubscriber-plugins/profile)
+add_subdirectory(bluez)
+add_subdirectory(kbslider)
+add_subdirectory(session)
+add_subdirectory(profile)
