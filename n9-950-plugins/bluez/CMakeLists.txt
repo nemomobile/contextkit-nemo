@@ -1,10 +1,9 @@
 pkg_check_modules(DBUS dbus-1)
-set(PROVIDER profile)
-set(CONTEXT profile.context)
+set(PROVIDER bluez)
+set(CONTEXT bluez.context)
 
 include_directories(
   ${DBUS_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/common
 )
 
 link_directories(
@@ -12,11 +11,13 @@ link_directories(
 )
 
 set(SRC
-  profileplugin.cpp
+  bluezdevice.cpp
+  bluezplugin.cpp
   )
 
 set(HDRS
-  profileplugin.h
+  bluezdevice.h
+  bluezplugin.h
   )
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})

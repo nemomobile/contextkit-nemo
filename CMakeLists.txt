@@ -23,14 +23,8 @@ include_directories(
 link_directories(
   ${CONTEXTSUBSCRIBER_LIBRARY_DIRS}
   ${CONTEXTPROVIDER_LIBRARY_DIRS}
-  ${CONTEXTKIT_PLUGINS_BINARY_DIR}/common
 )
 
-add_subdirectory(common)
-
 if(${PLATFORM} STREQUAL "N9_50")
-add_subdirectory(bluez)
-add_subdirectory(kbslider)
-add_subdirectory(session)
-add_subdirectory(profile)
+add_subdirectory(n9-950-plugins)
 endif(${PLATFORM} STREQUAL "N9_50")

@@ -4,7 +4,6 @@ set(CONTEXT session.context)
 
 include_directories(
   ${X11_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/common
 )
 
 link_directories(

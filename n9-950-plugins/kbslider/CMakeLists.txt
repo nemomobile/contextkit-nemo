@@ -1,24 +1,21 @@
-pkg_check_modules(DBUS dbus-1)
-set(PROVIDER bluez)
-set(CONTEXT bluez.context)
+pkg_check_modules(UDEV udev)
+set(PROVIDER kbslider)
+set(CONTEXT kbslider.context)
 
 include_directories(
-  ${DBUS_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/common
+  ${UDEV_INCLUDE_DIRS}
 )
 
 link_directories(
-  ${DBUS_LIBRARY_DIRS}
+  ${UDEV_LIBRARY_DIRS}
 )
 
 set(SRC
-  bluezdevice.cpp
-  bluezplugin.cpp
+  kbsliderplugin.cpp
   )
 
 set(HDRS
-  bluezdevice.h
-  bluezplugin.h
+  kbsliderplugin.h
   )
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})

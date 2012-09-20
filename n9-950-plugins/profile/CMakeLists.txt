@@ -1,22 +1,21 @@
-pkg_check_modules(UDEV udev)
-set(PROVIDER kbslider)
-set(CONTEXT kbslider.context)
+pkg_check_modules(DBUS dbus-1)
+set(PROVIDER profile)
+set(CONTEXT profile.context)
 
 include_directories(
-  ${UDEV_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/common
+  ${DBUS_INCLUDE_DIRS}
 )
 
 link_directories(
-  ${UDEV_LIBRARY_DIRS}
+  ${DBUS_LIBRARY_DIRS}
 )
 
 set(SRC
-  kbsliderplugin.cpp
+  profileplugin.cpp
   )
 
 set(HDRS
-  kbsliderplugin.h
+  profileplugin.h
   )
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
