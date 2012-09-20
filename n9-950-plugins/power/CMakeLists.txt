@@ -16,5 +16,6 @@ ADD_CUSTOM_TARGET(power_properties
   )
 
 add_subdirectory(src)
+add_subdirectory(tests)
 
 install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
