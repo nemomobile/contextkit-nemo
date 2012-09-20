@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
-<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/session-1" constructionString="Session.State">
+<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/session" constructionString="Session.State">
   <key name="Session.State"/>
 </provider>

@@ -102,7 +102,7 @@ void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, Q
 /// Implementation of the IPropertyProvider::subscribe. Connect to the profile
 /// changed signal, and check the current profile with an asynchronous D-Bus
 /// call. subscribeFinished() will be emitted when the call has finished.
-void ProfilePlugin::subscribe(QSet<QString> keys)
+void ProfilePlugin::subscribe(QSet<QString>)
 {
 
     // If this plugin had more than one property, we would have check here if we
@@ -144,7 +144,7 @@ void ProfilePlugin::subscribe(QSet<QString> keys)
 
 /// Implementation of the IPropertyProvider::unsubscribe. Stop listening to
 /// the profile changed signal and profiled disappearing from D-Bus.
-void ProfilePlugin::unsubscribe(QSet<QString> keys)
+void ProfilePlugin::unsubscribe(QSet<QString>)
 {
     delete serviceWatcher;
     serviceWatcher = 0;
@@ -163,7 +163,7 @@ void ProfilePlugin::blockUntilReady()
     Q_EMIT ready();
 }
 
-void ProfilePlugin::blockUntilSubscribed(const QString& key)
+void ProfilePlugin::blockUntilSubscribed(const QString&)
 {
     // If there is a pending GetProfile call ongoing, wait until it finishes.
     if (callWatcher)

@@ -44,7 +44,7 @@ typedef int (*xerrfunc)(Display*, XErrorEvent*);
 /// Handler for X errors. All errors are ignored: we cannot do any
 /// sophisticated handling, but we don't want the client process to
 /// exit in case of errors.
-int onXError(Display* eDpy, XErrorEvent* error)
+int onXError(Display*, XErrorEvent*)
 {
     return 0;
 }
@@ -286,7 +286,7 @@ void SessionStatePlugin::blockUntilReady()
         Q_EMIT ready();
 }
 
-void SessionStatePlugin::blockUntilSubscribed(const QString& key)
+void SessionStatePlugin::blockUntilSubscribed(const QString&)
 {
     // subscribe() has called checkFullScreen (which has queued
     // emitValueChanged) and it has also emitted subscribeFinished().

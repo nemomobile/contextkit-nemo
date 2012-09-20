@@ -20,7 +20,7 @@
  */
 
 #include "bluezplugin.h"
-#include <bluezdevice.h>
+#include "bluezdevice.h"
 #include "sconnect.h"
 
 #include "logging.h"
@@ -359,7 +359,7 @@ void BluezPlugin::blockUntilReady()
     Q_EMIT ready();
 }
 
-void BluezPlugin::blockUntilSubscribed(const QString& key)
+void BluezPlugin::blockUntilSubscribed(const QString&)
 {
     if (defaultAdapterWatcher)
         defaultAdapterWatcher->waitForFinished();

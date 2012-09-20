@@ -23,7 +23,7 @@
 #define BLUEZPLUGIN_H
 
 #include <iproviderplugin.h> // For IProviderPlugin definition
-#include <bluezdevice.h>
+#include "bluezdevice.h"
 
 #include <QDBusError>
 #include <QDBusObjectPath>

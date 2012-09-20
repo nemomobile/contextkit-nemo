@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
-<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/profile-1" constructionString="profile">
+<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/profile" constructionString="profile">
   <key name="Profile.Name"/>
 </provider>
