@@ -48,10 +48,6 @@ AM_CONDITIONAL([CONTEXTKIT_COVERAGE], [test "$missing_deps_COVERAGE" = ""])
 AC_CONFIG_FILES([
 	Makefile
         common/Makefile
-	contextd/Makefile
-	contextd/org.maemo.contextd.service
-	contextd/src/Makefile
-	contextd/doc/Makefile
 	libcontextsubscriber-plugins/Makefile
 	libcontextsubscriber-plugins/bluez/Makefile
 	libcontextsubscriber-plugins/session/Makefile

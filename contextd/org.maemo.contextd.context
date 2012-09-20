@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<provider bus="session"
-          service="org.maemo.contextd">
-</provider>
