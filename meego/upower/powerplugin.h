@@ -21,7 +21,7 @@
 
 using ContextSubscriber::IProviderPlugin;
 
-typedef OrgFreedesktopUPowerDeviceInterface Battery;
+typedef Device Battery;
 
 extern "C"
 {

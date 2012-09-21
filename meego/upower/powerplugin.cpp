@@ -24,8 +24,6 @@
 #define IsCharging "Battery.IsCharging"
 #define ChargeBars "Battery.ChargeBars"
 
-typedef OrgFreedesktopUPowerInterface Power;
-
 //typedef OrgFreedesktopDeviceKitPowerInterface Power;
 
 IProviderPlugin* pluginFactory(const QString& constructionString)

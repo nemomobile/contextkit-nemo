@@ -25,8 +25,8 @@ set(HDRS
   powerplugin.h
   )
 
-qt4_add_dbus_interface_no_ns(SRC DeviceKit.Power.xml power)
-qt4_add_dbus_interface_no_ns(SRC DeviceKit.Power.Device.xml device)
+qt4_add_dbus_interface_no_ns(SRC DeviceKit.Power.xml power Power)
+qt4_add_dbus_interface_no_ns(SRC DeviceKit.Power.Device.xml device Device)
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
 
