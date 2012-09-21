@@ -17,9 +17,9 @@
 #include <QObject>
 #include <iproviderplugin.h>
 #include <contextproperty.h>
-#include "ofono_interface.h"
-#include "manager_interface.h"
-#include "sim_interface.h"
+#include "dbus_iface_ofono.h"
+#include "dbus_iface_manager.h"
+#include "dbus_iface_sim.h"
 #include "common.h"
 
 using ContextSubscriber::IProviderPlugin;
