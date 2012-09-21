@@ -41,3 +41,13 @@ else(${CMAKE_VERSION} VERSION_GREATER 2.8.7)
   ENDMACRO(QT4_ADD_DBUS_INTERFACE_288)
 
 endif(${CMAKE_VERSION} VERSION_GREATER 2.8.7)
+
+MACRO(QT4_ADD_DBUS_INTERFACE_NO_NS _sources _interface _basename)
+  set_source_files_properties(${_interface} PROPERTIES NO_NAMESPACE TRUE)
+  qt4_add_dbus_interface_288(
+    ${_sources}
+    ${_interface}
+    dbus_iface_${_basename}
+    )
+ENDMACRO(QT4_ADD_DBUS_INTERFACE_NO_NS)
+

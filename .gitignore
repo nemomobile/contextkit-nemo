@@ -10,3 +10,4 @@ Makefile
 coverage/
 Makefile.coverage
 *~
+dbus_iface_*
