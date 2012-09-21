@@ -29,3 +29,7 @@ link_directories(
 if(${PLATFORM} STREQUAL "N9_50")
   add_subdirectory(n9-950-plugins)
 endif(${PLATFORM} STREQUAL "N9_50")
+
+if(${PLATFORM} STREQUAL "MEEGO")
+  add_subdirectory("meego/bluetooth")
+endif(${PLATFORM} STREQUAL "MEEGO")

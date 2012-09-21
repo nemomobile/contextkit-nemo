@@ -82,7 +82,7 @@ void BluetoothProvider::emitChanged()
   }
 }
 
-void BluetoothProvider::connectedChanged(bool conntected)
+void BluetoothProvider::connectedChanged(bool)
 {
     m_properties[connected] = m_bluetoothDevices->connected();
     if (m_subscribedProperties.contains(connected))

@@ -1,0 +1,32 @@
+pkg_check_modules(BTQT bluetooth-qt)
+set(PROVIDER bluetooth)
+set(CONTEXT bluetooth.context)
+
+include_directories(
+  ${BTQT_INCLUDE_DIRS}
+)
+
+link_directories(
+  ${BTQT_LIBRARY_DIRS}
+)
+
+set(SRC
+  bluetoothprovider.cpp
+  )
+
+set(HDRS
+  bluetoothprovider.h
+  )
+
+qt4_wrap_cpp(MOC_SRC ${HDRS})
+
+add_definitions(-DQT_SHARED)
+add_library(${PROVIDER} MODULE ${SRC} ${CSRC} ${MOC_SRC})
+set_target_properties(${PROVIDER} PROPERTIES PREFIX "")
+TARGET_LINK_LIBRARIES(${PROVIDER}
+  ${QT_PLUGIN_LIBRARIES}
+  ${BTQT_LIBRARIES}
+  )
+
+install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
+install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
