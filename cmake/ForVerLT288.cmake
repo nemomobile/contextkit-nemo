@@ -42,7 +42,7 @@ MACRO(QT4_ADD_DBUS_INTERFACE_NO_NS _sources _interface _basename _class)
   qt4_add_dbus_interface_cls(
     ${_sources}
     ${_interface}
-    dbus_iface_${_basename}
+    ${_basename}_interface
     )
 ENDMACRO(QT4_ADD_DBUS_INTERFACE_NO_NS)
 

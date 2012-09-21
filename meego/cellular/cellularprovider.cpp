@@ -10,8 +10,8 @@
  */
 
 #include "cellularprovider.h"
-#include "dbus_iface_ofono.h"
-#include "dbus_iface_sim.h"
+#include "ofono_interface.h"
+#include "sim_interface.h"
 
 #include <QDBusConnection>
 

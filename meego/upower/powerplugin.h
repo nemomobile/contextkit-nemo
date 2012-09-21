@@ -17,7 +17,7 @@
 #include <QObject>
 #include <iproviderplugin.h>
 #include <contextproperty.h>
-#include "dbus_iface_device.h"
+#include "device_interface.h"
 
 using ContextSubscriber::IProviderPlugin;
 

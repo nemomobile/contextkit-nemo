@@ -10,7 +10,7 @@
  */
 
 #include "powerplugin.h"
-#include "dbus_iface_power.h"
+#include "power_interface.h"
 
 #include <QDBusConnection>
 #include <QDBusServiceWatcher>
