@@ -14,7 +14,10 @@
 #define CONNMANPROVIDER_H
 
 #include <iproviderplugin.h>
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <networkmanager.h>
+#pragma GCC diagnostic pop
 #include <QSet>
 #include <QMap>
 #include <QString>
