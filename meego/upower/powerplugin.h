@@ -17,11 +17,11 @@
 #include <QObject>
 #include <iproviderplugin.h>
 #include <contextproperty.h>
-#include "device_interface.h"
+#include "dbus_iface_device.h"
 
 using ContextSubscriber::IProviderPlugin;
 
-typedef Device Battery;
+typedef OrgFreedesktopUPowerDeviceInterface Battery;
 
 extern "C"
 {

@@ -9,8 +9,8 @@
  *
  */
 
-#include "devicekitprovider.h"
-#include "power_interface.h"
+#include "powerplugin.h"
+#include "dbus_iface_power.h"
 
 #include <QDBusConnection>
 #include <QDBusServiceWatcher>
@@ -24,6 +24,7 @@
 #define IsCharging "Battery.IsCharging"
 #define ChargeBars "Battery.ChargeBars"
 
+typedef OrgFreedesktopUPowerInterface Power;
 
 //typedef OrgFreedesktopDeviceKitPowerInterface Power;
 

@@ -33,4 +33,5 @@ endif(${PLATFORM} STREQUAL "N9_50")
 
 if(${PLATFORM} STREQUAL "MEEGO")
   add_subdirectory("meego/bluetooth")
+  add_subdirectory("meego/upower")
 endif(${PLATFORM} STREQUAL "MEEGO")
