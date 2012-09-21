@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(Qt4 4.7.0 REQUIRED)
 find_package(PkgConfig)
+
 include(${QT_USE_FILE})
 
 set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -W -Wall -Wextra -Werror -g -O2")
@@ -26,5 +27,5 @@ link_directories(
 )
 
 if(${PLATFORM} STREQUAL "N9_50")
-add_subdirectory(n9-950-plugins)
+  add_subdirectory(n9-950-plugins)
 endif(${PLATFORM} STREQUAL "N9_50")
