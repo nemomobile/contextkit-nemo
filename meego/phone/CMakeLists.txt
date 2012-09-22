@@ -13,7 +13,6 @@ link_directories(
 
 set(SRC
   phoneprovider.cpp
-  manager_interface.cpp
   callmanager.cpp
   callitem.cpp
   callproxy.cpp
@@ -21,7 +20,6 @@ set(SRC
   )
 
 set(HDRS
-  phoneprovider.h
   phoneprovider.h
   callmanager.h
   callitem.h
