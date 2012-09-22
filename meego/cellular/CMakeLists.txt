@@ -18,7 +18,6 @@ set(SRC
 
 set(HDRS
   cellularprovider.h
-  common.h
   )
 
 set(MGR_IF org.ofono.manager.xml)

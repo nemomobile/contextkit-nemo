@@ -23,9 +23,7 @@ set(HDRS
   phoneprovider.h
   callmanager.h
   callitem.h
-  callitemmodel.h
   callproxy.h
-  common.h
   )
 
 set(VOL_IF org.ofono.callvolume.xml)
