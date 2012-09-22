@@ -4,12 +4,12 @@
         <interface name="org.ofono.Manager">
                 <method name="GetModems">
                         <arg type="a(oa{sv})" direction="out"/>
-                        <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="QArrayOfPathProperties"/>
+                        <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QArrayOfPathProperties"/>
                 </method>
                 <signal name="ModemAdded">
                         <arg type="o"/>
                         <arg type="a{sv}"/>
-                        <annotation name="com.trolltech.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+                        <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
                 </signal>
                 <signal name="ModemRemoved">
                         <arg type="o"/>

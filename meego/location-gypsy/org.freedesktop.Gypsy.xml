@@ -83,7 +83,7 @@
   <interface name="org.freedesktop.Gypsy.Device">
     <method name="SetStartOptions">
       <arg type="a{sv}" name="options" direction="in" />
-       <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
     <method name="Start" />
     <method name="Stop" />
@@ -179,12 +179,12 @@
   <interface name="org.freedesktop.Gypsy.Satellite">
     <method name="GetSatellites">
       <arg type="a(ubuuu)" name="satellites" direction="out" />
-      <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="SatInfoArray"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="SatInfoArray"/>
     </method>
 
     <signal name="SatellitesChanged">
       <arg type="a(ubuuu)" name="satellites" />
-      <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="SatInfoArray"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="SatInfoArray"/>
     </signal>
   </interface>
 
