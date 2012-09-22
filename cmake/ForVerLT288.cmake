@@ -1,6 +1,8 @@
 # initial implementation is taken from cmake 2.8.8
 
-MACRO(QT4_ADD_DBUS_INTERFACE_CLS _sources _interface _basename)
+MACRO(QT4_ADD_DBUS_INTERFACE_CLS _sources _interface _basename_pre)
+  set(_basename ${_basename_pre}_interface)
+
   GET_FILENAME_COMPONENT(_infile ${_interface} ABSOLUTE)
   SET(_header ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.h)
   SET(_impl   ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.cpp)
@@ -42,7 +44,7 @@ MACRO(QT4_ADD_DBUS_INTERFACE_NO_NS _sources _interface _basename _class)
   qt4_add_dbus_interface_cls(
     ${_sources}
     ${_interface}
-    ${_basename}_interface
+    ${_basename}
     )
 ENDMACRO(QT4_ADD_DBUS_INTERFACE_NO_NS)
 
