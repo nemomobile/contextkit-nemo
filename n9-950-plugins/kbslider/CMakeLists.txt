@@ -1,4 +1,4 @@
-pkg_check_modules(UDEV udev)
+pkg_check_modules(UDEV libudev)
 set(PROVIDER kbslider)
 set(CONTEXT kbslider.context)
 
