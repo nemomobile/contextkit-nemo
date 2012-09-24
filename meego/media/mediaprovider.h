@@ -39,8 +39,6 @@ public:
 	virtual void blockUntilReady() {}
 	virtual void blockUntilSubscribed(const QString&) {}
 
-        static const QString music;
-
 private:
         QSet<QString> m_subscribedProperties;
         QVariantMap m_properties;
