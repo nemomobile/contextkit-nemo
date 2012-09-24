@@ -1,6 +1,10 @@
 PROJECT(CONTEXTKIT_PLUGINS)
 cmake_minimum_required(VERSION 2.8)
+
+set(CKIT_INCLUDES "${CMAKE_SOURCE_DIR}/include")
+
 include(${CMAKE_SOURCE_DIR}/cmake/ForVerLT288.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/TestGen.cmake)
 
 find_package(Qt4 4.7.0 REQUIRED)
 find_package(PkgConfig)
@@ -20,6 +24,7 @@ include_directories(
   ${QT_INCLUDE_DIR}
   ${CONTEXTSUBSCRIBER_INCLUDE_DIRS}
   ${CONTEXTPROVIDER_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/include
 )
 
 link_directories(

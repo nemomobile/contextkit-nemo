@@ -12,3 +12,5 @@ Makefile.coverage
 *~
 *_interface.h
 *_interface.cpp
+contextkit-test-*
+test_*.cpp
