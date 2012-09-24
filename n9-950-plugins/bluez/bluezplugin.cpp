@@ -31,6 +31,8 @@
 #include <QDBusPendingReply>
 #include <QDBusPendingCallWatcher>
 
+#include <contextkit_props/bluetooth.hpp>
+
 /// The factory method for constructing the IPropertyProvider instance.
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 {
@@ -47,16 +49,14 @@ const QString BluezPlugin::managerInterface = "org.bluez.Manager";
 const QString BluezPlugin::adapterInterface = "org.bluez.Adapter";
 const QString BluezPlugin::deviceInterface = "org.bluez.Device";
 
-#define CONNECTED "Bluetooth.Connected"
-
 BluezPlugin::BluezPlugin()
     : manager(0), adapter(0), status(NotConnected), serviceWatcher(0),
       defaultAdapterWatcher(0), getPropertiesWatcher(0)
 {
     // Create a mapping from Bluez properties to Context Properties
-    properties["Powered"] = "Bluetooth.Enabled";
-    properties["Discoverable"] = "Bluetooth.Visible";
-    propertyCache[CONNECTED] = false;
+    properties["Powered"] = bluetooth_is_enabled;
+    properties["Discoverable"] = bluetooth_is_visible;
+    propertyCache[bluetooth_is_connected] = false;
 
     // We're ready to take in subscriptions right away; we'll connect to bluez
     // when we get subscriptions.
@@ -138,27 +138,28 @@ void BluezPlugin::connectToBluez()
 
 void BluezPlugin::evalConnected() {
 
-    propertyCache[CONNECTED] = false;
+    propertyCache[bluetooth_is_connected] = false;
 
     Q_FOREACH (BluezDevice* device, devicesList) {
         if (device->isConnected()) {
-            propertyCache[CONNECTED] = true;
+            propertyCache[bluetooth_is_connected] = true;
             break;
         }
     }
 
-    Q_EMIT valueChanged(CONNECTED, propertyCache[CONNECTED]);
+    Q_EMIT valueChanged(bluetooth_is_connected, propertyCache[bluetooth_is_connected]);
 }
 
 void BluezPlugin::onConnectionStateChanged(bool status)
 {
-    if (propertyCache[CONNECTED].toBool() && !status) {
+    if (propertyCache[bluetooth_is_connected].toBool() && !status) {
         evalConnected();
     }
 
-    if (!propertyCache[CONNECTED].toBool() && status) {
-        propertyCache[CONNECTED] = status;
-        Q_EMIT valueChanged(CONNECTED, propertyCache[CONNECTED]);
+    if (!propertyCache[bluetooth_is_connected].toBool() && status) {
+        propertyCache[bluetooth_is_connected] = status;
+        Q_EMIT valueChanged(bluetooth_is_connected,
+                            propertyCache[bluetooth_is_connected]);
     }
 }
 

@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/bluez" constructionString="bluez">
-  <key name="Bluetooth.Enabled"/>
-  <key name="Bluetooth.Visible"/>
-  <key name="Bluetooth.Connected"/>
-</provider>

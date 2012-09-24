@@ -1,6 +1,9 @@
 pkg_check_modules(DBUS dbus-1)
 set(PROVIDER bluez)
-set(CONTEXT bluez.context)
+set(INTERFACE bluetooth)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${DBUS_INCLUDE_DIRS}
@@ -32,4 +35,3 @@ TARGET_LINK_LIBRARIES(${PROVIDER}
   common)
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
-install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
