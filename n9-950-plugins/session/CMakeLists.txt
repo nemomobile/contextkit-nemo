@@ -1,6 +1,9 @@
 pkg_check_modules(X11 x11)
 set(PROVIDER session)
-set(CONTEXT session.context)
+set(INTERFACE session)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${X11_INCLUDE_DIRS}
@@ -29,4 +32,3 @@ TARGET_LINK_LIBRARIES(${PROVIDER}
   common)
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
-install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)

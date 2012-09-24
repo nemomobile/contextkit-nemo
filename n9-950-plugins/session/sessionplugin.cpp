@@ -23,6 +23,7 @@
 #include "sessionplugin.h"
 #include "sconnect.h"
 #include <QSocketNotifier>
+#include <contextkit_props/session.hpp>
 
 // How many fixed windows we always have on the top (possibly not
 // visible currently).
@@ -53,7 +54,7 @@ int onXError(Display*, XErrorEvent*)
 /// is done, the "ready" signal is scheduled to be emitted (we cannot
 /// emit it in the constructor).
 SessionStatePlugin::SessionStatePlugin()
-    : sessionStateKey("Session.State"),
+    : sessionStateKey(session_state),
       fullscreen(false),
       screenBlanked("Screen.Blanked")
 {
