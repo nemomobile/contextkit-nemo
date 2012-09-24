@@ -27,7 +27,7 @@
 // This is for getting rid of synchronous D-Bus introspection calls Qt does.
 #include <asyncdbusinterface.h>
 
-#define PROPERTY_PROFILE_NAME "Profile.Name"
+#include <contextkit_props/profile.hpp>
 
 // Marshall the MyStructure data into a D-Bus argument
 QDBusArgument &operator<<(QDBusArgument &argument, const MyStructure &mystruct)
@@ -84,7 +84,7 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
         }
     } else {
         activeProfile = reply.argumentAt<0>();
-        Q_EMIT subscribeFinished(PROPERTY_PROFILE_NAME, QVariant(activeProfile));
+        Q_EMIT subscribeFinished(profile_name, QVariant(activeProfile));
     }
     if (call == callWatcher)
         callWatcher = 0;
@@ -95,7 +95,7 @@ void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, Q
 {
     if (changed && active) {
         activeProfile = profile;
-        Q_EMIT valueChanged(PROPERTY_PROFILE_NAME, activeProfile);
+        Q_EMIT valueChanged(profile_name, activeProfile);
     }
 }
 

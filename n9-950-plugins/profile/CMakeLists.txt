@@ -1,6 +1,9 @@
 pkg_check_modules(DBUS dbus-1)
 set(PROVIDER profile)
-set(CONTEXT profile.context)
+set(INTERFACE profile)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${DBUS_INCLUDE_DIRS}
@@ -11,11 +14,11 @@ link_directories(
 )
 
 set(SRC
-  profileplugin.cpp
+  ${PROVIDER}plugin.cpp
   )
 
 set(HDRS
-  profileplugin.h
+  ${PROVIDER}plugin.h
   )
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
