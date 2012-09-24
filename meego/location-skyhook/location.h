@@ -39,9 +39,6 @@ public:
 
 private:
     static const QString skyhookService;
-    static const QString satPositioningState;
-    static const QString coordinates;
-    static const QString heading;
 
     QHash<QString,QVariant> Properties;
     QSet<QString> subscribedProps;

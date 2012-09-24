@@ -17,10 +17,7 @@
 #include <QDBusPendingCallWatcher>
 #include <MGConfItem>
 
-const QString LocationProvider::satPositioningState("Location.SatPositioningState"); ///on, searching, off
-const QString LocationProvider::coordinates("Location.Coordinates");
-const QString LocationProvider::heading("Location.Heading");
-
+#include <contextkit_props/location.hpp>
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
@@ -122,8 +119,8 @@ void LocationProvider::locationChanged(double latitude, double longitude, double
     coords.append(QVariant(latitude));
     coords.append(QVariant(longitude));
     coords.append(QVariant(altitude));
-    updateProperty("Location.Coordinates", coords);
-    updateProperty("Location.Heading", bearing);
+    updateProperty(location_coord, coords);
+    updateProperty(location_heading, bearing);
 }
 
 void LocationProvider::satellitesChanged(QList<int> prns, QList<int> snrs, QList<int> elevations, QList<int> azimuths, QList<bool> inuse)
@@ -145,5 +142,5 @@ void LocationProvider::satellitesChanged(QList<int> prns, QList<int> snrs, QList
 
   QString state = (satelliteOn ? "on" : "off" ); //what is valid for searching?
 
-    updateProperty("Location.SatPositioningState", state);
+    updateProperty(location_sat_pos_state, state);
 }

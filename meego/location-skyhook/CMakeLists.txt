@@ -2,7 +2,10 @@ pkg_check_modules(DBUS dbus-1)
 pkg_check_modules(MLITE mlite)
 
 set(PROVIDER location_skyhook)
-set(CONTEXT location_skyhook.context)
+set(INTERFACE location)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${DBUS_INCLUDE_DIRS}
@@ -37,4 +40,3 @@ TARGET_LINK_LIBRARIES(${PROVIDER}
   )
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
-install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
