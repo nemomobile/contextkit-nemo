@@ -67,5 +67,19 @@ print_string(QString const &name, QVariant const &value)
     qDebug() << "Got " << name << "=" << value.toString() << "\n";
 }
 
+static void
+print_list_string(QString const &name, QVariant const &value)
+{
+    qDebug() << "Got " << name;
+    foreach(QVariant v, value.toList())
+        qDebug() << "=" << v.toString() << "\n";
+}
+
+static void print_double
+(QString const &name, QVariant const &value)
+{
+    qDebug() << "Got " << name << "=" << value.toDouble() << "\n";
+}
+
 
 #endif // _CONTEXTKIT_TEST_HPP_
