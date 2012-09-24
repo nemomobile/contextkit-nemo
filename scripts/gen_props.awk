@@ -2,7 +2,7 @@
 BEGIN {
         ident = "([0-9_A-Za-z]+)";
         var_name_re = ident;
-        prop_name_re = "\"([0-9._A-Za-z]+)\"";
+        prop_name_re = "\"([0-9./_A-Za-z]+)\"";
         type_name_re = ident;
         comma = "[[:space:]]*,[[:space:]]*";
         prefix = "^[[:space:]]*CKIT_PROP[[:space:]]*\\([[:space:]]*";
