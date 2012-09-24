@@ -23,6 +23,7 @@
 #include "presenceplugin.h"
 #include "logging.h"
 #include "sconnect.h"
+#include <contextkit_props/presence.hpp>
 
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 {
@@ -31,7 +32,7 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberPresence {
 
-PresenceStatePlugin::PresenceStatePlugin(): presenceStateKey("Presence.State")
+PresenceStatePlugin::PresenceStatePlugin(): presenceStateKey(presence_state)
 {
     // Emitting signals inside ctor doesn't make sense.  Thus, queue it.
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
