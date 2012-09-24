@@ -32,4 +32,3 @@ TARGET_LINK_LIBRARIES(${PROVIDER}
   common)
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
-install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
