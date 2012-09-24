@@ -1,5 +1,5 @@
-#ifndef _CONTEXTKIT_PROPS_INTERNET_HPP_
-#define _CONTEXTKIT_PROPS_INTERNET_HPP_
+#ifndef _CONTEXTKIT_PROPS_CELLULAR_HPP_
+#define _CONTEXTKIT_PROPS_CELLULAR_HPP_
 
 #include <contextkit_props/common.hpp>
 
