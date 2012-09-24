@@ -14,3 +14,4 @@ Makefile.coverage
 *_interface.cpp
 contextkit-test-*
 test_*.cpp
+*.context
