@@ -1,5 +1,5 @@
-#ifndef _CONTEXTKIT_PROPS_POWER_HPP_
-#define _CONTEXTKIT_PROPS_POWER_HPP_
+#ifndef _CONTEXTKIT_PROPS_BLUETOOTH_HPP_
+#define _CONTEXTKIT_PROPS_BLUETOOTH_HPP_
 
 #include <contextkit_props/common.hpp>
 
