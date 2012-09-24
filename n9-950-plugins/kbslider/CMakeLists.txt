@@ -1,6 +1,9 @@
 pkg_check_modules(UDEV libudev)
 set(PROVIDER kbslider)
-set(CONTEXT kbslider.context)
+set(INTERFACE internal_keyboard)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${UDEV_INCLUDE_DIRS}
