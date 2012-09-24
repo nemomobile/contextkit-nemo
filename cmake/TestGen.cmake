@@ -1,6 +1,6 @@
 MACRO(CKIT_GENERATE_TEST_MAIN _interface _provider)
   set(_impl test_${_interface}.cpp)
-  set(_infile ${CMAKE_SOURCE_DIR}/include/contextkit_props_${_interface}.hpp)
+  set(_infile ${CMAKE_SOURCE_DIR}/include/contextkit_props/${_interface}.hpp)
   set(_test_name contextkit-test-${_provider})
 
   add_custom_command(OUTPUT ${_impl}
@@ -26,13 +26,14 @@ ENDMACRO(CKIT_GENERATE_TEST_MAIN)
 
 MACRO(CKIT_GENERATE_CONTEXT _interface _provider)
   set(_impl ${_interface}.context)
-  set(_infile ${CMAKE_SOURCE_DIR}/include/contextkit_props_${_interface}.hpp)
+  set(_infile ${CMAKE_SOURCE_DIR}/include/contextkit_props/${_interface}.hpp)
   set(_awk_path ${CMAKE_SOURCE_DIR}/scripts)
+  set(_gen_script ${_awk_path}/gen_props.awk)
 
   add_custom_command(OUTPUT ${_impl}
     COMMAND gawk -vinterface=${_interface} -vmode=context -vprovider=${_provider}
-    -f ${_awk_path}/gen_props.awk ${_infile} > ${_impl}
-    DEPENDS ${_infile}
+    -f ${_gen_script} ${_infile} > ${_impl}
+    DEPENDS ${_infile} ${_gen_script}
     )
 
   ADD_CUSTOM_TARGET(${_provider}_properties ALL DEPENDS ${_impl})

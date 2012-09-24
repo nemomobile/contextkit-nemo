@@ -22,7 +22,7 @@
  *
  */
 
-#include <contextkit_props_power.hpp>
+#include <contextkit_props/power.hpp>
 #include "power.hpp"
 
 #include <fcntl.h>

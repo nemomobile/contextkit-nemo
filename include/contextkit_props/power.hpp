@@ -1,7 +1,7 @@
 #ifndef _CONTEXTKIT_PROPS_POWER_HPP_
 #define _CONTEXTKIT_PROPS_POWER_HPP_
 
-#include <contextkit_props_common.hpp>
+#include <contextkit_props/common.hpp>
 
 CKIT_PROP(power_on_battery, "Battery.OnBattery", bool);
 CKIT_PROP(power_low_battery, "Battery.LowBattery", bool);
