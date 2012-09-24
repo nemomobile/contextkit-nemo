@@ -15,18 +15,7 @@
 
 #include <QDBusConnection>
 
-#define SignalStrength "Cellular.SignalStrength"
-#define Technology "Cellular.Technology"
-#define DataTechnology "Cellular.DataTechnology"
-#define RegistrationStatus "Cellular.RegistrationStatus"
-#define CellName "Cellular.CellName"
-#define NetworkName "Cellular.NetworkName"
-#define SignalBars "Cellular.SignalBars" // DUMMY
-#define PacketData "Cellular.PacketData" // TODO
-#define GSMBand "Cellular.GSMBand" // TODO
-#define ExtendedNName "Cellular.ExtendedNetworkName" // TODO
-#define CellNameEnabled "Cellular.CellNameDisplayEnabled" // TODO
-
+#include <contextkit_props/cellular.hpp>
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
@@ -257,8 +246,8 @@ void CellularProvider::updateSimPresent(const QDBusVariant &val)
 {
 	bool simPresent = val.variant().toBool();
 	if (simPresent == FALSE) {
-		properties[RegistrationStatus] = QVariant("no-sim");
-		emit valueChanged(RegistrationStatus, properties[RegistrationStatus]);
+		properties[cell_reg_status] = QVariant("no-sim");
+		emit valueChanged(cell_reg_status, properties[cell_reg_status]);
 
 	}
 }
@@ -267,24 +256,24 @@ void CellularProvider::updateRegistrationStatus(const QDBusVariant &val)
 {
 	QString status = qdbus_cast<QString> (val.variant());
 	if (status == "registered") {
-		properties[RegistrationStatus] = QVariant("home");
+		properties[cell_reg_status] = QVariant("home");
 	}
 	else if ( status =="roaming") {
-		properties[RegistrationStatus] = QVariant("roam");
+		properties[cell_reg_status] = QVariant("roam");
 	}
 	else if (status == "denied") {
-		properties[RegistrationStatus] = QVariant("forbidden");
+		properties[cell_reg_status] = QVariant("forbidden");
 	}
 	else {
-		properties[RegistrationStatus] =QVariant("offline");
+		properties[cell_reg_status] =QVariant("offline");
 	}
-	emit valueChanged(RegistrationStatus, properties[RegistrationStatus]);
+	emit valueChanged(cell_reg_status, properties[cell_reg_status]);
 }
 
 void CellularProvider::updateCellName(const QDBusVariant &val)
 {
-	properties[CellName] = val.variant();
-	emit valueChanged(CellName, properties[CellName]);
+	properties[cell_cell_name] = val.variant();
+	emit valueChanged(cell_cell_name, properties[cell_cell_name]);
 }
 
 void CellularProvider::updateSignalStrength(const QDBusVariant &val)
@@ -292,15 +281,15 @@ void CellularProvider::updateSignalStrength(const QDBusVariant &val)
 	int strength = val.variant().toInt();
 
 	if(strength >= 0 && strength <= 100) {
-		properties[SignalStrength] = QVariant((val.variant()).toInt());
-		properties[SignalBars] = QVariant((val.variant()).toInt() / 20); //DUMMY
+		properties[cell_sig_strength] = QVariant((val.variant()).toInt());
+		properties[cell_sig_bars] = QVariant((val.variant()).toInt() / 20); //DUMMY
 	} else {
-		properties[SignalStrength] = QVariant();
-		properties[SignalBars] = QVariant();
+		properties[cell_sig_strength] = QVariant();
+		properties[cell_sig_bars] = QVariant();
 	}
 
-	emit valueChanged(SignalStrength, properties[SignalStrength]);
-	emit valueChanged(SignalBars, properties[SignalBars]);
+	emit valueChanged(cell_sig_strength, properties[cell_sig_strength]);
+	emit valueChanged(cell_sig_bars, properties[cell_sig_bars]);
 }
 
 void CellularProvider::updateTechnology(const QDBusVariant &val)
@@ -308,32 +297,32 @@ void CellularProvider::updateTechnology(const QDBusVariant &val)
 	QString tech = qdbus_cast<QString> (val.variant());
 
 	if (tech == "gsm") {
-		properties[DataTechnology] = QVariant("gprs");
-		properties[Technology] = QVariant("gsm");
+		properties[cell_data_tech] = QVariant("gprs");
+		properties[cell_technology] = QVariant("gsm");
 	}
 	else if (tech == "edge") {
-		properties[DataTechnology] = QVariant("egprs");
-		properties[Technology] = QVariant("gsm");
+		properties[cell_data_tech] = QVariant("egprs");
+		properties[cell_technology] = QVariant("gsm");
 	}
 	else if (tech == "umts") {
-		properties[DataTechnology] = QVariant("umts");
-		properties[Technology] = QVariant("umts");
+		properties[cell_data_tech] = QVariant("umts");
+		properties[cell_technology] = QVariant("umts");
 	}
 	else if (tech == "hspa") {
-		properties[DataTechnology] = QVariant("hspa");
-		properties[Technology] = QVariant("umts");
+		properties[cell_data_tech] = QVariant("hspa");
+		properties[cell_technology] = QVariant("umts");
 	}
 	else if (tech == "lte") {
-		properties[DataTechnology] = QVariant("lte");
-		properties[Technology] = QVariant("lte");
+		properties[cell_data_tech] = QVariant("lte");
+		properties[cell_technology] = QVariant("lte");
 	}
 	else {
-		properties[DataTechnology] = QVariant();
-		properties[Technology] = QVariant();
+		properties[cell_data_tech] = QVariant();
+		properties[cell_technology] = QVariant();
 
 	}
-	emit valueChanged(DataTechnology, properties[DataTechnology]);
-	emit valueChanged(Technology, properties[Technology]);
+	emit valueChanged(cell_data_tech, properties[cell_data_tech]);
+	emit valueChanged(cell_technology, properties[cell_technology]);
 }
 
 void CellularProvider::setUnknown(const QString& key) {
@@ -342,8 +331,8 @@ void CellularProvider::setUnknown(const QString& key) {
 
 void CellularProvider::updateNetworkName(const QDBusVariant &val)
 {
-	properties[NetworkName] = val.variant();
-	emit valueChanged(NetworkName, properties[NetworkName]);
+	properties[cell_net_name] = val.variant();
+	emit valueChanged(cell_net_name, properties[cell_net_name]);
 }
 
 void CellularProvider::emitSubscribeFinished()

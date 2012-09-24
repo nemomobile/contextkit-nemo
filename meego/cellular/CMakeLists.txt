@@ -1,7 +1,10 @@
 pkg_check_modules(DBUS dbus-1)
 
 set(PROVIDER cellular)
-set(CONTEXT cellular.context)
+set(INTERFACE cellular)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${DBUS_INCLUDE_DIRS}
@@ -42,4 +45,3 @@ TARGET_LINK_LIBRARIES(${PROVIDER}
   )
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
-install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
