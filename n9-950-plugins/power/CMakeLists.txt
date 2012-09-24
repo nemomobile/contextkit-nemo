@@ -1,21 +1,27 @@
-set(CONTEXT power.context)
-set(CONTEXT_SRC include/power_properties.hpp)
-set(PROVIDER power)
+set(INTERFACE power)
+set(PROVIDER power-bme)
 
-include_directories(./include)
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
-add_custom_command(
-  OUTPUT ${CONTEXT}
-  COMMAND awk -f ${CMAKE_SOURCE_DIR}/scripts/gen_context.awk
-  -v PROVIDER=${PROVIDER} ${CONTEXT_SRC} > ${CONTEXT}
-  DEPENDS ${CONTEXT_SRC}
-  )
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBME_API=11")
 
-ADD_CUSTOM_TARGET(power_properties
-  ALL DEPENDS ${CONTEXT}
-  )
+set(SRC power.cpp)
 
-add_subdirectory(src)
-add_subdirectory(tests)
+set(CSRC bmeipc.c)
 
-install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
+set(HDRS power.hpp)
+
+qt4_wrap_cpp(MOC_SRC ${HDRS})
+
+add_definitions(-DQT_SHARED)
+add_library(${PROVIDER} MODULE ${SRC} ${CSRC} ${MOC_SRC})
+set_target_properties(${PROVIDER} PROPERTIES PREFIX "")
+TARGET_LINK_LIBRARIES(${PROVIDER}
+  ${QT_QTCORE_LIBRARY}
+  ${CONTEXTSUBSCRIBER_LIBRARIES}
+  ${CONTEXTPROVIDER_LIBRARIES}
+  rt
+  common)
+
+install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
