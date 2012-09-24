@@ -44,13 +44,6 @@ public:
   virtual void blockUntilReady() {}
   virtual void blockUntilSubscribed(const QString&) {}
 
-  static const QString networkType;
-  static const QString networkState;
-  static const QString networkName;
-  static const QString signalStrength;
-  static const QString trafficIn;
-  static const QString trafficOut;
-
 protected:
   void timerEvent(QTimerEvent* event);
 

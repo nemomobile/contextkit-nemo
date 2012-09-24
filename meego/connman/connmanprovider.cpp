@@ -15,6 +15,8 @@
 #include <QStringList>
 #include <QVariant>
 
+#include <contextkit_props/internet.hpp>
+
 #define DBG qDebug() << __FILE__ << ":" << __LINE__ << ":"
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
@@ -22,14 +24,6 @@ IProviderPlugin* pluginFactory(const QString& constructionString)
   Q_UNUSED(constructionString)
     return new ConnmanProvider();
 }
-
-const QString ConnmanProvider::networkType("Internet.NetworkType");
-const QString ConnmanProvider::networkState("Internet.NetworkState");
-const QString ConnmanProvider::networkName("Internet.NetworkName");
-const QString ConnmanProvider::signalStrength("Internet.SignalStrength");
-const QString ConnmanProvider::trafficIn("Internet.TrafficIn");
-const QString ConnmanProvider::trafficOut("Internet.TrafficOut");
-
 
 ConnmanProvider::ConnmanProvider(): activeService(NULL)
 {
@@ -47,15 +41,15 @@ ConnmanProvider::ConnmanProvider(): activeService(NULL)
   m_nameMapper["ready"] = "connected";
 
   //hack
-  m_properties[trafficIn] = 20;
-  m_properties[trafficOut] = 20;
+  m_properties[internet_traf_in] = 20;
+  m_properties[internet_traf_out] = 20;
   m_timerId = startTimer(5*1000);
 
   QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 
   m_networkManager = NetworkManagerFactory::createInstance();;
-  m_properties[networkType] = map("gprs");
-  m_properties[networkState] = map(m_networkManager->state());
+  m_properties[internet_net_type] = map("gprs");
+  m_properties[internet_net_state] = map(m_networkManager->state());
 
   if(m_networkManager->defaultRoute())
   {
@@ -64,9 +58,9 @@ ConnmanProvider::ConnmanProvider(): activeService(NULL)
       connect(activeService,SIGNAL(nameChanged(QString)),this,SLOT(nameChanged(QString)));
       connect(activeService,SIGNAL(strengthChanged(uint)),this,SLOT(signalStrengthChanged(uint)));
 
-      m_properties[signalStrength] = m_networkManager->defaultRoute()->strength();
-      m_properties[networkName] = m_networkManager->defaultRoute()->name();
-      m_properties[networkType] = map(activeService->type());
+      m_properties[internet_sig_strength] = m_networkManager->defaultRoute()->strength();
+      m_properties[internet_net_name] = m_networkManager->defaultRoute()->name();
+      m_properties[internet_net_type] = map(activeService->type());
   }
 
   connect(m_networkManager, SIGNAL(stateChanged(QString)),
@@ -78,17 +72,17 @@ ConnmanProvider::ConnmanProvider(): activeService(NULL)
   qRegisterMetaType<QVariant>("QVariant");
 
   QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
-			    Q_ARG(QString, networkType),
-			    Q_ARG(QVariant, m_properties[networkType]));
+			    Q_ARG(QString, internet_net_type),
+			    Q_ARG(QVariant, m_properties[internet_net_type]));
   QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
-			    Q_ARG(QString, networkState),
-			    Q_ARG(QVariant, m_properties[networkState]));
+			    Q_ARG(QString, internet_net_state),
+			    Q_ARG(QVariant, m_properties[internet_net_state]));
   QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
-                Q_ARG(QString, signalStrength),
-                Q_ARG(QVariant, m_properties[signalStrength]));
+                Q_ARG(QString, internet_sig_strength),
+                Q_ARG(QVariant, m_properties[internet_sig_strength]));
   QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
-                Q_ARG(QString, networkName),
-                Q_ARG(QVariant, m_properties[networkName]));
+                Q_ARG(QString, internet_net_name),
+                Q_ARG(QVariant, m_properties[internet_net_name]));
 }
 
 ConnmanProvider::~ConnmanProvider()
@@ -116,11 +110,11 @@ void ConnmanProvider::unsubscribe(QSet<QString> keys)
 void ConnmanProvider::timerEvent(QTimerEvent *event)
 {
   Q_UNUSED(event);
-  m_properties[trafficIn] = qrand()*10.0 / RAND_MAX + 20;
-  m_properties[trafficOut] = qrand()*10.0 / RAND_MAX + 20;
+  m_properties[internet_traf_in] = qrand()*10.0 / RAND_MAX + 20;
+  m_properties[internet_traf_out] = qrand()*10.0 / RAND_MAX + 20;
 
-  emit valueChanged(trafficIn, m_properties[trafficIn]);
-  emit valueChanged(trafficOut, m_properties[trafficOut]);
+  emit valueChanged(internet_traf_in, m_properties[internet_traf_in]);
+  emit valueChanged(internet_traf_out, m_properties[internet_traf_out]);
 }
 
 QString ConnmanProvider::map(const QString &input) const
@@ -132,10 +126,10 @@ void ConnmanProvider::signalStrengthChanged(uint strength)
 {
     if(!activeService) return;
 
-    m_properties[signalStrength] = strength;
+    m_properties[internet_sig_strength] = strength;
 
-    if (m_subscribedProperties.contains(signalStrength)) {
-      emit valueChanged(signalStrength, QVariant(m_properties[signalStrength]));
+    if (m_subscribedProperties.contains(internet_sig_strength)) {
+      emit valueChanged(internet_sig_strength, QVariant(m_properties[internet_sig_strength]));
     }
 }
 
@@ -169,49 +163,49 @@ void ConnmanProvider::defaultRouteChanged(NetworkService *item)
     if (item) {
         DBG << "new default route: " << item->name();
         QString ntype = map(item->type());
-        if (m_properties[networkType] != ntype) {
-            if (m_subscribedProperties.contains(networkType)) {
-                m_properties[networkType] = ntype;
+        if (m_properties[internet_net_type] != ntype) {
+            if (m_subscribedProperties.contains(internet_net_type)) {
+                m_properties[internet_net_type] = ntype;
                 DBG << "networkType has changed to " << ntype;
-                emit valueChanged(networkType, QVariant(m_properties[networkType]));
+                emit valueChanged(internet_net_type, QVariant(m_properties[internet_net_type]));
             }
         }
 
-        m_properties[networkName] = item->name();
-        m_properties[signalStrength] = item->strength();
+        m_properties[internet_net_name] = item->name();
+        m_properties[internet_sig_strength] = item->strength();
 
         DBG << "connecting to " << activeService->name();
         connect(activeService,SIGNAL(strengthChanged(uint)),this,SLOT(signalStrengthChanged(uint)));
         connect(activeService,SIGNAL(nameChanged(QString)),this,SLOT(nameChanged(QString)));
     }
     else
-        m_properties[signalStrength] = 0;
+        m_properties[internet_sig_strength] = 0;
 
-    if (m_subscribedProperties.contains(signalStrength)) {
+    if (m_subscribedProperties.contains(internet_sig_strength)) {
       DBG << "emit valueChanged(strength)";
-      emit valueChanged(signalStrength, QVariant(m_properties[signalStrength]));
+      emit valueChanged(internet_sig_strength, QVariant(m_properties[internet_sig_strength]));
     }
 
-    if (m_subscribedProperties.contains(networkName)) {
+    if (m_subscribedProperties.contains(internet_net_name)) {
       DBG << "emit valueChanged(naetworkName)";
-      emit valueChanged(networkName, QVariant(m_properties[networkName]));
+      emit valueChanged(internet_net_name, QVariant(m_properties[internet_net_name]));
     }
 }
 
 void ConnmanProvider::nameChanged(const QString &name)
 {
     DBG << "ConnmanProvider::nameChanged(" << name << ")";
-    m_properties[networkName] = name;
-    if (m_subscribedProperties.contains(networkName)) {
-      emit valueChanged(networkName, QVariant(m_properties[networkName]));
+    m_properties[internet_net_name] = name;
+    if (m_subscribedProperties.contains(internet_net_name)) {
+      emit valueChanged(internet_net_name, QVariant(m_properties[internet_net_name]));
     }
 }
 
 void ConnmanProvider::stateChanged(QString State)
 {
   DBG << "ConnmanProvider::stateChanged(" << State << ")";
-  m_properties[networkState] = map(State);
-  if (m_subscribedProperties.contains(networkState)) {
-    emit valueChanged(networkState, QVariant(m_properties[networkState]));
+  m_properties[internet_net_state] = map(State);
+  if (m_subscribedProperties.contains(internet_net_state)) {
+    emit valueChanged(internet_net_state, QVariant(m_properties[internet_net_state]));
   }
 }

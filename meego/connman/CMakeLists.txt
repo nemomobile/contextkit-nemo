@@ -1,6 +1,9 @@
 pkg_check_modules(CMAN_QT connman-qt4)
 set(PROVIDER connman)
-set(CONTEXT connman.context)
+set(INTERFACE internet)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${CMAN_QT_INCLUDE_DIRS}
@@ -29,4 +32,3 @@ TARGET_LINK_LIBRARIES(${PROVIDER}
   )
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
-install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
