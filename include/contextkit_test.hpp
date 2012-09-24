@@ -61,5 +61,11 @@ print_bool(QString const &name, QVariant const &value)
     qDebug() << "Got " << name << "=" << value.toBool() << "\n";
 }
 
+static void
+print_string(QString const &name, QVariant const &value)
+{
+    qDebug() << "Got " << name << "=" << value.toString() << "\n";
+}
+
 
 #endif // _CONTEXTKIT_TEST_HPP_
