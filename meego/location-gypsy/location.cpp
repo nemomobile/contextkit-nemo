@@ -17,12 +17,9 @@
 #include <QDBusPendingCallWatcher>
 #include <MGConfItem>
 
+#include <contextkit_props/location.hpp>
+
 const QString LocationProvider::gypsyService("org.freedesktop.Gypsy");
-const QString LocationProvider::satPositioningState("Location.SatPositioningState"); ///on, searching, off
-
-const QString LocationProvider::coordinates("Location.Coordinates");
-const QString LocationProvider::heading("Location.Heading");
-
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
@@ -46,10 +43,10 @@ void LocationProvider::subscribe(QSet<QString> keys)
 
 	subscribedProps.unite(keys);
 
-	if (subscribedProps.contains(coordinates)) {
+	if (subscribedProps.contains(location_coord)) {
 	  getCoordinates();
 	}
-	if (subscribedProps.contains(heading)) {
+	if (subscribedProps.contains(location_heading)) {
 	  getHeading();
 	}
 
@@ -128,9 +125,9 @@ void LocationProvider::updateProperties()
 	qDebug()<<" connected? "<<isConnected<<" fix status: "<<fixStatus;
 
 	if(!isConnected)
-		Properties[satPositioningState] = "off";
+		Properties[location_sat_pos_state] = "off";
 	else
-		Properties[satPositioningState] = fixStatus == 1 ? "searching":"on";
+		Properties[location_sat_pos_state] = fixStatus == 1 ? "searching":"on";
 
 	foreach(QString key, subscribedProps)
 	{
@@ -202,7 +199,7 @@ void LocationProvider::positionChanged(int fields, int timestamp, double latitud
     coords.append(QVariant(latitude));
     coords.append(QVariant(longitude));
     coords.append(QVariant(altitude));
-    updateProperty("Location.Coordinates", coords);
+    updateProperty(location_coord, coords);
 }
 
 void LocationProvider::courseChanged(int fields, int timestamp, double speed, double direction, double climb)
@@ -214,7 +211,7 @@ void LocationProvider::courseChanged(int fields, int timestamp, double speed, do
 	     << "\tspeed:" << speed << endl
 	     << "\tdirection:" << direction << endl
 	     << "\tclimb:" << climb << endl;
-    updateProperty(heading, direction);
+    updateProperty(location_heading, direction);
 }
 
 

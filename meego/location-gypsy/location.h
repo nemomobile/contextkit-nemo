@@ -42,10 +42,8 @@ public:
     virtual void blockUntilSubscribed(const QString&) {}
 
 private:
+
     static const QString gypsyService;
-    static const QString satPositioningState;
-    static const QString coordinates;
-    static const QString heading;
 
     QHash<QString,QVariant> Properties;
     QSet<QString> subscribedProps;
