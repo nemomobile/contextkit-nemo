@@ -30,28 +30,29 @@ extern "C"
 class BluetoothProvider : public IProviderPlugin
 {
   Q_OBJECT;
-  
+
 public:
   BluetoothProvider();
   virtual ~BluetoothProvider();
-  
+
   virtual void subscribe(QSet<QString> keys);
   virtual void unsubscribe(QSet<QString> keys);
   virtual void blockUntilReady() {}
   virtual void blockUntilSubscribed(const QString&) {}
 
-  static const QString connected;
-
 private:
+
+  void updateProps();
+
   QSet<QString> m_subscribedProperties;
   QVariantMap m_properties;
   BluetoothDevicesModel *m_bluetoothDevices;
 
-
 private slots:
   void emitSubscribeFinished();
-  void emitChanged();
-  void connectedChanged(bool conntected);
+  void connectedChanged(bool);
+  void discoverableChanged(bool);
+  void poweredChanged(bool);
 };
 
 #endif //CONNMANPROVIDER_H

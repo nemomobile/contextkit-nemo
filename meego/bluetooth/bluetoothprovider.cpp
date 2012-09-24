@@ -13,15 +13,13 @@
 #include <QDebug>
 #include <QStringList>
 #include <QVariant>
+#include <contextkit_props/bluetooth.hpp>
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
     Q_UNUSED(constructionString)
     return new BluetoothProvider();
 }
-
-const QString BluetoothProvider::connected("Bluetooth.Connected");
-
 
 BluetoothProvider::BluetoothProvider()
 {
@@ -30,19 +28,20 @@ BluetoothProvider::BluetoothProvider()
   QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 
   m_bluetoothDevices = new BluetoothDevicesModel(this);
-  m_properties[connected] = m_bluetoothDevices->connected();
 
   connect(m_bluetoothDevices, SIGNAL(connectedChanged(bool)),
       this, SLOT(connectedChanged(bool)));
+  connect(m_bluetoothDevices, SIGNAL(discoverableChanged(bool)),
+      this, SLOT(discoverableChanged(bool)));
+  connect(m_bluetoothDevices, SIGNAL(poweredChanged(bool)),
+      this, SLOT(poweredChanged(bool)));
 
-  
   //sadly, QVariant is not a registered metatype
   qRegisterMetaType<QVariant>("QVariant");
 
-  QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
-                Q_ARG(QString, connected),
-                Q_ARG(QVariant, m_properties[connected]));
-
+  connectedChanged(m_bluetoothDevices->connected());
+  poweredChanged(m_bluetoothDevices->powered());
+  discoverableChanged(m_bluetoothDevices->discoverable());
 }
 
 BluetoothProvider::~BluetoothProvider()
@@ -63,7 +62,7 @@ void BluetoothProvider::subscribe(QSet<QString> keys)
 void BluetoothProvider::unsubscribe(QSet<QString> keys)
 {
   qDebug() << "BluetoothProvider::unsubscribe(" << QStringList(keys.toList()).join(", ") << ")";
-  
+
   m_subscribedProperties.subtract(keys);
 }
 
@@ -75,16 +74,23 @@ void BluetoothProvider::emitSubscribeFinished()
   }
 }
 
-void BluetoothProvider::emitChanged()
+void BluetoothProvider::updateProps()
 {
-  foreach (QString key, m_subscribedProperties) {
-    emit valueChanged(key, QVariant(m_properties[key]));
-  }
+  m_properties[bluetooth_is_enabled] = m_bluetoothDevices->powered();
+  m_properties[bluetooth_is_visible] = m_bluetoothDevices->discoverable();
 }
 
-void BluetoothProvider::connectedChanged(bool)
+void BluetoothProvider::connectedChanged(bool value)
 {
-    m_properties[connected] = m_bluetoothDevices->connected();
-    if (m_subscribedProperties.contains(connected))
-        emitChanged();
+  emit valueChanged(bluetooth_is_connected, value);
+}
+
+void BluetoothProvider::discoverableChanged(bool value)
+{
+  emit valueChanged(bluetooth_is_visible, value);
+}
+
+void BluetoothProvider::poweredChanged(bool value)
+{
+  emit valueChanged(bluetooth_is_enabled, value);
 }
