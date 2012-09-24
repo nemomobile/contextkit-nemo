@@ -1,7 +1,10 @@
 pkg_check_modules(DBUS dbus-1)
 
-set(PROVIDER phone)
-set(CONTEXT phone.context)
+set(PROVIDER ofono)
+set(INTERFACE phone)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${DBUS_INCLUDE_DIRS}
