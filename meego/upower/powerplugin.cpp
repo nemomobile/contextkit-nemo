@@ -16,13 +16,7 @@
 #include <QDBusServiceWatcher>
 #include <MGConfItem>
 
-#define OnBattery "Battery.OnBattery"
-#define ChargePercentage "Battery.ChargePercentage"
-#define LowBattery "Battery.LowBattery"
-#define TimeUntilLow "Battery.TimeUntilLow"
-#define TimeUntilFull "Battery.TimeUntilFull"
-#define IsCharging "Battery.IsCharging"
-#define ChargeBars "Battery.ChargeBars"
+#include <contextkit_props/power.hpp>
 
 //typedef OrgFreedesktopDeviceKitPowerInterface Power;
 
@@ -134,12 +128,12 @@ void DeviceKitProvider::updateProperties()
 {
 	if(!batteryDevice) return;
 
-	Properties[OnBattery] = batteryDevice->state() == 2 || batteryDevice->state() == 3;
-        Properties[ChargePercentage] = (int) batteryDevice->percentage();
-	Properties[LowBattery] = batteryDevice->percentage() < 10;
-	Properties[TimeUntilLow] = batteryDevice->timeToEmpty();
-	Properties[TimeUntilFull] = batteryDevice->timeToFull();
-	Properties[IsCharging] = batteryDevice->state() == 1 || batteryDevice->state() == 4;
+	Properties[power_on_battery] = batteryDevice->state() == 2 || batteryDevice->state() == 3;
+	Properties[power_charge_percent] = (int) batteryDevice->percentage();
+	Properties[power_low_battery] = batteryDevice->percentage() < 10;
+	Properties[power_time_until_low] = batteryDevice->timeToEmpty();
+	Properties[power_time_until_full] = batteryDevice->timeToFull();
+	Properties[power_is_charging] = batteryDevice->state() == 1 || batteryDevice->state() == 4;
 
         MGConfItem *numChargeBars = new MGConfItem("/gconf/meego/apps/contextkit/battery/chargebars");
         qDebug() << "DeviceKitPowerProvider" << "ChargeBars value is" << numChargeBars->value().toInt();
@@ -160,7 +154,7 @@ void DeviceKitProvider::updateProperties()
 
         bars.append(maxBars);
 
-        Properties[ChargeBars] = QVariant(bars);
+        Properties[power_charge_bars] = QVariant(bars);
 
 	foreach(QString key, subscribedProps)
 	{

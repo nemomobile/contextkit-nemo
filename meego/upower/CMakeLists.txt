@@ -3,7 +3,10 @@ pkg_check_modules(MLITE mlite)
 pkg_check_modules(GCONF gconf-2.0)
 
 set(PROVIDER upower)
-set(CONTEXT upower.context)
+set(INTERFACE power)
+
+CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
+CKIT_GENERATE_TEST_MAIN(${INTERFACE} ${PROVIDER})
 
 include_directories(
   ${DBUS_INCLUDE_DIRS}
@@ -41,4 +44,3 @@ TARGET_LINK_LIBRARIES(${PROVIDER}
   )
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
-install(FILES ${CONTEXT} DESTINATION share/contextkit/providers)
