@@ -52,7 +52,7 @@ $0 ~ var_decl {
         if (mode == "main") {
                 printf("    CKitProperty %s_impl(%s, print_%s);\n", parts[1], parts[1], type_name);
         } else {
-                printf("<key name=\"%s\" type=\"%s\"/>\n", prop_name, type_name);
+                printf("<key name=\"%s\"/>\n", prop_name);
         }
 }
 
