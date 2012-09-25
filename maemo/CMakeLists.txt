@@ -1,9 +1,9 @@
 include_directories(
-  ${CMAKE_SOURCE_DIR}/n9-950-plugins/common
+  ${CMAKE_SOURCE_DIR}/maemo/common
 )
 
 link_directories(
-  ${CONTEXTKIT_PLUGINS_BINARY_DIR}/n9-950-plugins/common
+  ${CONTEXTKIT_PLUGINS_BINARY_DIR}/maemo/common
 )
 
 add_subdirectory(common)
@@ -23,7 +23,7 @@ elseif(${PLATFORM} STREQUAL "I586")
   add_subdirectory(bluez)
   add_subdirectory(session)
   add_subdirectory(profile)
-elseif(${PLATFORM} STREQUAL "I586VM")
+elseif(${PLATFORM} STREQUAL "I586_VM")
   add_subdirectory(session)
   add_subdirectory(profile)
 endif(${PLATFORM} STREQUAL "N9_50")

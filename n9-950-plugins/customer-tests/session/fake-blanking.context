@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<provider bus="session" service="org.maemo.fake.provider">
-  <key name="Screen.Blanked">
-    <type>TRUTH</type>
-  </key>
-</provider>
