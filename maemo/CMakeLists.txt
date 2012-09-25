@@ -18,6 +18,7 @@ elseif(${PLATFORM} STREQUAL "NEMO_SHARED")
   add_subdirectory(bluez)
   add_subdirectory(session)
   add_subdirectory(profile)
+  add_subdirectory(mce)
 endif(${PLATFORM} STREQUAL "N9_50")
 
 

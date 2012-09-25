@@ -80,11 +80,6 @@ private:
     void initRadioProvider(const QString& key);
     void stopRadioProvider();
     AsyncDBusInterface* mce;
-    static const QString blankedKey;
-    static const QString powerSaveKey;
-    static const QString offlineModeKey;
-    static const QString internetEnabledKey;
-    static const QString wlanEnabledKey;
 
     QDBusServiceWatcher* serviceWatcher; ///< For watching MCE appear and disappear
     int subscribeCount;
