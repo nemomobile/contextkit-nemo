@@ -3,8 +3,10 @@ cmake_minimum_required(VERSION 2.8)
 
 set(CKIT_INCLUDES "${CMAKE_SOURCE_DIR}/include")
 
-include(${CMAKE_SOURCE_DIR}/cmake/ForVerLT288.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/TestGen.cmake)
+set(CKIT_CMAKE_DIR ${CMAKE_SOURCE_DIR}/cmake)
+include(${CKIT_CMAKE_DIR}/ForVerLT288.cmake)
+include(${CKIT_CMAKE_DIR}/TestGen.cmake)
+include(${CKIT_CMAKE_DIR}/Plugin.cmake)
 
 find_package(Qt4 4.7.0 REQUIRED)
 find_package(PkgConfig)
