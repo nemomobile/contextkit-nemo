@@ -33,11 +33,8 @@ qt4_add_dbus_interface_no_ns(SRC DeviceKit.Power.Device.xml device Device)
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
 
-add_definitions(-DQT_SHARED)
-add_library(${PROVIDER} MODULE ${SRC} ${CSRC} ${MOC_SRC})
-set_target_properties(${PROVIDER} PROPERTIES PREFIX "")
-TARGET_LINK_LIBRARIES(${PROVIDER}
-  ${QT_PLUGIN_LIBRARIES}
+add_ckit_plugin(${PROVIDER} MODULE ${SRC} ${CSRC} ${MOC_SRC})
+target_link_libraries(${PROVIDER}
   ${QT_QTDBUS_LIBRARY}
   ${MLITE_LIBRARIES}
   ${GCONF_LIBRARIES}

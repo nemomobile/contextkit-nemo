@@ -14,14 +14,7 @@ set(HDRS power.hpp)
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
 
-add_definitions(-DQT_SHARED)
-add_library(${PROVIDER} MODULE ${SRC} ${CSRC} ${MOC_SRC})
-set_target_properties(${PROVIDER} PROPERTIES PREFIX "")
-TARGET_LINK_LIBRARIES(${PROVIDER}
-  ${QT_QTCORE_LIBRARY}
-  ${CONTEXTSUBSCRIBER_LIBRARIES}
-  ${CONTEXTPROVIDER_LIBRARIES}
-  rt
-  common)
+add_ckit_plugin(${PROVIDER} ${SRC} ${CSRC} ${MOC_SRC})
+target_link_libraries(${PROVIDER} rt common)
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)
