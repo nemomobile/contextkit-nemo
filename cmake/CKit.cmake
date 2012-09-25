@@ -1,3 +1,10 @@
+MACRO(ADD_CKIT_PLUGIN _name)
+  add_definitions(-DQT_SHARED)
+  add_library(${_name} MODULE ${ARGN})
+  set_target_properties(${_name} PROPERTIES PREFIX "")
+  target_link_libraries(${_name} ${QT_PLUGIN_LIBRARIES})
+ENDMACRO(ADD_CKIT_PLUGIN)
+
 MACRO(CKIT_GENERATE_TEST_MAIN _interface _provider)
   set(_impl test_${_interface}.cpp)
   set(_infile ${CMAKE_SOURCE_DIR}/include/contextkit_props/${_interface}.hpp)
