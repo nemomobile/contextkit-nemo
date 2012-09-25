@@ -1,6 +1,6 @@
 pkg_check_modules(DBUS dbus-1)
 
-set(PROVIDER meego_music)
+set(PROVIDER meego-music)
 set(INTERFACE media)
 
 CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
