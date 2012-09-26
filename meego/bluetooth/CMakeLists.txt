@@ -23,7 +23,7 @@ set(HDRS
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
 
-add_ckit_plugin(${PROVIDER} MODULE ${SRC} ${CSRC} ${MOC_SRC})
+add_ckit_plugin(${PROVIDER} MODULE ${SRC} ${MOC_SRC})
 target_link_libraries(${PROVIDER} ${BTQT_LIBRARIES})
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)

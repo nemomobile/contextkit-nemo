@@ -34,7 +34,7 @@ qt4_add_dbus_interface_cls(SRC ${GYP_IF} gypsy)
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
 
-add_ckit_plugin(${PROVIDER} MODULE ${SRC} ${CSRC} ${MOC_SRC})
+add_ckit_plugin(${PROVIDER} MODULE ${SRC} ${MOC_SRC})
 target_link_libraries(${PROVIDER} ${QT_QTDBUS_LIBRARY} ${MLITE_LIBRARIES})
 
 install(TARGETS ${PROVIDER} DESTINATION lib/contextkit/subscriber-plugins)

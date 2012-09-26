@@ -30,7 +30,7 @@ qt4_add_dbus_interface_no_ns(SRC ${LOC_IF} skyhook LocationSkyHook)
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
 
-add_ckit_plugin(${PROVIDER} MODULE ${SRC} ${CSRC} ${MOC_SRC})
+add_ckit_plugin(${PROVIDER} MODULE ${SRC} ${MOC_SRC})
 target_link_libraries(${PROVIDER}
   ${QT_QTDBUS_LIBRARY}
   ${MLITE_LIBRARIES}

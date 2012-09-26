@@ -26,7 +26,7 @@ set(HDRS
 
 qt4_wrap_cpp(MOC_SRC ${HDRS})
 
-add_ckit_plugin(${PROVIDER} ${SRC} ${CSRC} ${MOC_SRC})
+add_ckit_plugin(${PROVIDER} ${SRC} ${MOC_SRC})
 TARGET_LINK_LIBRARIES(${PROVIDER}
   ${DBUS_LIBRARIES}
   ${MCE_LIBRARIES}
