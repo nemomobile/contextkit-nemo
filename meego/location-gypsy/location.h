@@ -34,7 +34,7 @@ class LocationProvider : public IProviderPlugin
 
 public:
     LocationProvider();
-    virtual ~LocationProvider();
+    virtual ~LocationProvider() {}
 
     virtual void subscribe(QSet<QString> keys);
     virtual void unsubscribe(QSet<QString> keys);
