@@ -32,7 +32,7 @@ ENDMACRO(CKIT_GENERATE_TEST_MAIN)
 
 
 MACRO(CKIT_GENERATE_CONTEXT _interface _provider)
-  set(_impl ${_interface}.context)
+  set(_impl ${_provider}.context)
   set(_infile ${CMAKE_SOURCE_DIR}/include/contextkit_props/${_interface}.hpp)
   set(_awk_path ${CMAKE_SOURCE_DIR}/scripts)
   set(_gen_script ${_awk_path}/gen_props.awk)
