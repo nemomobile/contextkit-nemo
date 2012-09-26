@@ -1,7 +1,7 @@
 pkg_check_modules(DBUS dbus-1)
 pkg_check_modules(MLITE mlite)
 
-set(PROVIDER location_skyhook)
+set(PROVIDER location-skyhook)
 set(INTERFACE location)
 
 CKIT_GENERATE_CONTEXT(${INTERFACE} ${PROVIDER})
