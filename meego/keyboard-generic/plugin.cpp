@@ -93,11 +93,11 @@ static bool isKeyboardAvailable()
 
 KeyboardGeneric::KeyboardGeneric()
 {
-    props[keyboard_is_present] = [&]() {
-        emitChanged(keyboard_is_present, is_kbd_available);
+    props[internal_keyboard_is_present] = [&]() {
+        emitChanged(internal_keyboard_is_present, is_kbd_available);
     };
-    props[keyboard_is_open] = [&]() {
-        emitChanged(keyboard_is_open, is_kbd_available);
+    props[internal_keyboard_is_open] = [&]() {
+        emitChanged(internal_keyboard_is_open, is_kbd_available);
     };
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }

@@ -39,6 +39,7 @@ link_directories(
   ${CONTEXTPROVIDER_LIBRARY_DIRS}
 )
 
+add_subdirectory(include/contextkit_props)
 
 if(${PLATFORM} STREQUAL "N9_50")
   add_subdirectory(maemo)

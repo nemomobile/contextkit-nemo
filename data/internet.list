@@ -1,0 +1,7 @@
+# name:var_name:var_type:comment
+Internet.NetworkType:net_type:string:
+Internet.NetworkState:net_state:string:
+Internet.NetworkName:net_name:string:
+Internet.TrafficIn:traf_in:string:
+Internet.TrafficOut:traf_out:string:
+Internet.SignalStrength:sig_strength:string:

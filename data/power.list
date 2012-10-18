@@ -1,0 +1,8 @@
+# name:var_name:var_type:comment
+Battery.OnBattery:on_battery:bool:
+Battery.LowBattery:low_battery:bool:
+Battery.ChargePercentage:charge_percent:int:
+Battery.ChargeBars:charge_bars:int:
+Battery.TimeUntilLow:time_until_low:ulonglong:
+Battery.TimeUntilFull:time_until_full:ulonglong:
+Battery.IsCharging:is_charging:bool:

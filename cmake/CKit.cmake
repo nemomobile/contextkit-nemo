@@ -5,15 +5,25 @@ MACRO(ADD_CKIT_PLUGIN _name)
   target_link_libraries(${_name} ${QT_PLUGIN_LIBRARIES})
 ENDMACRO(ADD_CKIT_PLUGIN)
 
+
+MACRO(CKIT_GENERATE _target _src _interface _provider _mode)
+  set(_awk_path ${CMAKE_SOURCE_DIR}/scripts)
+  set(_gen_script ${_awk_path}/generator.awk)
+
+  add_custom_command(OUTPUT ${_target}
+    COMMAND gawk -vinterface=${_interface} -vmode=${_mode} -vprovider=${_provider}
+    -f ${_gen_script} ${_src} > ${_target}
+    DEPENDS ${_src} ${_gen_script}
+    )
+ENDMACRO(CKIT_GENERATE)
+
+
 MACRO(CKIT_GENERATE_TEST_MAIN _interface _provider)
   set(_impl test_${_interface}.cpp)
-  set(_infile ${CMAKE_SOURCE_DIR}/include/contextkit_props/${_interface}.hpp)
+  set(_infile ${CMAKE_SOURCE_DIR}/data/${_interface}.list)
   set(_test_name contextkit-test-${_provider})
 
-  add_custom_command(OUTPUT ${_impl}
-    COMMAND gawk -vinterface=${_interface} -vmode=main -f ${_awk_path}/gen_props.awk ${_infile} > ${_impl}
-    DEPENDS ${_infile}
-    )
+  ckit_generate(${_impl} ${_infile} ${_interface} ${_provider} test)
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CKIT_INCLUDES} -Wno-unused-function")
 
@@ -33,18 +43,21 @@ ENDMACRO(CKIT_GENERATE_TEST_MAIN)
 
 MACRO(CKIT_GENERATE_CONTEXT _interface _provider)
   set(_impl ${_provider}.context)
-  set(_infile ${CMAKE_SOURCE_DIR}/include/contextkit_props/${_interface}.hpp)
-  set(_awk_path ${CMAKE_SOURCE_DIR}/scripts)
-  set(_gen_script ${_awk_path}/gen_props.awk)
+  set(_infile ${CMAKE_SOURCE_DIR}/data/${_interface}.list)
 
-  add_custom_command(OUTPUT ${_impl}
-    COMMAND gawk -vinterface=${_interface} -vmode=context -vprovider=${_provider}
-    -f ${_gen_script} ${_infile} > ${_impl}
-    DEPENDS ${_infile} ${_gen_script}
-    )
-
+  ckit_generate(${_impl} ${_infile} ${_interface} ${_provider} xml)
   ADD_CUSTOM_TARGET(${_provider}_properties ALL DEPENDS ${_impl})
 
   install(FILES ${_impl} DESTINATION share/contextkit/providers)
 
 ENDMACRO(CKIT_GENERATE_CONTEXT)
+
+MACRO(CKIT_GENERATE_HEADER _interface)
+  set(_impl ${_interface}.hpp)
+  set(_provider UNKNOWN)
+  set(_infile ${CMAKE_SOURCE_DIR}/data/${_interface}.list)
+
+  ckit_generate(${_impl} ${_infile} ${_interface} ${_provider} header)
+  add_custom_target(${_interface}_header ALL DEPENDS ${_impl})
+
+ENDMACRO(CKIT_GENERATE_HEADER)

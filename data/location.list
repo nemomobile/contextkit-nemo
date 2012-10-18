@@ -1,0 +1,4 @@
+# name:var_name:var_type:comment
+Location.SatPositioningState:sat_pos_state:string:
+Location.Coordinates:coord:list_string:
+Location.Heading:heading:double:

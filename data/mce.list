@@ -1,0 +1,6 @@
+# name:var_name:var_type:comment
+Screen.Blanked:is_screen_blanked:bool:
+System.PowerSaveMode:is_psm:bool:
+System.OfflineMode:is_offline:bool:
+System.InternetEnabled:is_inet_enabled:bool:
+System.WlanEnabled:is_wlan_enabled:bool:

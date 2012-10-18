@@ -1,0 +1,8 @@
+# name:var_name:var_type:comment
+Cellular.SignalStrength:sig_strength:int:
+Cellular.DataTechnology:data_tech:string:
+Cellular.RegistrationStatus:reg_status:int:
+Cellular.Technology:technology:string:
+Cellular.SignalBars:sig_bars:int:
+Cellular.CellName:cell_name:string:
+Cellular.NetworkName:net_name:string:

@@ -1,0 +1,4 @@
+# name:var_name:var_type:comment
+Bluetooth.Enabled:is_enabled:bool:
+Bluetooth.Visible:is_visible:bool:
+Bluetooth.Connected:is_connected:bool:
