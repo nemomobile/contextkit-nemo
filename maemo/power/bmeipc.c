@@ -42,20 +42,21 @@
 
 #define BME_XCHG_FNAME "/tmp/.bmeevt"
 
+#define LOG_PRE "bmeipc: "
 #define LOG_ERR(msg, args...)                   \
     {                                           \
-        perror("msg");                          \
+        perror(LOG_PRE "msg");                  \
         fprintf(stderr, msg, ##args);           \
     } while(0)
 
 #define LOG_WARN(msg, args...) LOG_ERR(msg, ##args)
 
-#define LOG_RC(rc, msg, args...)                            \
-    ({                                                      \
-        perror(msg);                                        \
-        fprintf(stderr, "rc=%d, errno=%d: ", rc, errno);    \
-        fprintf(stderr, msg, ##args);                       \
-        rc;                                                 \
+#define LOG_RC(rc, msg, args...)                                    \
+    ({                                                              \
+        perror(LOG_PRE msg);                                        \
+        fprintf(stderr, LOG_PRE "rc=%d, errno=%d: ", rc, errno);    \
+        fprintf(stderr, LOG_PRE msg, ##args);                       \
+        rc;                                                         \
     })
 
 typedef enum {
