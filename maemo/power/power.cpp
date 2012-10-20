@@ -39,7 +39,7 @@
 
 Q_DECLARE_METATYPE(QSet<QString>);
 
-static const quint64 nanosecs_per_min = (60 * 1000 * 1000LL);
+static const unsigned sec_per_min = (60);
 
 IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 {
@@ -165,9 +165,9 @@ bool BatteryPlugin::readBatteryValues()
     }
 
     propertyCache[power_time_until_full]
-        = (quint64)st[bme_stat_charging_time_left_min] * nanosecs_per_min;
+        = (quint64)st[bme_stat_charging_time_left_min] * sec_per_min;
     propertyCache[power_time_until_low]
-        = (quint64)st[bme_stat_bat_time_left] * nanosecs_per_min;
+        = (quint64)st[bme_stat_bat_time_left] * sec_per_min;
 
     bme_close(sd);
 
