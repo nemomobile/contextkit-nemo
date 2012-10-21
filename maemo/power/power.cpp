@@ -49,8 +49,8 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 namespace ContextSubscriberBattery {
 
 BatteryPlugin::BatteryPlugin()
+    : xchg(bme_xchg_open())
 {
-    xchg = bme_xchg_open();
     if (xchg == BME_XCHG_INVAL) {
         QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection,
                                   Q_ARG(QString, "bme_xchg_open failed"));
@@ -67,6 +67,8 @@ BatteryPlugin::BatteryPlugin()
 
 BatteryPlugin::~BatteryPlugin()
 {
+    if (xchg != BME_XCHG_INVAL)
+        bme_xchg_close(xchg);
 }
 
 /// The provider source of the battery properties is initialised only on the
