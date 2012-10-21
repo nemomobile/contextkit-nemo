@@ -25,7 +25,7 @@ set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -W -Wall -Wextra -Werror -g -O2")
 
 #-Wno-psabi is to remove next g++ warning/note:
 #the mangling of 'va_list' has changed in GCC 4.4
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi -std=c++0x")
 
 include_directories(
   ${QT_INCLUDE_DIR}
