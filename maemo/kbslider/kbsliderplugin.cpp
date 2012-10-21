@@ -143,14 +143,14 @@ out_udev:
     udev_unref(udev);
 }
 
-/// Emits the subscribeFinished or subscribeFailed signal for keyboard_is_present.
+/// Emits the subscribeFinished or subscribeFailed signal for internal_keyboard_is_present.
 void KbSliderPlugin::emitFinishedKbPresent()
 {
     if (kbPresent.isNull())
-        emit subscribeFailed(keyboard_is_present, QString("Cannot read keypad information"));
+        emit subscribeFailed(internal_keyboard_is_present, QString("Cannot read keypad information"));
     else {
-        emit valueChanged(keyboard_is_present, kbPresent);
-        emit subscribeFinished(keyboard_is_present);
+        emit valueChanged(internal_keyboard_is_present, kbPresent);
+        emit subscribeFinished(internal_keyboard_is_present);
     }
 }
 
@@ -165,11 +165,11 @@ void KbSliderPlugin::readSliderStatus()
         // But if the keyboard is not present, it cannot be open. Also stop
         // watching the open/closed status.
         kbOpen = QVariant();
-        unsubscribe(QSet<QString>() << keyboard_is_open);
+        unsubscribe(QSet<QString>() << internal_keyboard_is_open);
     }
 
-    emit valueChanged(keyboard_is_open, kbOpen);
-    emit subscribeFinished(keyboard_is_open);
+    emit valueChanged(internal_keyboard_is_open, kbOpen);
+    emit subscribeFinished(internal_keyboard_is_open);
 }
 
 void KbSliderPlugin::onSliderEvent()
@@ -180,7 +180,7 @@ void KbSliderPlugin::onSliderEvent()
     size_t rd = read(eventFd, &event, sizeof(event));
     if (rd == sizeof(event) && event.type == EV_SW && event.code == SW_KEYPAD_SLIDE) {
         kbOpen = (event.value == 0);
-        emit valueChanged(keyboard_is_open, kbOpen);
+        emit valueChanged(internal_keyboard_is_open, kbOpen);
     }
 }
 
@@ -191,14 +191,14 @@ void KbSliderPlugin::subscribe(QSet<QString> keys)
     // context properties.
     QMetaObject::invokeMethod(this, "readKbPresent", Qt::QueuedConnection);
 
-    if (keys.contains(keyboard_is_present)) {
+    if (keys.contains(internal_keyboard_is_present)) {
         QMetaObject::invokeMethod(this, "emitFinishedKbPresent", Qt::QueuedConnection);
     }
-    if (keys.contains(keyboard_is_open)) {
+    if (keys.contains(internal_keyboard_is_open)) {
         // Start polling the event file
         eventFd = open(GPIO_FILE, O_RDONLY);
         if (eventFd < 0) {
-            emit subscribeFailed(keyboard_is_open, "Cannot open " GPIO_FILE);
+            emit subscribeFailed(internal_keyboard_is_open, "Cannot open " GPIO_FILE);
             return;
         }
         sn = new QSocketNotifier(eventFd, QSocketNotifier::Read, this);
@@ -213,7 +213,7 @@ void KbSliderPlugin::subscribe(QSet<QString> keys)
 /// Implementation of the IPropertyProvider::unsubscribe.
 void KbSliderPlugin::unsubscribe(QSet<QString> keys)
 {
-    if (keys.contains(keyboard_is_open)) {
+    if (keys.contains(internal_keyboard_is_open)) {
         // stop the listening activities
         delete sn;
         sn = 0;
@@ -231,10 +231,10 @@ void KbSliderPlugin::blockUntilReady()
 void KbSliderPlugin::blockUntilSubscribed(const QString& key)
 {
     readKbPresent(); // this won't read if it's done already
-    if (key == keyboard_is_present) {
+    if (key == internal_keyboard_is_present) {
         emitFinishedKbPresent();
     }
-    else if (key == keyboard_is_open) {
+    else if (key == internal_keyboard_is_open) {
         readSliderStatus(); // this will emit valueChanged and subscribeFinished
     }
 }
