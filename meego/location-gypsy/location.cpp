@@ -19,6 +19,9 @@
 
 #include <contextkit_props/location.hpp>
 
+namespace ckit = contextkit::location;
+
+
 const QString LocationProvider::gypsyService("org.freedesktop.Gypsy");
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
@@ -43,10 +46,10 @@ void LocationProvider::subscribe(QSet<QString> keys)
 
 	subscribedProps.unite(keys);
 
-	if (subscribedProps.contains(location_coord)) {
+	if (subscribedProps.contains(ckit::coord)) {
 	  getCoordinates();
 	}
-	if (subscribedProps.contains(location_heading)) {
+	if (subscribedProps.contains(ckit::heading)) {
 	  getHeading();
 	}
 
@@ -125,9 +128,9 @@ void LocationProvider::updateProperties()
 	qDebug()<<" connected? "<<isConnected<<" fix status: "<<fixStatus;
 
 	if(!isConnected)
-		Properties[location_sat_pos_state] = "off";
+		Properties[ckit::sat_pos_state] = "off";
 	else
-		Properties[location_sat_pos_state] = fixStatus == 1 ? "searching":"on";
+		Properties[ckit::sat_pos_state] = fixStatus == 1 ? "searching":"on";
 
 	foreach(QString key, subscribedProps)
 	{
@@ -199,7 +202,7 @@ void LocationProvider::positionChanged(int fields, int timestamp, double latitud
     coords.append(QVariant(latitude));
     coords.append(QVariant(longitude));
     coords.append(QVariant(altitude));
-    updateProperty(location_coord, coords);
+    updateProperty(ckit::coord, coords);
 }
 
 void LocationProvider::courseChanged(int fields, int timestamp, double speed, double direction, double climb)
@@ -211,7 +214,7 @@ void LocationProvider::courseChanged(int fields, int timestamp, double speed, do
 	     << "\tspeed:" << speed << endl
 	     << "\tdirection:" << direction << endl
 	     << "\tclimb:" << climb << endl;
-    updateProperty(location_heading, direction);
+    updateProperty(ckit::heading, direction);
 }
 
 

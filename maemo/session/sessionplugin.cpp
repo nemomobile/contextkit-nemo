@@ -39,6 +39,8 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberSessionState {
 
+namespace ckit = contextkit::session;
+
 /// Typedef for Xlib error handling functions
 typedef int (*xerrfunc)(Display*, XErrorEvent*);
 
@@ -54,7 +56,7 @@ int onXError(Display*, XErrorEvent*)
 /// is done, the "ready" signal is scheduled to be emitted (we cannot
 /// emit it in the constructor).
 SessionStatePlugin::SessionStatePlugin()
-    : sessionStateKey(session_state),
+    : sessionStateKey(ckit::state),
       fullscreen(false),
       screenBlanked("Screen.Blanked")
 {

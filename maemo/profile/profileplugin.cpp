@@ -59,6 +59,8 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberProfile {
 
+namespace ckit = contextkit::profile;
+
 ProfilePlugin::ProfilePlugin()
     : interface(0), callWatcher(0), serviceWatcher(0)
 {
@@ -84,7 +86,7 @@ void ProfilePlugin::getProfileCallFinishedSlot(QDBusPendingCallWatcher *call)
         }
     } else {
         activeProfile = reply.argumentAt<0>();
-        Q_EMIT subscribeFinished(profile_name, QVariant(activeProfile));
+        Q_EMIT subscribeFinished(ckit::name, QVariant(activeProfile));
     }
     if (call == callWatcher)
         callWatcher = 0;
@@ -95,7 +97,7 @@ void ProfilePlugin::profileChanged(bool changed, bool active, QString profile, Q
 {
     if (changed && active) {
         activeProfile = profile;
-        Q_EMIT valueChanged(profile_name, activeProfile);
+        Q_EMIT valueChanged(ckit::name, activeProfile);
     }
 }
 

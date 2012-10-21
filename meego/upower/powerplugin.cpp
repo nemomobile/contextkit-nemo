@@ -18,7 +18,7 @@
 
 #include <contextkit_props/power.hpp>
 
-//typedef OrgFreedesktopDeviceKitPowerInterface Power;
+namespace ckit = contextkit::power;
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
@@ -128,12 +128,12 @@ void DeviceKitProvider::updateProperties()
 {
 	if(!batteryDevice) return;
 
-	Properties[power_on_battery] = batteryDevice->state() == 2 || batteryDevice->state() == 3;
-	Properties[power_charge_percent] = (int) batteryDevice->percentage();
-	Properties[power_low_battery] = batteryDevice->percentage() < 10;
-	Properties[power_time_until_low] = batteryDevice->timeToEmpty();
-	Properties[power_time_until_full] = batteryDevice->timeToFull();
-	Properties[power_is_charging] = batteryDevice->state() == 1 || batteryDevice->state() == 4;
+	Properties[ckit::on_battery] = batteryDevice->state() == 2 || batteryDevice->state() == 3;
+	Properties[ckit::charge_percent] = (int) batteryDevice->percentage();
+	Properties[ckit::low_battery] = batteryDevice->percentage() < 10;
+	Properties[ckit::time_until_low] = batteryDevice->timeToEmpty();
+	Properties[ckit::time_until_full] = batteryDevice->timeToFull();
+	Properties[ckit::is_charging] = batteryDevice->state() == 1 || batteryDevice->state() == 4;
 
         MGConfItem *numChargeBars = new MGConfItem("/gconf/meego/apps/contextkit/battery/chargebars");
         qDebug() << "DeviceKitPowerProvider" << "ChargeBars value is" << numChargeBars->value().toInt();
@@ -154,7 +154,7 @@ void DeviceKitProvider::updateProperties()
 
         bars.append(maxBars);
 
-        Properties[power_charge_bars] = QVariant(bars);
+        Properties[ckit::charge_bars] = QVariant(bars);
 
 	foreach(QString key, subscribedProps)
 	{

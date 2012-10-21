@@ -19,6 +19,8 @@
 
 #include <contextkit_props/location.hpp>
 
+namespace ckit = contextkit::location;
+
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
 	Q_UNUSED(constructionString)
@@ -119,8 +121,8 @@ void LocationProvider::locationChanged(double latitude, double longitude, double
     coords.append(QVariant(latitude));
     coords.append(QVariant(longitude));
     coords.append(QVariant(altitude));
-    updateProperty(location_coord, coords);
-    updateProperty(location_heading, bearing);
+    updateProperty(ckit::coord, coords);
+    updateProperty(ckit::heading, bearing);
 }
 
 void LocationProvider::satellitesChanged(QList<int> prns, QList<int> snrs, QList<int> elevations, QList<int> azimuths, QList<bool> inuse)
@@ -142,5 +144,5 @@ void LocationProvider::satellitesChanged(QList<int> prns, QList<int> snrs, QList
 
   QString state = (satelliteOn ? "on" : "off" ); //what is valid for searching?
 
-    updateProperty(location_sat_pos_state, state);
+    updateProperty(ckit::sat_pos_state, state);
 }

@@ -17,6 +17,8 @@
 
 #include <contextkit_props/phone.hpp>
 
+namespace ckit = contextkit::phone;
+
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
 	Q_UNUSED(constructionString)
@@ -137,7 +139,7 @@ void PhoneProvider::updateProperty(const QString &key, const QDBusVariant &val)
 
 	if(key == "Muted")
 	{
-        	props[phone_is_muted] = val.variant();
+        	props[ckit::is_muted] = val.variant();
 	}
 	foreach(QString key, subscribedProps)
 	{
@@ -163,13 +165,13 @@ void PhoneProvider::updateCall()
 			if(prevActiveCall->path() != prevActiveCall->path())
 			{
 				qDebug()<<"Assigning Active";	
-				props[phone_call] = QVariant("active");
+				props[ckit::call] = QVariant("active");
 			}
 
 		}else {
 			// call is in active state
 			qDebug()<<"Assigning Active";	
-			props[phone_call] = QVariant("active");
+			props[ckit::call] = QVariant("active");
 		}
 	} else {
         	uint prevRingingCalls = m_currCalls+m_currMpartyCalls;
@@ -179,9 +181,9 @@ void PhoneProvider::updateCall()
 		qDebug()<<"updateCall: prevRingingCalls:"<<prevRingingCalls;
 		qDebug()<<"updateCall: currCalls:"<<m_currCalls;
 		if (prevRingingCalls < (m_currCalls+m_currMpartyCalls))
-			props[phone_call] = QVariant("ringing");
+			props[ckit::call] = QVariant("ringing");
 		else if (prevRingingCalls > (m_currCalls+m_currMpartyCalls))
-                        props[phone_call] = QVariant("disconnected");
+                        props[ckit::call] = QVariant("disconnected");
 	}
 	foreach(QString key, subscribedProps)
 	{
@@ -195,7 +197,7 @@ void PhoneProvider::updateProperties()
 	if(!volumeProps ) return;
 
 	QVariantMap newProps = volumeProps->GetProperties();
-	props[phone_is_muted] = newProps["Muted"];
+	props[ckit::is_muted] = newProps["Muted"];
 
 	if(!callProps ) return;
 
@@ -203,7 +205,7 @@ void PhoneProvider::updateProperties()
 	m_currActiveCall = callProps->activeCall();
 	if (prevActiveCall && m_currActiveCall){
 		if (prevActiveCall->path() != m_currActiveCall->path() )
-			props[phone_call] = QVariant("active");
+			props[ckit::call] = QVariant("active");
         }
 	else {
 		qDebug()<<"updateProperties activecall is null";	
@@ -213,9 +215,9 @@ void PhoneProvider::updateProperties()
 		qDebug()<<"ups: prevRingingCalls:"<<prevRingingCalls;
 		qDebug()<<"ups: currRingingCalls:"<<m_currCalls;
 		if (prevRingingCalls < (m_currCalls+m_currMpartyCalls))
-			props[phone_call] = QVariant("ringing");
+			props[ckit::call] = QVariant("ringing");
 		else if (prevRingingCalls > (m_currCalls+m_currMpartyCalls))
-                        props[phone_call] = QVariant("disconnected");
+                        props[ckit::call] = QVariant("disconnected");
 	}
 
 	foreach(QString key, subscribedProps)

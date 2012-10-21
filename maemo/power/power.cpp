@@ -37,6 +37,8 @@
 #include <QSet>
 #include <QtDebug>
 
+namespace ckit = contextkit::power;
+
 Q_DECLARE_METATYPE(QSet<QString>);
 
 static const unsigned sec_per_min = (60);
@@ -146,29 +148,29 @@ bool BatteryPlugin::readBatteryValues()
         return false;
     }
 
-    propertyCache[power_is_charging]
+    propertyCache[ckit::is_charging]
         = (st[bme_stat_charger_state] == bme_charging_state_started
            && st[bme_stat_bat_state] != bme_bat_state_full);
 
-    propertyCache[power_on_battery]
+    propertyCache[ckit::on_battery]
         = (st[bme_stat_charger_state] != bme_charger_state_connected);
-    propertyCache[power_low_battery]
+    propertyCache[ckit::low_battery]
         = (st[bme_stat_bat_state] == bme_bat_state_low);
 
-    propertyCache[power_charge_percent] = st[bme_stat_bat_pct_remain];
+    propertyCache[ckit::charge_percent] = st[bme_stat_bat_pct_remain];
 
     if (st[bme_stat_bat_units_max] != 0) {
         QList<QVariant> list;
         list << QVariant(st[bme_stat_bat_units_now])
              << QVariant(st[bme_stat_bat_units_max]);
-        propertyCache[power_charge_bars] = list;
+        propertyCache[ckit::charge_bars] = list;
     } else {
-        propertyCache[power_charge_bars] = QVariant();
+        propertyCache[ckit::charge_bars] = QVariant();
     }
 
-    propertyCache[power_time_until_full]
+    propertyCache[ckit::time_until_full]
         = (quint64)st[bme_stat_charging_time_left_min] * sec_per_min;
-    propertyCache[power_time_until_low]
+    propertyCache[ckit::time_until_low]
         = (quint64)st[bme_stat_bat_time_left] * sec_per_min;
 
     bme_close(sd);

@@ -43,6 +43,8 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberBluez {
 
+namespace ckit = contextkit::bluetooth;
+
 const QString BluezPlugin::serviceName = "org.bluez";
 const QString BluezPlugin::managerPath = "/";
 const QString BluezPlugin::managerInterface = "org.bluez.Manager";
@@ -54,9 +56,9 @@ BluezPlugin::BluezPlugin()
       defaultAdapterWatcher(0), getPropertiesWatcher(0)
 {
     // Create a mapping from Bluez properties to Context Properties
-    properties["Powered"] = bluetooth_is_enabled;
-    properties["Discoverable"] = bluetooth_is_visible;
-    propertyCache[bluetooth_is_connected] = false;
+    properties["Powered"] = ckit::is_enabled;
+    properties["Discoverable"] = ckit::is_visible;
+    propertyCache[ckit::is_connected] = false;
 
     // We're ready to take in subscriptions right away; we'll connect to bluez
     // when we get subscriptions.
@@ -138,28 +140,28 @@ void BluezPlugin::connectToBluez()
 
 void BluezPlugin::evalConnected() {
 
-    propertyCache[bluetooth_is_connected] = false;
+    propertyCache[ckit::is_connected] = false;
 
     Q_FOREACH (BluezDevice* device, devicesList) {
         if (device->isConnected()) {
-            propertyCache[bluetooth_is_connected] = true;
+            propertyCache[ckit::is_connected] = true;
             break;
         }
     }
 
-    Q_EMIT valueChanged(bluetooth_is_connected, propertyCache[bluetooth_is_connected]);
+    Q_EMIT valueChanged(ckit::is_connected, propertyCache[ckit::is_connected]);
 }
 
 void BluezPlugin::onConnectionStateChanged(bool status)
 {
-    if (propertyCache[bluetooth_is_connected].toBool() && !status) {
+    if (propertyCache[ckit::is_connected].toBool() && !status) {
         evalConnected();
     }
 
-    if (!propertyCache[bluetooth_is_connected].toBool() && status) {
-        propertyCache[bluetooth_is_connected] = status;
-        Q_EMIT valueChanged(bluetooth_is_connected,
-                            propertyCache[bluetooth_is_connected]);
+    if (!propertyCache[ckit::is_connected].toBool() && status) {
+        propertyCache[ckit::is_connected] = status;
+        Q_EMIT valueChanged(ckit::is_connected,
+                            propertyCache[ckit::is_connected]);
     }
 }
 

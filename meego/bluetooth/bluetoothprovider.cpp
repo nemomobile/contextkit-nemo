@@ -15,6 +15,8 @@
 #include <QVariant>
 #include <contextkit_props/bluetooth.hpp>
 
+namespace ckit = contextkit::bluetooth;
+
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
     Q_UNUSED(constructionString)
@@ -76,21 +78,21 @@ void BluetoothProvider::emitSubscribeFinished()
 
 void BluetoothProvider::updateProps()
 {
-  m_properties[bluetooth_is_enabled] = m_bluetoothDevices->powered();
-  m_properties[bluetooth_is_visible] = m_bluetoothDevices->discoverable();
+  m_properties[ckit::is_enabled] = m_bluetoothDevices->powered();
+  m_properties[ckit::is_visible] = m_bluetoothDevices->discoverable();
 }
 
 void BluetoothProvider::connectedChanged(bool value)
 {
-  emit valueChanged(bluetooth_is_connected, value);
+  emit valueChanged(ckit::is_connected, value);
 }
 
 void BluetoothProvider::discoverableChanged(bool value)
 {
-  emit valueChanged(bluetooth_is_visible, value);
+  emit valueChanged(ckit::is_visible, value);
 }
 
 void BluetoothProvider::poweredChanged(bool value)
 {
-  emit valueChanged(bluetooth_is_enabled, value);
+  emit valueChanged(ckit::is_enabled, value);
 }

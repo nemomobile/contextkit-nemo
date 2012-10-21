@@ -19,6 +19,8 @@
 
 #include <contextkit_props/media.hpp>
 
+namespace ckit = contextkit::media;
+
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
 	Q_UNUSED(constructionString)
@@ -41,8 +43,8 @@ MediaProvider::MediaProvider()
         qRegisterMetaType<QVariant>("QVariant");
 
         QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
-                      Q_ARG(QString, media_now_playing),
-                      Q_ARG(QVariant, m_properties[media_now_playing]));
+                      Q_ARG(QString, ckit::now_playing),
+                      Q_ARG(QVariant, m_properties[ckit::now_playing]));
 }
 
 MediaProvider::~MediaProvider()
@@ -108,7 +110,7 @@ void MediaProvider::getCurrentTrackMetadata()
         metadata["state"] = "fastforward";
     else if(musicPlayer->getPlaybackState().value() == 5)
         metadata["state"] = "rewind"; */
-    m_properties[media_now_playing] = metadata;
-    if (m_subscribedProperties.contains(media_now_playing))
+    m_properties[ckit::now_playing] = metadata;
+    if (m_subscribedProperties.contains(ckit::now_playing))
         emitChanged();
 }

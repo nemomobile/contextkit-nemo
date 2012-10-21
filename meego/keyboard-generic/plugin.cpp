@@ -40,6 +40,8 @@ IProviderPlugin* pluginFactory(const QString&)
 namespace ContextKitNemo
 {
 
+namespace ckit = contextkit::internal_keyboard;
+
 static bool isKeyboardDevice(cor::udev::Device const &dev)
 {
     QString key(dev.attr("capabilities/key"));
@@ -93,11 +95,11 @@ static bool isKeyboardAvailable()
 
 KeyboardGeneric::KeyboardGeneric()
 {
-    props[internal_keyboard_is_present] = [&]() {
-        emitChanged(internal_keyboard_is_present, is_kbd_available);
+    props[ckit::is_present] = [&]() {
+        emitChanged(ckit::is_present, is_kbd_available);
     };
-    props[internal_keyboard_is_open] = [&]() {
-        emitChanged(internal_keyboard_is_open, is_kbd_available);
+    props[ckit::is_open] = [&]() {
+        emitChanged(ckit::is_open, is_kbd_available);
     };
     QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }

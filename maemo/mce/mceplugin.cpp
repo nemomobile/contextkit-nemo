@@ -45,6 +45,8 @@ IProviderPlugin* pluginFactory(const QString& /*constructionString*/)
 
 namespace ContextSubscriberMCE {
 
+namespace ckit = contextkit::mce;
+
 #define MCE_PLUGIN_BUS QDBusConnection::systemBus()
 
 MCEPlugin::MCEPlugin() : mce(0), serviceWatcher(0), subscribeCount(0)
@@ -91,16 +93,16 @@ void MCEPlugin::getDisplayStatusFinished(QDBusPendingCallWatcher* pcw)
             Q_EMIT failed("Provider not present: mce");
         }
         else
-            Q_EMIT subscribeFailed(mce_is_screen_blanked, reply.error().message());
+            Q_EMIT subscribeFailed(ckit::is_screen_blanked, reply.error().message());
     }
     else {
         bool blanked = (reply.argumentAt<0>() == "off");
         // emitting valueChanged is needed since subscribeFinished is queued,
         // and we might need a value immediately (if we blockUntilSubscribed).
-        Q_EMIT valueChanged(mce_is_screen_blanked, QVariant(blanked));
-        Q_EMIT subscribeFinished(mce_is_screen_blanked);
+        Q_EMIT valueChanged(ckit::is_screen_blanked, QVariant(blanked));
+        Q_EMIT subscribeFinished(ckit::is_screen_blanked);
     }
-    pendingCallWatchers.remove(mce_is_screen_blanked);
+    pendingCallWatchers.remove(ckit::is_screen_blanked);
     pcw->deleteLater();
 }
 
@@ -116,16 +118,16 @@ void MCEPlugin::getPowerSaveFinished(QDBusPendingCallWatcher* pcw)
             Q_EMIT failed("Provider not present: mce");
         }
         else
-            Q_EMIT subscribeFailed(mce_is_psm, reply.error().message());
+            Q_EMIT subscribeFailed(ckit::is_psm, reply.error().message());
     }
     else {
         bool on = reply.argumentAt<0>();
         // emitting valueChanged is needed since subscribeFinished is queued,
         // and we might need a value immediately (if we blockUntilSubscribed).
-        Q_EMIT valueChanged(mce_is_psm, QVariant(on));
-        Q_EMIT subscribeFinished(mce_is_psm);
+        Q_EMIT valueChanged(ckit::is_psm, QVariant(on));
+        Q_EMIT subscribeFinished(ckit::is_psm);
     }
-    pendingCallWatchers.remove(mce_is_psm);
+    pendingCallWatchers.remove(ckit::is_psm);
     pcw->deleteLater();
 }
 
@@ -141,9 +143,9 @@ void MCEPlugin::getOfflineModeFinished(QDBusPendingCallWatcher* pcw)
             Q_EMIT failed("Provider not present: mce");
         }
         else {
-            Q_EMIT subscribeFailed(mce_is_offline, reply.error().message());
-            Q_EMIT subscribeFailed(mce_is_inet_enabled, reply.error().message());
-	    Q_EMIT subscribeFailed(mce_is_wlan_enabled, reply.error().message());
+            Q_EMIT subscribeFailed(ckit::is_offline, reply.error().message());
+            Q_EMIT subscribeFailed(ckit::is_inet_enabled, reply.error().message());
+	    Q_EMIT subscribeFailed(ckit::is_wlan_enabled, reply.error().message());
 	}
     }
     else {
@@ -153,19 +155,19 @@ void MCEPlugin::getOfflineModeFinished(QDBusPendingCallWatcher* pcw)
 
         // emitting valueChanged is needed since subscribeFinished is queued,
         // and we might need a value immediately (if we blockUntilSubscribed).
-	if (pendingCallWatchers.contains(mce_is_offline)) {
-	    Q_EMIT valueChanged(mce_is_offline, QVariant(offline));
-	    Q_EMIT subscribeFinished(mce_is_offline);
+	if (pendingCallWatchers.contains(ckit::is_offline)) {
+	    Q_EMIT valueChanged(ckit::is_offline, QVariant(offline));
+	    Q_EMIT subscribeFinished(ckit::is_offline);
 	}
 
-	if (pendingCallWatchers.contains(mce_is_inet_enabled)) {
-	    Q_EMIT valueChanged(mce_is_inet_enabled, QVariant(internet));
-	    Q_EMIT subscribeFinished(mce_is_inet_enabled);
+	if (pendingCallWatchers.contains(ckit::is_inet_enabled)) {
+	    Q_EMIT valueChanged(ckit::is_inet_enabled, QVariant(internet));
+	    Q_EMIT subscribeFinished(ckit::is_inet_enabled);
 	}
 
-	if (pendingCallWatchers.contains(mce_is_wlan_enabled)) {
-	    Q_EMIT valueChanged(mce_is_wlan_enabled, QVariant(wlan));
-	    Q_EMIT subscribeFinished(mce_is_wlan_enabled);
+	if (pendingCallWatchers.contains(ckit::is_wlan_enabled)) {
+	    Q_EMIT valueChanged(ckit::is_wlan_enabled, QVariant(wlan));
+	    Q_EMIT subscribeFinished(ckit::is_wlan_enabled);
 	}
     }
 
@@ -177,13 +179,13 @@ void MCEPlugin::getOfflineModeFinished(QDBusPendingCallWatcher* pcw)
 void MCEPlugin::onDisplayStateChanged(QString state)
 {
     bool blanked = (state == "off");
-    Q_EMIT valueChanged(mce_is_screen_blanked, QVariant(blanked));
+    Q_EMIT valueChanged(ckit::is_screen_blanked, QVariant(blanked));
 }
 
 /// Connected to the D-Bus signal from MCE.
 void MCEPlugin::onPowerSaveChanged(bool on)
 {
-    Q_EMIT valueChanged(mce_is_psm, QVariant(on));
+    Q_EMIT valueChanged(ckit::is_psm, QVariant(on));
 }
 
 /// Connected to the D-Bus signal from MCE.
@@ -194,14 +196,14 @@ void MCEPlugin::onOfflineModeChanged(uint state)
     bool wlan = state & MCE_RADIO_STATE_WLAN;
     bool internet = state & MCE_RADIO_STATE_MASTER;
 
-    if (subscribedRadioProperties.contains(mce_is_offline))
-	Q_EMIT valueChanged(mce_is_offline, QVariant(offline));
+    if (subscribedRadioProperties.contains(ckit::is_offline))
+	Q_EMIT valueChanged(ckit::is_offline, QVariant(offline));
 
-    if (subscribedRadioProperties.contains(mce_is_inet_enabled))
-	Q_EMIT valueChanged(mce_is_inet_enabled, QVariant(internet));
+    if (subscribedRadioProperties.contains(ckit::is_inet_enabled))
+	Q_EMIT valueChanged(ckit::is_inet_enabled, QVariant(internet));
 
-    if (subscribedRadioProperties.contains(mce_is_wlan_enabled))
-	Q_EMIT valueChanged(mce_is_wlan_enabled, QVariant(wlan));
+    if (subscribedRadioProperties.contains(ckit::is_wlan_enabled))
+	Q_EMIT valueChanged(ckit::is_wlan_enabled, QVariant(wlan));
 }
 
 /// Implementation of the IPropertyProvider::subscribe.
@@ -210,7 +212,7 @@ void MCEPlugin::subscribe(QSet<QString> keys)
     // ensure the connection; it's safe to call this multiple times
     connectToMce();
 
-    if (keys.contains(mce_is_screen_blanked)) {
+    if (keys.contains(ckit::is_screen_blanked)) {
         MCE_PLUGIN_BUS.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
                               MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
                               this, SLOT(onDisplayStateChanged(QString)));
@@ -219,11 +221,11 @@ void MCEPlugin::subscribe(QSet<QString> keys)
             mce->asyncCall(MCE_DISPLAY_STATUS_GET));
         sconnect(pcw, SIGNAL(finished(QDBusPendingCallWatcher*)),
                  this, SLOT(getDisplayStatusFinished(QDBusPendingCallWatcher*)));
-        pendingCallWatchers.insert(mce_is_screen_blanked, pcw);
+        pendingCallWatchers.insert(ckit::is_screen_blanked, pcw);
 
         ++subscribeCount;
     }
-    if (keys.contains(mce_is_psm)) {
+    if (keys.contains(ckit::is_psm)) {
         MCE_PLUGIN_BUS.connect(MCE_SERVICE, MCE_SIGNAL_PATH,
                               MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
                               this, SLOT(onPowerSaveChanged(bool)));
@@ -233,26 +235,26 @@ void MCEPlugin::subscribe(QSet<QString> keys)
             mce->asyncCall(MCE_PSM_STATE_GET));
         sconnect(pcw, SIGNAL(finished(QDBusPendingCallWatcher*)),
                  this, SLOT(getPowerSaveFinished(QDBusPendingCallWatcher*)));
-        pendingCallWatchers.insert(mce_is_psm, pcw);
+        pendingCallWatchers.insert(ckit::is_psm, pcw);
 
         ++subscribeCount;
     }
 
-    if (keys.contains(mce_is_offline)) {
-	initRadioProvider(mce_is_offline);
-	subscribedRadioProperties.insert(mce_is_offline);
+    if (keys.contains(ckit::is_offline)) {
+	initRadioProvider(ckit::is_offline);
+	subscribedRadioProperties.insert(ckit::is_offline);
 	++subscribeCount;
     }
 
-    if (keys.contains(mce_is_inet_enabled)) {
-	initRadioProvider(mce_is_inet_enabled);
-	subscribedRadioProperties.insert(mce_is_inet_enabled);
+    if (keys.contains(ckit::is_inet_enabled)) {
+	initRadioProvider(ckit::is_inet_enabled);
+	subscribedRadioProperties.insert(ckit::is_inet_enabled);
 	++subscribeCount;
     }
 
-    if (keys.contains(mce_is_wlan_enabled)) {
-	initRadioProvider(mce_is_wlan_enabled);
-	subscribedRadioProperties.insert(mce_is_wlan_enabled);
+    if (keys.contains(ckit::is_wlan_enabled)) {
+	initRadioProvider(ckit::is_wlan_enabled);
+	subscribedRadioProperties.insert(ckit::is_wlan_enabled);
 	++subscribeCount;
     }
 }
@@ -279,33 +281,33 @@ void MCEPlugin::unsubscribe(QSet<QString> keys)
 {
     // The Subscribe call can still be in progress.  In that case we'll emit
     // subscribeFinished later, and the upper layer should just deal with it.
-    if (keys.contains(mce_is_screen_blanked)) {
+    if (keys.contains(ckit::is_screen_blanked)) {
         MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                                  MCE_SIGNAL_IF, MCE_DISPLAY_SIG,
                                  this, SLOT(onDisplayStateChanged(QString)));
         --subscribeCount;
     }
-    if (keys.contains(mce_is_psm)) {
+    if (keys.contains(ckit::is_psm)) {
         MCE_PLUGIN_BUS.disconnect(MCE_SERVICE, MCE_SIGNAL_PATH,
                                  MCE_SIGNAL_IF, MCE_PSM_STATE_SIG,
                                  this, SLOT(onPowerSaveChanged(bool)));
         --subscribeCount;
     }
 
-    if (keys.contains(mce_is_offline)) {
-	subscribedRadioProperties.remove(mce_is_offline);
+    if (keys.contains(ckit::is_offline)) {
+	subscribedRadioProperties.remove(ckit::is_offline);
         stopRadioProvider();
         --subscribeCount;
     }
 
-    if (keys.contains(mce_is_inet_enabled)) {
-	subscribedRadioProperties.remove(mce_is_inet_enabled);
+    if (keys.contains(ckit::is_inet_enabled)) {
+	subscribedRadioProperties.remove(ckit::is_inet_enabled);
         stopRadioProvider();
         --subscribeCount;
     }
 
-    if (keys.contains(mce_is_wlan_enabled)) {
-	subscribedRadioProperties.remove(mce_is_wlan_enabled);
+    if (keys.contains(ckit::is_wlan_enabled)) {
+	subscribedRadioProperties.remove(ckit::is_wlan_enabled);
         stopRadioProvider();
         --subscribeCount;
     }
