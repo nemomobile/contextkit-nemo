@@ -100,7 +100,7 @@ void DeviceKitProvider::getBattery(QString)
 
 		qDebug()<<"Power device type: "<< devicetype;
 
-		if(devicetype == 2)
+		if(devicetype == 2 && device->energyFull() > 0 && device->voltage() > 0)
 		{
 			batteryDevice = device;
 			connect(batteryDevice,SIGNAL(Changed()),this,SLOT(updateProperties()));
