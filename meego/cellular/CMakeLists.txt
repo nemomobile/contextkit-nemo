@@ -30,7 +30,7 @@ set_source_files_properties(${MGR_IF} ${NET_IF} ${SIM_IF}
   PROPERTIES INCLUDE common.h
   )
 
-qt4_add_dbus_interface_no_ns(SRC ${MGR_IF} manager Manager)
+qt4_add_dbus_interface_no_ns(SRC ${MGR_IF} manager OFonoConnectionManager)
 qt4_add_dbus_interface_no_ns(SRC ${NET_IF} ofono NetworkProperties)
 qt4_add_dbus_interface_no_ns(SRC ${SIM_IF} sim SimProperties)
 
