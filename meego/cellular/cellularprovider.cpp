@@ -59,7 +59,7 @@ void CellularProvider::initProvider()
 
 	qDebug() << "CellularProvider" << "First subscriber appeared, connecting to ofono";
 	
-	 managerProxy = new Manager("org.ofono", "/", QDBusConnection::systemBus());
+	 managerProxy = new OFonoConnectionManager("org.ofono", "/", QDBusConnection::systemBus());
 
 	reply = managerProxy->GetModems();
 	QDBusPendingCallWatcher watcher(reply);

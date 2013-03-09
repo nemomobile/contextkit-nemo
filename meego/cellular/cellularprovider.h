@@ -69,7 +69,7 @@ private slots:
 
 
 private:
-	Manager *managerProxy;
+	OFonoConnectionManager *managerProxy;
 	QString activeModem;
 	QMap<QString,QVariant> properties;
 	QSet<QString> subscribedProperties;
