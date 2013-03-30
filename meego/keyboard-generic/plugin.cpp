@@ -94,6 +94,7 @@ static bool isKeyboardAvailable()
 }
 
 KeyboardGeneric::KeyboardGeneric()
+    : is_setup(false), is_kbd_available(false)
 {
     props[ckit::is_present] = [&]() {
         emitChanged(ckit::is_present, is_kbd_available);
