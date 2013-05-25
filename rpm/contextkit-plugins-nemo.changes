@@ -1,0 +1,21 @@
+* Sat Mar 30 2013 John Brooks <john.brooks@dereferenced.net> - 0.7.40
+- keyboard-generic: Fix uninitialized values causing incorrect results
+
+* Thu Mar 07 2013 Denis Zalevskiy <denis.zalevskiy@jollamobile.com> - 0.7.39
+- upower: pick only battery has non-zero energy and voltage
+
+* Sat Sep 29 2012 Denis Zalevskiy <denis.zalevskiy@jollamobile.com> - 0.7.38
+- Generic keyboard plugin
+
+* Wed Sep 26 2012 Denis Zalevskiy <denis.zalevskiy@jollamobile.com> - 0.7.37
+- Location plugins are built
+- Corrected deps and changed *.context naming
+- Session plugin is fixed
+
+* Tue Sep 25 2012 Denis Zalevskiy <denis.zalevskiy@jollamobile.com> - 0.7.36
+- mce plugin is added
+
+* Tue Sep 25 2012 Denis Zalevskiy <denis.zalevskiy@jollamobile.com> - 0.7.35
+- Initial port of plugins from contextkit-maemo and contextkit-meego
+
+
